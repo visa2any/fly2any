@@ -5,7 +5,7 @@ import { translations, defaultLocale, type Locale } from './translations';
 
 // Get nested value from object by dot path
 function getNestedValue(obj: Record<string, any>, path: string): string | undefined {
-  return path.split('.').reduce((acc, part) => acc?.[part], obj) as string | undefined;
+  return path.split('.').reduce((acc, part) => (acc as any)?.[part], obj as any) as string | undefined;
 }
 
 /**

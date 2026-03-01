@@ -1,92 +1,57 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma'; // Adjust if needed
+import { prisma } from '@/lib/prisma';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
-export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const dynamic = 'force-dynamic';
 
-  try {
-    const owner = await prisma.propertyOwner.findFirst({
-        where: { user: { email: session.user.email } },
-        select: {
-            verificationStatus: true,
-            trustScore: true,
-            verificationMethod: true,
-            identityVerified: true,
-            emailVerified: true
-        }
+export async function GET(req: NextRequest) {
+  return handleApiError(req, async () => {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const owner = await prisma.propertyOwner.findUnique({
+      where: { userId: session.user.id },
+      select: {
+        verificationStatus: true,
+        trustScore: true,
+        verificationMethod: true,
+        identityVerified: true,
+        emailVerified: true,
+      }
     });
 
     if (!owner) {
-        // user might not be an owner yet, return default/empty
-         return NextResponse.json({ 
-            verificationStatus: 'UNVERIFIED',
-            trustScore: 20, // base score
-            method: null
-         });
+      return NextResponse.json({ verificationStatus: 'UNVERIFIED', trustScore: 20, method: null });
     }
 
     return NextResponse.json(owner);
-  } catch (error) {
-    console.error('Values verification fetch error', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.NORMAL });
 }
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const data = await req.json();
-  const { method, status, trustScoreIncrease, proof } = data;
-
-  try {
-    // 1. Find or Create Owner Record
-    // (In a real app, PropertyOwner is created during onboarding, but we ensure it exists)
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-    // Upsert equivalent logic
-    let owner = await prisma.propertyOwner.findUnique({ where: { userId: user.id } });
-
-    if (!owner) {
-        owner = await prisma.propertyOwner.create({
-            data: {
-                userId: user.id,
-                // defaults
-            }
-        });
+export async function POST(req: NextRequest) {
+  return handleApiError(req, async () => {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Update Verification Status
+    const { method, status, trustScoreIncrease } = await req.json();
+
+    let owner = await prisma.propertyOwner.findUnique({ where: { userId: session.user.id } });
+    if (!owner) {
+      owner = await prisma.propertyOwner.create({ data: { userId: session.user.id } });
+    }
+
     const updates: any = {};
     if (status) updates.verificationStatus = status;
     if (method) updates.verificationMethod = method;
-    
-    // Increment trust score logic
-    if (trustScoreIncrease) {
-        updates.trustScore = { increment: trustScoreIncrease };
-    }
-    
-    // Handle specific proofs (GPS, Video)
-    if (method === 'GPS' && status === 'VERIFIED') {
-        updates.propertyVerified = true;
-    }
+    if (trustScoreIncrease) updates.trustScore = { increment: trustScoreIncrease };
+    if (method === 'GPS' && status === 'VERIFIED') updates.propertyVerified = true;
 
-    const updatedOwner = await prisma.propertyOwner.update({
-        where: { id: owner.id },
-        data: updates
-    });
-
-    return NextResponse.json(updatedOwner);
-
-  } catch (error) {
-      console.error('Verification update error', error);
-      return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+    const updated = await prisma.propertyOwner.update({ where: { id: owner.id }, data: updates });
+    return NextResponse.json(updated);
+  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });
 }

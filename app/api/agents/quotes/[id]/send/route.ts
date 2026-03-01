@@ -59,7 +59,7 @@ export async function POST(
     // Generate public quote URL (use shareableLink or generate token)
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.fly2any.com";
     const viewToken = quote.shareableLink || `qt-${quote.id}`;
-    const quoteUrl = `${baseUrl}/quote/${viewToken}`;
+    const quoteUrl = `${baseUrl}/client/quotes/${viewToken}`;
 
     // Idempotency check: Was this quote sent recently? (within 5 minutes)
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);

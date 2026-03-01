@@ -223,14 +223,15 @@ export default function PremiumDateRangePicker({
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              ref={dropdownRef}
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ type: "spring", ...springConfig }}
-              className="fixed z-[9999] bg-white rounded-2xl border border-gray-200 overflow-hidden"
-              style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.08), 0 20px 25px -5px rgba(0,0,0,0.06)" }}
+              className="fixed z-[9999]"
+              style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
             >
+            {/* ref on inner div — avoids framer-motion PopChild "ref is not a prop" warning */}
+            <div ref={dropdownRef} className="bg-white rounded-2xl border border-gray-200 overflow-hidden" style={{ boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.08), 0 20px 25px -5px rgba(0,0,0,0.06)" }}>
               <div className="px-3 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
                 <p className="text-[10px] font-bold text-indigo-700 flex items-center gap-1.5">
                   <span className={`w-1.5 h-1.5 rounded-full ${selectingEnd ? "bg-purple-500" : "bg-indigo-500"} animate-pulse`} />
@@ -303,6 +304,7 @@ export default function PremiumDateRangePicker({
                   <Check className="w-2.5 h-2.5" /> Done
                 </motion.button>
               </div>
+            </div>
             </motion.div>
           )}
         </AnimatePresence>,

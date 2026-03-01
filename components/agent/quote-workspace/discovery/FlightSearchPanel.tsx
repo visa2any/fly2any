@@ -30,6 +30,7 @@ import { getAirlineData } from "@/lib/flights/airline-data";
 import { useQuoteWorkspace } from "../QuoteWorkspaceProvider";
 import MultiAirportSelector from "@/components/common/MultiAirportSelector";
 import PremiumDatePicker from "@/components/flights/PremiumDatePicker";
+import SimpleDatePicker from "@/components/common/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
 import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search/index";
@@ -102,11 +103,10 @@ export default function FlightSearchPanel() {
   const [filterAirline, setFilterAirline] = useState<string>("");
   const [visibleCount, setVisibleCount] = useState(10);
 
-  // Auto-collapse form when search results arrive
+  // Auto-collapse form when search results arrive (fallback)
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
-      const timer = setTimeout(() => setFormCollapsed(true), 500);
-      return () => clearTimeout(timer);
+      setFormCollapsed(true);
     }
   }, [searchResults, searchLoading]);
 
@@ -162,6 +162,7 @@ export default function FlightSearchPanel() {
     setError(null);
 
     if (!validateForm()) return;
+    setFormCollapsed(true);
 
     // ═══ SYNC TRIP CONTEXT ═══
     const departDate = params.useMultiDate ? format(params.departureDates[0], "yyyy-MM-dd") : params.departureDate;
@@ -656,7 +657,7 @@ export default function FlightSearchPanel() {
                         endPlaceholder="Return"
                       />
                     ) : (
-                      <PremiumDatePicker
+                      <SimpleDatePicker
                         value={params.departureDate}
                         onChange={(date) => { setError(null); setParams(prev => ({ ...prev, departureDate: date })); }}
                         minDate={getMinDate()}
@@ -722,7 +723,7 @@ export default function FlightSearchPanel() {
                             isOpen={isMultiDatePickerOpen}
                             onClose={() => setIsMultiDatePickerOpen(false)}
                             selectedDates={params.departureDates}
-                            onMultiChange={(dates) => {
+                            onMultiChange={(dates: Date[]) => {
                               setParams({ ...params, departureDates: dates });
                             }}
                             onChange={() => {}}
@@ -756,12 +757,12 @@ export default function FlightSearchPanel() {
                             type="single"
                             isOpen={isReturnDatePickerOpen}
                             onClose={() => setIsReturnDatePickerOpen(false)}
-                            value={params.returnDate}
+                            value={params.returnDate || null}
                             onChange={(date) => {
                               setParams(prev => ({ ...prev, returnDate: date }));
                               setError(null);
                             }}
-                            minDate={params.departureDates.length > 0 
+                            minDate={params.departureDates.length > 0
                               ? params.departureDates[0]
                               : new Date()}
                             anchorEl={returnDateTriggerRef.current}
@@ -1149,9 +1150,20 @@ export default function FlightSearchPanel() {
             {/* Flight Cards */}
             {filteredResults.length > 0 ? (
               <>
-                {filteredResults.slice(0, visibleCount).map((flight: any, idx: number) => (
-                  <FlightResultCard key={flight.id || idx} flight={flight} onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)} index={idx} />
-                ))}
+                {filteredResults.slice(0, visibleCount).map((flight: any, idx: number) => {
+                  const isAlreadyAdded = state.items.some(
+                    (item) => item.type === "flight" && (item as any).apiOfferId === flight.id
+                  );
+                  return (
+                    <FlightResultCard
+                      key={flight.id || idx}
+                      flight={flight}
+                      onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)}
+                      index={idx}
+                      alreadyAdded={isAlreadyAdded}
+                    />
+                  );
+                })}
 
                 {/* Load More Button */}
                 {visibleCount < filteredResults.length && (
@@ -1203,7 +1215,7 @@ export default function FlightSearchPanel() {
 }
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
-function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareIdx: number) => void; index: number }) {
+function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flight: any; onAdd: (fareIdx: number) => void; index: number; alreadyAdded?: boolean }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
   const [loadingFares, setLoadingFares] = useState(false);
@@ -1609,14 +1621,20 @@ function FlightResultCard({ flight, onAdd, index }: { flight: any; onAdd: (fareI
             Total • {totalPassengers} pax
           </p>
           <p className="text-[9px] text-gray-500 mt-0.5">${Math.round(price / totalPassengers)}/person</p>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => onAdd(selectedFareIdx)}
-            className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-60 group-hover:opacity-100 transition-opacity"
-          >
-            <Plus className="w-4 h-4" />
-          </motion.button>
+          {alreadyAdded ? (
+            <div className="mt-1.5 w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-lg" title="Already in itinerary">
+              <Check className="w-4 h-4" />
+            </div>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onAdd(selectedFareIdx)}
+              className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-60 group-hover:opacity-100 transition-opacity"
+            >
+              <Plus className="w-4 h-4" />
+            </motion.button>
+          )}
         </div>
       </div>
 

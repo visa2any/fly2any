@@ -1,159 +1,176 @@
 // app/agent/register/page.tsx
-// Agent Registration Page
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
+import Image from "next/image";
+import Link from "next/link";
 import AgentRegistrationForm from "@/components/agent/AgentRegistrationForm";
+import { DollarSign, Zap, Clock, Users, TrendingUp, Shield, Star } from "lucide-react";
 
 export const metadata = {
-  title: "Register as Travel Agent - Fly2Any",
-  description: "Join Fly2Any's travel agent program and start earning commissions",
+  title: "Join as Travel Agent - Fly2Any",
+  description: "Join Fly2Any's travel agent program and start earning competitive commissions",
 };
+
+const TIERS = [
+  { name: "Independent",    fee: "10–30%", clients: "Any",       popular: false },
+  { name: "Professional",   fee: "10–30%", clients: "Any",       popular: true  },
+  { name: "Agency Partner", fee: "10–30%", clients: "Any",       popular: false },
+  { name: "White Label",    fee: "10–30%", clients: "Unlimited", popular: false },
+];
+
+const BENEFITS = [
+  { icon: DollarSign, label: "100% markup yours",      color: "bg-emerald-500" },
+  { icon: Zap,        label: "Wholesale net pricing",  color: "bg-blue-500"    },
+  { icon: Clock,      label: "Approved in 24–48h",     color: "bg-amber-500"   },
+  { icon: Users,      label: "1,200+ active agents",   color: "bg-violet-500"  },
+];
 
 export default async function AgentRegisterPage() {
   const session = await auth();
+  if (!session?.user?.id) redirect("/auth/signin?callbackUrl=/agent/register");
 
-  if (!session?.user?.id) {
-    redirect("/auth/signin?callbackUrl=/agent/register");
-  }
-
-  // Check if already registered
   const existingAgent = await prisma!.travelAgent.findUnique({
     where: { userId: session.user.id },
+    select: { id: true },
   });
-
-  if (existingAgent) {
-    redirect("/agent");
-  }
+  if (existingAgent) redirect("/agent");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Join the Fly2Any Agent Program
-          </h1>
-          <p className="text-lg text-gray-600">
-            Start building amazing travel experiences and earning competitive commissions
-          </p>
-        </div>
+    <div className="h-screen flex overflow-hidden">
 
-        {/* Benefits Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-200">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+      {/* ─────────── LEFT HERO PANEL ─────────── */}
+      <aside className="hidden lg:flex flex-col w-[48%] xl:w-[46%] h-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+        {/* Orbs */}
+        <div className="pointer-events-none absolute -top-16 -left-16 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-0 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl" />
+
+        <div className="relative flex flex-col h-full px-8 xl:px-10 py-7 xl:py-8">
+          {/* Logo */}
+          <Link href="/" className="flex flex-col gap-1 mb-7">
+            <Image src="/logo-transparent.png" alt="Fly2Any" width={130} height={39}
+              className="w-[130px] h-auto brightness-0 invert drop-shadow-lg" priority />
+            <span className="text-white/60 text-[10px] font-bold tracking-widest uppercase pl-0.5">
+              Agent Partner Program
+            </span>
+          </Link>
+
+          {/* Heading */}
+          <div className="mb-6">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/15 border border-emerald-500/30 rounded-full mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">Free to Join · No Monthly Fees</span>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Competitive Commissions</h3>
-            <p className="text-sm text-gray-600">
-              Start at 95% revenue share (5% platform fee) and grow to 98.5%
+            <h1 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-tight">
+              Become a<br />
+              <span className="text-primary-400">Travel Agent</span>
+            </h1>
+            <p className="text-gray-400 text-sm mt-2.5 leading-relaxed max-w-xs">
+              Set your own rates on wholesale net prices. Keep 100% of your markup — pay only when you book.
             </p>
           </div>
 
-          <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-200">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Powerful Tools</h3>
-            <p className="text-sm text-gray-600">
-              Multi-product quote builder, CRM, and booking management in one platform
-            </p>
+          {/* Benefits 2×2 */}
+          <div className="grid grid-cols-2 gap-2.5 mb-6">
+            {BENEFITS.map(({ icon: Icon, label, color }) => (
+              <div key={label} className="flex items-center gap-2 p-2.5 bg-white/5 rounded-xl border border-white/8">
+                <div className={`w-7 h-7 ${color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                  <Icon className="w-3.5 h-3.5 text-white" />
+                </div>
+                <span className="text-white/85 text-xs font-medium leading-tight">{label}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-200">
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Fast Setup</h3>
-            <p className="text-sm text-gray-600">
-              Get approved in 24-48 hours and start creating quotes immediately
+          {/* Earning model */}
+          <div className="mb-6">
+            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-2">
+              How You Earn
             </p>
+            <div className="rounded-xl overflow-hidden border border-white/10">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-white/5">
+                    <th className="text-left py-1.5 px-3 text-gray-400 text-[10px] font-semibold uppercase tracking-wide">Tier</th>
+                    <th className="text-center py-1.5 px-3 text-gray-400 text-[10px] font-semibold uppercase tracking-wide">Your Markup</th>
+                    <th className="text-right py-1.5 px-3 text-gray-400 text-[10px] font-semibold uppercase tracking-wide">Clients</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TIERS.map((t) => (
+                    <tr key={t.name} className={`border-t border-white/5 ${t.popular ? "bg-primary-500/10" : ""}`}>
+                      <td className="py-1.5 px-3">
+                        <span className={`text-xs font-semibold ${t.popular ? "text-primary-300" : "text-white/75"}`}>
+                          {t.name}
+                          {t.popular && (
+                            <span className="ml-1.5 text-[9px] bg-primary-500 text-white px-1.5 py-0.5 rounded-full font-bold">
+                              Popular
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="py-1.5 px-3 text-center">
+                        <span className="text-emerald-400 text-xs font-bold">{t.fee}</span>
+                      </td>
+                      <td className="py-1.5 px-3 text-right">
+                        <span className="text-gray-400 text-xs">{t.clients}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-gray-500 text-[10px] mt-1.5">Wholesale net rates · You set the final price · 100% yours</p>
+          </div>
+
+          {/* Trust signals — pinned to bottom */}
+          <div className="mt-auto space-y-2">
+            {[
+              { icon: TrendingUp, text: "Agents avg. $2,400/mo at 15 bookings" },
+              { icon: Shield,     text: "Free signup · Pay only when you book"  },
+              { icon: Star,       text: "95% agent retention · Weekly payouts"  },
+            ].map(({ icon: Icon, text }) => (
+              <div key={text} className="flex items-center gap-2 text-gray-500">
+                <Icon className="w-3 h-3 flex-shrink-0" />
+                <span className="text-[11px]">{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* ─────────── RIGHT FORM PANEL ─────────── */}
+      <main className="flex-1 grid grid-rows-[auto_1fr] overflow-hidden bg-gray-50" style={{height:'100%'}}>
+
+        {/* Mobile-only top bar */}
+        <div className="lg:hidden flex items-center justify-between px-5 py-3 bg-white border-b border-gray-100">
+          <Link href="/">
+            <Image src="/logo-transparent.png" alt="Fly2Any" width={90} height={27} className="w-[90px] h-auto" />
+          </Link>
+          <span className="text-xs text-gray-500 font-semibold">Agent Registration</span>
+        </div>
+
+        {/* Desktop compact header */}
+        <div className="hidden lg:flex items-center gap-3 px-8 xl:px-10 py-3 bg-white border-b border-gray-100">
+          <div className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
+            <Users className="w-4 h-4 text-primary-600" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black text-gray-900 leading-none">Join the Agent Program</h2>
+            <p className="text-[11px] text-gray-400 mt-0.5">Takes ~5 minutes · Approval in 24–48 hours</p>
+          </div>
+          <div className="ml-auto text-[10px] text-gray-400 text-right">
+            <a href="/terms" className="text-primary-600 hover:underline">Terms</a>
+            <span className="mx-1">·</span>
+            <a href="/privacy" className="text-primary-600 hover:underline">Privacy</a>
           </div>
         </div>
 
-        {/* Tier Comparison */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-10">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Tier</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 pr-4">Tier</th>
-                  <th className="text-left py-3 px-4">Platform Fee</th>
-                  <th className="text-left py-3 px-4">Max Clients</th>
-                  <th className="text-left py-3 px-4">Features</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="py-3 pr-4">
-                    <span className="font-medium text-gray-900">Independent</span>
-                    <p className="text-xs text-gray-500">Perfect for solo agents</p>
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-green-600">5%</td>
-                  <td className="py-3 px-4">100</td>
-                  <td className="py-3 px-4 text-gray-600">Full platform access</td>
-                </tr>
-                <tr>
-                  <td className="py-3 pr-4">
-                    <span className="font-medium text-gray-900">Professional</span>
-                    <p className="text-xs text-gray-500">$10K+ monthly sales</p>
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-green-600">3%</td>
-                  <td className="py-3 px-4">500</td>
-                  <td className="py-3 px-4 text-gray-600">+ Priority support</td>
-                </tr>
-                <tr>
-                  <td className="py-3 pr-4">
-                    <span className="font-medium text-gray-900">Agency Partner</span>
-                    <p className="text-xs text-gray-500">$50K+ monthly sales</p>
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-green-600">2%</td>
-                  <td className="py-3 px-4">2,000</td>
-                  <td className="py-3 px-4 text-gray-600">+ Team management</td>
-                </tr>
-                <tr>
-                  <td className="py-3 pr-4">
-                    <span className="font-medium text-gray-900">White Label</span>
-                    <p className="text-xs text-gray-500">Application required</p>
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-green-600">1.5%</td>
-                  <td className="py-3 px-4">Unlimited</td>
-                  <td className="py-3 px-4 text-gray-600">+ Custom branding</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p className="text-xs text-gray-500 mt-4">
-            * You'll start in the Independent tier and can upgrade as your sales grow
-          </p>
-        </div>
-
-        {/* Registration Form */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Registration Details</h2>
+        {/* Form — fills remaining height (grid 1fr row) */}
+        <div className="overflow-hidden flex flex-col px-6 lg:px-8 xl:px-10 py-3">
           <AgentRegistrationForm user={session.user} />
         </div>
-
-        {/* Terms */}
-        <p className="text-center text-sm text-gray-600 mt-6">
-          By registering, you agree to our{" "}
-          <a href="/terms" className="text-primary-600 hover:text-primary-700 underline">
-            Terms of Service
-          </a>{" "}
-          and{" "}
-          <a href="/privacy" className="text-primary-600 hover:text-primary-700 underline">
-            Privacy Policy
-          </a>
-        </p>
-      </div>
+      </main>
     </div>
   );
 }

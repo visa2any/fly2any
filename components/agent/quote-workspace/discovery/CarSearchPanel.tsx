@@ -68,18 +68,17 @@ export default function CarSearchPanel() {
   }, [state.destination, state.startDate, state.endDate]);
   // ═══ END SYNC ═══
 
-  // Auto-collapse form when search results arrive
+  // Auto-collapse form when search results arrive (fallback)
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
-      const timer = setTimeout(() => setFormCollapsed(true), 500);
-      return () => clearTimeout(timer);
+      setFormCollapsed(true);
     }
   }, [searchResults, searchLoading]);
 
   // Mark unified results as seen when this tab is viewed
   useEffect(() => {
-    if (hasUnifiedResults && unifiedContext?.hasNewResults?.cars) {
-      unifiedContext.markResultsSeen("cars");
+    if (hasUnifiedResults && (unifiedContext as any)?.hasNewResults?.cars) {
+      (unifiedContext as any).markResultsSeen?.("cars");
     }
   }, [hasUnifiedResults, unifiedContext]);
 
@@ -179,6 +178,7 @@ export default function CarSearchPanel() {
       setError("Please fill in all required fields");
       return;
     }
+    setFormCollapsed(true);
     setSearchResults(true, null);
     try {
       const query = new URLSearchParams({
@@ -227,7 +227,7 @@ export default function CarSearchPanel() {
       image: carImage,
       apiSource: "cars",
       apiOfferId: car.id,
-    });
+    } as any);
   };
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { supabase as supabaseClient } from '@/lib/supabase/client';
 import type { QuoteWorkspaceState, QuoteItem, QuoteClient, QuotePricing, Travelers } from '../types/quote-workspace.types';
 
 // Supabase quote row type
@@ -69,7 +69,7 @@ function fromDbRow(row: QuoteRow): Partial<QuoteWorkspaceState> {
  * Hook for persisting quotes to Supabase with optimistic updates
  */
 export function useQuotePersistence(agentId: string) {
-  const supabase = createClient();
+  const supabase = supabaseClient;
   const [persistenceState, setPersistenceState] = useState<PersistenceState>({
     isSaving: false,
     isLoading: false,
@@ -248,7 +248,7 @@ export function useQuotePersistence(agentId: string) {
  * Hook for real-time quote collaboration (future)
  */
 export function useQuoteRealtime(quoteId: string | null) {
-  const supabase = createClient();
+  const supabase = supabaseClient;
   const [collaborators, setCollaborators] = useState<string[]>([]);
 
   useEffect(() => {

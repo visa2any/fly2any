@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, ReactNode } from "react";
+import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef, ReactNode } from "react";
+import toast from "react-hot-toast";
 import { produce } from "immer";
 import { useDebouncedCallback } from "use-debounce";
 import { UnifiedSearchProvider } from "./unified-search/UnifiedSearchProvider";
@@ -22,6 +23,14 @@ import type {
 
 // Generate unique ID
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// Static FX rates relative to USD (updated periodically, good enough for agent quoting)
+const FX_RATES: Record<string, number> = {
+  USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.36, AUD: 1.53, MXN: 17.15, BRL: 4.97,
+  JPY: 149.5, CHF: 0.88, INR: 83.1, NZD: 1.63, SGD: 1.34, HKD: 7.82, AED: 3.67,
+  THB: 35.1, ILS: 3.71, COP: 3900, CLP: 870, ARS: 350, DKK: 6.88, NOK: 10.55,
+  SEK: 10.42, PLN: 3.97, CZK: 22.6, ZAR: 18.7, TRY: 30.5,
+};
 
 // Initial state
 const initialState: QuoteWorkspaceState = {
@@ -46,6 +55,7 @@ const initialState: QuoteWorkspaceState = {
     total: 0,
     perPerson: 0,
     currency: "USD",
+    conversionRate: 1,
   },
   client: null,
   ui: {
@@ -69,7 +79,7 @@ const initialState: QuoteWorkspaceState = {
 };
 
 // Helper: Transform QuotePricingService output to state.pricing format
-function toStatePricing(breakdown: PriceBreakdown): QuotePricing {
+function toStatePricing(breakdown: PriceBreakdown, conversionRate = 1): QuotePricing {
   return {
     basePrice: breakdown.basePrice,
     productMarkup: breakdown.productMarkup,
@@ -82,7 +92,8 @@ function toStatePricing(breakdown: PriceBreakdown): QuotePricing {
     discount: breakdown.discount,
     total: breakdown.total,
     perPerson: breakdown.perPerson,
-    currency: breakdown.currency,
+    currency: breakdown.currency as Currency,
+    conversionRate,
   };
 }
 
@@ -116,7 +127,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
           discount: draft.pricing.discount,
         };
         const breakdown1 = calculateQuotePricing(draft.items, pricingContext1);
-        draft.pricing = toStatePricing(breakdown1);
+        draft.pricing = toStatePricing(breakdown1, draft.pricing.conversionRate ?? 1);
         break;
 
       case "ADD_ITEM":
@@ -132,7 +143,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
           discount: draft.pricing.discount,
         };
         const breakdown2 = calculateQuotePricing(draft.items, pricingContext2);
-        draft.pricing = toStatePricing(breakdown2);
+        draft.pricing = toStatePricing(breakdown2, draft.pricing.conversionRate ?? 1);
         break;
 
       case "UPDATE_ITEM":
@@ -148,7 +159,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
             discount: draft.pricing.discount,
           };
           const breakdown3 = calculateQuotePricing(draft.items, pricingContext3);
-          draft.pricing = toStatePricing(breakdown3);
+          draft.pricing = toStatePricing(breakdown3, draft.pricing.conversionRate ?? 1);
         }
         break;
 
@@ -163,7 +174,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
           discount: draft.pricing.discount,
         };
         const breakdown4 = calculateQuotePricing(draft.items, pricingContext4);
-        draft.pricing = toStatePricing(breakdown4);
+        draft.pricing = toStatePricing(breakdown4, draft.pricing.conversionRate ?? 1);
         break;
 
       case "REORDER_ITEMS":
@@ -191,11 +202,12 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
           discount: draft.pricing.discount,
         };
         const breakdown5 = calculateQuotePricing(draft.items, pricingContext5);
-        draft.pricing = toStatePricing(breakdown5);
+        draft.pricing = toStatePricing(breakdown5, draft.pricing.conversionRate ?? 1);
         break;
 
       case "SET_CURRENCY":
         draft.pricing.currency = action.payload as Currency;
+        draft.pricing.conversionRate = FX_RATES[action.payload] ?? 1;
         break;
 
       case "SET_TAXES":
@@ -209,7 +221,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
           discount: draft.pricing.discount,
         };
         const breakdown6 = calculateQuotePricing(draft.items, pricingContext6);
-        draft.pricing = toStatePricing(breakdown6);
+        draft.pricing = toStatePricing(breakdown6, draft.pricing.conversionRate ?? 1);
         break;
 
       case "SET_DISCOUNT":
@@ -223,7 +235,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
           discount: action.payload,
         };
         const breakdown7 = calculateQuotePricing(draft.items, pricingContext7);
-        draft.pricing = toStatePricing(breakdown7);
+        draft.pricing = toStatePricing(breakdown7, draft.pricing.conversionRate ?? 1);
         break;
 
       case "SET_CLIENT":
@@ -268,9 +280,47 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
         draft.ui.expandedItemId = action.payload;
         break;
 
-      case "LOAD_QUOTE":
+      case "LOAD_QUOTE": {
+        const p = action.payload as any;
         Object.assign(draft, action.payload);
+        // Rebuild unified items[] from DB arrays (flights/hotels/etc.) when loading from API
+        const dbItems = [
+          ...(p.flights || []),
+          ...(p.hotels || []),
+          ...(p.activities || []),
+          ...(p.transfers || []),
+          ...(p.carRentals || []),
+          ...(p.customItems || []),
+        ];
+        if (dbItems.length > 0) {
+          draft.items = dbItems;
+        }
+        // Normalize travelers: DB stores as number, state expects object
+        if (typeof p.travelers === 'number') {
+          draft.travelers = {
+            adults: p.adults ?? p.travelers,
+            children: p.children ?? 0,
+            infants: p.infants ?? 0,
+            total: p.travelers,
+          };
+        }
+        // Normalize dates: DB may return Date objects or full ISO strings
+        if (p.startDate && (typeof p.startDate !== 'string' || p.startDate.includes('T'))) {
+          draft.startDate = new Date(p.startDate).toISOString().split('T')[0];
+        }
+        if (p.endDate && (typeof p.endDate !== 'string' || p.endDate.includes('T'))) {
+          draft.endDate = new Date(p.endDate).toISOString().split('T')[0];
+        }
+        // Normalize status: DB stores as UPPERCASE
+        if (p.status && typeof p.status === 'string') {
+          draft.status = p.status.toLowerCase() as any;
+        }
+        // Sync agent markup percent from DB field
+        if (p.agentMarkupPercent !== undefined) {
+          draft.pricing.markupPercent = p.agentMarkupPercent;
+        }
         break;
+      }
 
       case "RESET_WORKSPACE":
         return initialState;
@@ -328,6 +378,7 @@ const QuoteWorkspaceContext = createContext<QuoteWorkspaceContextType | null>(nu
 // Provider component
 export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children: ReactNode; initialQuoteId?: string }) {
   const [state, dispatch] = useReducer(workspaceReducer, initialState);
+  const lastDeletedItemRef = useRef<QuoteItem | null>(null);
 
   // Convenience action creators
   const setTripName = useCallback((name: string) => dispatch({ type: "SET_TRIP_NAME", payload: name }), []);
@@ -341,7 +392,34 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   }, []);
 
   const updateItem = useCallback((id: string, updates: Partial<QuoteItem>) => dispatch({ type: "UPDATE_ITEM", payload: { id, updates } }), []);
-  const removeItem = useCallback((id: string) => dispatch({ type: "REMOVE_ITEM", payload: id }), []);
+
+  const removeItem = useCallback((id: string) => {
+    // Store item for potential undo before removing
+    const itemToDelete = state.items.find((i) => i.id === id);
+    if (itemToDelete) lastDeletedItemRef.current = itemToDelete;
+    dispatch({ type: "REMOVE_ITEM", payload: id });
+    // Show undo toast
+    toast(
+      (t) => (
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-700">Item removed</span>
+          <button
+            onClick={() => {
+              if (lastDeletedItemRef.current) {
+                dispatch({ type: "ADD_ITEM", payload: lastDeletedItemRef.current });
+                lastDeletedItemRef.current = null;
+              }
+              toast.dismiss(t.id);
+            }}
+            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline"
+          >
+            Undo
+          </button>
+        </div>
+      ),
+      { duration: 4000, icon: "🗑️" }
+    );
+  }, [state.items]);
   const reorderItems = useCallback((activeId: string, overId: string) => dispatch({ type: "REORDER_ITEMS", payload: { activeId, overId } }), []);
   const setMarkup = useCallback((percent: number) => dispatch({ type: "SET_MARKUP", payload: percent }), []);
   const setCurrency = useCallback((currency: Currency) => dispatch({ type: "SET_CURRENCY", payload: currency }), []);
@@ -383,11 +461,6 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       return { success: false, error: 'Cannot save empty quote. Add items or trip name first.' };
     }
 
-    // Validation: Client must be selected
-    if (!state.client?.id) {
-      return { success: false, error: 'Please select a client before saving.' };
-    }
-
     dispatch({ type: "SET_SAVING", payload: true });
 
     try {
@@ -407,7 +480,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       };
 
       const payload = {
-        clientId: state.client.id,
+        clientId: state.client?.id || null,
         tripName: state.tripName || 'Untitled Trip',
         destination: state.destination || '',
         startDate: formatDateToISO(state.startDate),
@@ -425,6 +498,8 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
         discount: state.pricing.discount,
         taxes: state.pricing.taxes,
         fees: state.pricing.fees,
+        // Include version for PATCH optimistic-locking (optional — backend falls back to current)
+        ...((state as any).version ? { version: (state as any).version } : {}),
       };
 
       const payloadSize = JSON.stringify(payload).length;
@@ -470,7 +545,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
           failureMode,
           {
             quoteId: state.id || undefined,
-            clientId: state.client.id,
+            clientId: state.client?.id || undefined,
             payloadSize,
           },
           environment
@@ -506,12 +581,16 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       // Handle HTTP response
       if (res.ok) {
         const data = await res.json();
-        const savedQuote = data.quote;
-        if (!state.id && savedQuote?.id) {
-          dispatch({ type: "LOAD_QUOTE", payload: { id: savedQuote.id } });
+        // QuoteSuccessResponse shape: { success, quoteId, version, savedAt, quote }
+        // Prefer data.quoteId (top-level), fallback to nested for backwards compat
+        const newQuoteId = data.quoteId || data.quote?.id || data.quote?.quote?.id;
+        const newVersion = data.version;
+        const savedQuote = data.quote?.quote || data.quote;
+        if (!state.id && newQuoteId) {
+          dispatch({ type: "LOAD_QUOTE", payload: { id: newQuoteId, ...(newVersion ? { version: newVersion } : {}), ...(savedQuote?.shareableLink ? { shareableLink: savedQuote.shareableLink } : {}) } as any });
         }
         dispatch({ type: "SET_LAST_SAVED", payload: new Date().toISOString() });
-        return { success: true, quote: savedQuote };
+        return { success: true, quote: data.quote };
       } else {
         // Non-2xx HTTP response
         let errorData: any;
@@ -538,7 +617,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
           'http',
           {
             quoteId: state.id || undefined,
-            clientId: state.client.id,
+            clientId: state.client?.id || undefined,
             payloadSize,
             httpStatus: res.status,
             backendError: errorData.error || errorData.details?.[0]?.message,
@@ -586,7 +665,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
         'unknown',
         {
           quoteId: state.id || undefined,
-          clientId: state.client.id,
+          clientId: state.client?.id || undefined,
         },
         environment
       );
@@ -636,13 +715,14 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   // Debounced autosave
   const debouncedSave = useDebouncedCallback(saveQuote, 2000);
 
-  // Autosave on state changes (excluding UI changes) - only if client is selected and has valid items
+  // Autosave on state changes - only for editable (draft) quotes
   useEffect(() => {
-    const hasItems = state.items.length > 0;
-    if ((hasItems || state.tripName) && state.client?.id) {
+    const hasContent = state.items.length > 0 || !!state.tripName;
+    const isEditable = !['SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED', 'CANCELLED'].includes(state.status);
+    if (hasContent && isEditable) {
       debouncedSave();
     }
-  }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, debouncedSave]);
+  }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, state.status, debouncedSave]);
 
   // Load initial quote if ID provided
   useEffect(() => {

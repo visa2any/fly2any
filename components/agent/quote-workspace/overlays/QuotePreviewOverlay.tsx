@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Calendar, Users, MapPin, Plane, Building2, Car, Compass, Bus, Shield, Package, Send, Heart, Sparkles, Moon, Lightbulb, CheckCircle2 } from "lucide-react";
+import { X, Calendar, Users, MapPin, Plane, Building2, Car, Compass, Bus, Shield, Package, Send, Heart, Sparkles, Moon, Lightbulb, CheckCircle2, Printer } from "lucide-react";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "../QuoteWorkspaceProvider";
 import type { QuoteItem, ProductType } from "../types/quote-workspace.types";
@@ -16,6 +16,7 @@ const productIcons: Record<ProductType, typeof Plane> = {
   hotel: Building2,
   car: Car,
   activity: Compass,
+  tour: Compass,
   transfer: Bus,
   insurance: Shield,
   custom: Package,
@@ -26,6 +27,7 @@ const productColors: Record<ProductType, string> = {
   hotel: "from-purple-500 to-pink-600",
   car: "from-cyan-500 to-blue-600",
   activity: "from-emerald-500 to-teal-600",
+  tour: "from-violet-500 to-purple-600",
   transfer: "from-amber-500 to-orange-600",
   insurance: "from-rose-500 to-pink-600",
   custom: "from-gray-500 to-gray-600",
@@ -93,22 +95,40 @@ export default function QuotePreviewOverlay() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 bg-gradient-to-b from-gray-50 to-white overflow-y-auto"
+          id="quote-client-preview"
         >
-          {/* Sticky Header */}
-          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-            <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded-full">
+          <style>{`
+            @media print {
+              body > * { display: none !important; }
+              #quote-client-preview { display: block !important; position: static !important; overflow: visible !important; background: white !important; }
+              #quote-client-preview * { display: revert !important; }
+              #quote-client-preview-header { display: none !important; }
+            }
+          `}</style>
+
+          {/* Sticky Header — hidden on print */}
+          <div id="quote-client-preview-header" className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded-full">
                   Client Preview
                 </span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs sm:text-sm font-medium hover:bg-gray-50 transition-all"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Print</span>
+                </button>
                 <button
                   onClick={() => { closePreview(); openSendModal(); }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl text-sm font-semibold hover:shadow-lg transition-all"
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl text-xs sm:text-sm font-semibold hover:shadow-lg transition-all"
                 >
-                  <Send className="w-4 h-4" />
-                  Send Quote
+                  <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Send Quote</span>
+                  <span className="sm:hidden">Send</span>
                 </button>
                 <button onClick={closePreview} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                   <X className="w-5 h-5" />
@@ -118,7 +138,7 @@ export default function QuotePreviewOverlay() {
           </div>
 
           {/* Main Content */}
-          <div className="max-w-3xl mx-auto px-6 py-8">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             {/* INTRO — TOP OF QUOTE */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -130,7 +150,7 @@ export default function QuotePreviewOverlay() {
                 Your Trip. Perfectly Planned.
               </div>
 
-              <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
                 {state.tripName || "Your journey is coming to life."}
               </h1>
 
@@ -329,7 +349,7 @@ export default function QuotePreviewOverlay() {
 
               {/* RIGHT: Trust & Reassurance */}
               <div className="space-y-4">
-                <QuoteConfidenceSummary items={items} agentName={state.client?.name} />
+                <QuoteConfidenceSummary items={items} agentName={state.client ? `${state.client.firstName} ${state.client.lastName}` : undefined} />
                 <FinalReassurance variant="compact" agentName="Your Travel Expert" />
               </div>
             </div>
@@ -487,6 +507,7 @@ function getProductEmoji(type: ProductType): string {
     hotel: "🏨",
     car: "🚗",
     activity: "🎟️",
+    tour: "🗺️",
     transfer: "🚐",
     insurance: "🛡️",
     custom: "✨",

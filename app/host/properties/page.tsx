@@ -120,7 +120,7 @@ export default function PropertiesPage() {
             </Link>
           </div>
           <div className="flex flex-col md:flex-row md:items-baseline gap-1 md:gap-4">
-            <h1 className="text-3xl font-black text-midnight-navy tracking-tighter whitespace-nowrap">Property Matrix</h1>
+            <h1 className="text-3xl font-black text-[#0A0A0A] tracking-tighter whitespace-nowrap">Property Matrix</h1>
             <p className="text-neutral-400 font-medium text-sm leading-tight truncate">
               Manage your ultra-premium portfolio performance. Real-time monitoring of occupancy, yield, and guest sentiment.
             </p>
@@ -137,7 +137,7 @@ export default function PropertiesPage() {
               placeholder="Search properties by name or location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-soft focus:shadow-soft text-midnight-navy placeholder-neutral-400 focus:outline-none focus:border-primary-300 transition-all font-medium"
+              className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-soft focus:shadow-soft text-[#0A0A0A] placeholder-neutral-400 focus:outline-none focus:border-primary-300 transition-all font-medium"
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar p-1.5 bg-neutral-100/50 rounded-2xl border border-neutral-100">
@@ -147,8 +147,8 @@ export default function PropertiesPage() {
                 onClick={() => setStatusFilter(status)}
                 className={`px-5 py-2.5 rounded-xl text-xs font-black capitalize transition-all whitespace-nowrap ${
                   statusFilter === status
-                    ? 'bg-midnight-navy text-white shadow-soft'
-                    : 'text-neutral-500 hover:text-midnight-navy hover:bg-white/60'
+                    ? 'bg-[#0A0A0A] text-white shadow-soft'
+                    : 'text-neutral-500 hover:text-[#0A0A0A] hover:bg-white/60'
                 }`}
               >
                 {status}
@@ -167,9 +167,9 @@ export default function PropertiesPage() {
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 bg-neutral-50 border border-neutral-200 rounded-3xl text-center">
             <AlertCircle className="w-12 h-12 text-red-300 mb-4" />
-            <h3 className="text-midnight-navy font-bold text-lg mb-2">Failed to load properties</h3>
+            <h3 className="text-[#0A0A0A] font-bold text-lg mb-2">Failed to load properties</h3>
             <p className="text-neutral-500 text-sm mb-4 max-w-sm">{error}</p>
-            <button onClick={fetchProperties} className="px-6 py-2.5 bg-midnight-navy text-white rounded-xl text-sm font-bold hover:bg-neutral-800 transition-colors">
+            <button onClick={fetchProperties} className="px-6 py-2.5 bg-[#0A0A0A] text-white rounded-xl text-sm font-bold hover:bg-neutral-800 transition-colors">
               Try Again
             </button>
           </div>
@@ -182,10 +182,11 @@ export default function PropertiesPage() {
                   {/* Top: Image & Status */}
                   <div className="relative h-64 w-full overflow-hidden bg-neutral-100/50">
                     {property.coverImageUrl ? (
-                       <img
+                       <Image
                          src={property.coverImageUrl}
                          alt={property.name}
-                         className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                         fill
+                         className="object-cover transform group-hover:scale-110 transition-transform duration-700"
                        />
                     ) : (
                       <div className="flex items-center justify-center h-full text-neutral-300">
@@ -200,13 +201,6 @@ export default function PropertiesPage() {
                         {statusCfg.label}
                       </span>
                       
-                      {/* Mobile-first Priority Feed (Action Required) */}
-                      {property.status === 'active' && (
-                        <span className="inline-flex md:hidden items-center gap-1.5 px-4 py-2 rounded-2xl text-[10px] font-black bg-rose-500 text-white shadow-soft border border-rose-400 uppercase tracking-widest animate-pulse">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          Action Required
-                        </span>
-                      )}
                     </div>
 
                     {/* Price Overlay */}
@@ -222,7 +216,7 @@ export default function PropertiesPage() {
                   <div className="p-8 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-6">
                       <div className="flex-1">
-                        <h3 className="text-2xl font-black text-midnight-navy leading-tight mb-2 group-hover:text-primary-500 transition-colors tracking-tight truncate">{property.name}</h3>
+                        <h3 className="text-2xl font-black text-[#0A0A0A] leading-tight mb-2 group-hover:text-primary-500 transition-colors tracking-tight truncate">{property.name}</h3>
                         <div className="flex items-center gap-1.5 text-neutral-400 font-bold text-xs uppercase tracking-widest">
                           <MapPin className="w-3.5 h-3.5 text-secondary-500" />
                           <span className="truncate">{property.city || 'Hidden'}{property.country ? `, ${property.country}` : ''}</span>
@@ -250,16 +244,16 @@ export default function PropertiesPage() {
                        <div className="grid grid-cols-3 gap-4">
                           <div className="flex flex-col">
                              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Views</span>
-                             <span className="text-lg font-black text-midnight-navy">{property.viewCount.toLocaleString()}</span>
+                             <span className="text-lg font-black text-[#0A0A0A]">{property.viewCount.toLocaleString()}</span>
                           </div>
                           <div className="flex flex-col">
                              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Booked</span>
-                             <span className="text-lg font-black text-midnight-navy">{property.bookingCount}</span>
+                             <span className="text-lg font-black text-[#0A0A0A]">{property.bookingCount}</span>
                           </div>
                           <div className="flex flex-col">
                              <span className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Rating</span>
                              <div className="flex items-center gap-1">
-                                <span className="text-lg font-black text-midnight-navy">{property.avgRating || '—'}</span>
+                                <span className="text-lg font-black text-[#0A0A0A]">{property.avgRating || '—'}</span>
                                 <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                              </div>
                           </div>
@@ -276,7 +270,7 @@ export default function PropertiesPage() {
                             <Link
                               href={`/properties/${property.slug || property.id}`}
                               target="_blank"
-                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-50 text-neutral-400 hover:text-midnight-navy hover:bg-neutral-100 transition-all border border-neutral-100"
+                              className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-50 text-neutral-400 hover:text-[#0A0A0A] hover:bg-neutral-100 transition-all border border-neutral-100"
                             >
                               <ExternalLink className="w-4 h-4" />
                             </Link>
@@ -306,7 +300,7 @@ export default function PropertiesPage() {
             <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mb-4">
               <Building2 className="w-8 h-8 text-neutral-300" />
             </div>
-            <h3 className="text-midnight-navy font-bold text-lg mb-2">No properties found</h3>
+            <h3 className="text-[#0A0A0A] font-bold text-lg mb-2">No properties found</h3>
             <p className="text-neutral-500 text-sm max-w-sm mb-6">
               {searchQuery || statusFilter !== 'all'
                 ? "Try adjusting your filters or search query."
@@ -338,7 +332,7 @@ export default function PropertiesPage() {
             <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5">
               <Trash2 className="w-7 h-7 text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-midnight-navy text-center mb-2">Delete Property?</h3>
+            <h3 className="text-xl font-bold text-[#0A0A0A] text-center mb-2">Delete Property?</h3>
             <p className="text-neutral-500 text-sm text-center mb-8">This action cannot be undone. All associated data including images, rooms, availability, and bookings will be permanently removed.</p>
             <div className="flex gap-3">
               <button

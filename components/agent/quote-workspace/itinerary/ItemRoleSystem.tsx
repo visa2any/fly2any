@@ -26,6 +26,7 @@ export const getItemRole = (type: ProductType): ItemRole => {
     hotel: "accommodation",
     car: "mobility",
     activity: "experience",
+    tour: "experience",
     insurance: "protection",
     custom: "other",
   };
@@ -139,7 +140,7 @@ export const GlanceInfo = ({ item }: { item: QuoteItem }) => {
       }
       case "insurance": {
         const i = item as InsuranceItem;
-        return { where: null, duration: `${i.days || "Trip"}`, who: `${i.travelers}` };
+        return { where: null, duration: `${(i as any).days || "Trip"}`, who: `${i.travelers}` };
       }
       default:
         return { where: null, duration: null, who: null };

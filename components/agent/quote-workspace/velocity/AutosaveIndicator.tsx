@@ -21,7 +21,7 @@ export default function AutosaveIndicator({ status, lastSavedAt, variant = "mini
     return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   };
 
-  const config = {
+  const config: Record<SaveStatus, { icon: typeof Cloud; text: string; color: string; animate?: boolean }> = {
     idle: { icon: Cloud, text: "", color: "text-gray-400" },
     saving: { icon: Loader2, text: "Saving...", color: "text-blue-500", animate: true },
     saved: { icon: Check, text: lastSavedAt ? `Saved at ${formatTime(lastSavedAt)}` : "Saved", color: "text-emerald-500" },

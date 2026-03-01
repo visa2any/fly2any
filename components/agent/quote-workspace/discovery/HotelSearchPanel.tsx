@@ -67,11 +67,10 @@ export default function HotelSearchPanel() {
   const [filterRefundable, setFilterRefundable] = useState(false);
   const [visibleCount, setVisibleCount] = useState(10);
 
-  // Auto-collapse form when search results arrive (local or unified)
+  // Auto-collapse form when search results arrive (fallback)
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
-      const timer = setTimeout(() => setFormCollapsed(true), 500);
-      return () => clearTimeout(timer);
+      setFormCollapsed(true);
     }
   }, [searchResults, searchLoading]);
 
@@ -188,6 +187,7 @@ export default function HotelSearchPanel() {
       setError("Please fill in all required fields");
       return;
     }
+    setFormCollapsed(true);
     setSearchResults(true, null);
     setVisibleCount(10); // Reset pagination
     try {
@@ -223,12 +223,13 @@ export default function HotelSearchPanel() {
   };
 
   const handleAddHotel = (hotel: any) => {
-    // Extract price - API returns lowestPrice: { amount, currency } or lowestPricePerNight as number
-    // Both represent per-night price, so multiply by nights for total
-    const pricePerNight = hotel.lowestPrice?.amount
-      ? parseFloat(hotel.lowestPrice.amount)
-      : (hotel.lowestPricePerNight || 0);
-    const totalPrice = pricePerNight * Math.max(1, nights);
+    // lowestPrice.amount = TOTAL for entire stay; lowestPricePerNight = per-night rate.
+    // Always use lowestPricePerNight if available, otherwise derive from total / nights.
+    const n = Math.max(1, nights);
+    const pricePerNight = hotel.lowestPricePerNight
+      ? hotel.lowestPricePerNight
+      : (hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) / n : 0);
+    const totalPrice = pricePerNight * n;
 
     // Extract image URL - API returns images: [{ url, alt }] array
     const imageUrl = hotel.thumbnail
@@ -243,8 +244,8 @@ export default function HotelSearchPanel() {
 
     const item: Omit<HotelItem, "id" | "sortOrder" | "createdAt"> = {
       type: "hotel",
-      price: totalPrice,
-      priceType: 'per_night', // CRITICAL FIX: Hotels are priced per night per room
+      price: pricePerNight, // per-night rate; QuotePricingService multiplies by nights
+      priceType: 'per_night',
       priceAppliesTo: 1, // Price covers 1 room, NOT per person
       nights,
       currency: "USD",
@@ -587,9 +588,12 @@ function GuestRow({ label, sub, value, min, onChange }: { label: string; sub?: s
 }
 
 function HotelCard({ hotel, nights, onAdd }: { hotel: any; nights: number; onAdd: () => void }) {
-  const pricePerNight = hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) : (hotel.lowestPricePerNight || 0);
-  const totalPrice = pricePerNight * Math.max(1, nights);
-  const perNight = pricePerNight;
+  // lowestPrice.amount = TOTAL for entire stay; lowestPricePerNight = per-night rate.
+  const n = Math.max(1, nights);
+  const perNight = hotel.lowestPricePerNight
+    ? hotel.lowestPricePerNight
+    : (hotel.lowestPrice?.amount ? parseFloat(hotel.lowestPrice.amount) / n : 0);
+  const totalPrice = perNight * n;
   const stars = hotel.rating || hotel.stars || 4;
   const score = hotel.reviewScore || 0;
   const img = hotel.thumbnail || hotel.images?.[0]?.url || hotel.image;

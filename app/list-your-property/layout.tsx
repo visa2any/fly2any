@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { generateFAQSchema, generateBreadcrumbSchema } from '@/lib/seo/schema-generators';
+import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'List Your Property | Earn More with AI-Powered Hosting - Fly2Any',
@@ -56,9 +57,9 @@ export default function ListYourPropertyLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <GlobalErrorBoundary>
       <StructuredData schema={[generateFAQSchema(hostFAQs), generateBreadcrumbSchema(breadcrumbs)]} />
       {children}
-    </>
+    </GlobalErrorBoundary>
   );
 }

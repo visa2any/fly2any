@@ -86,14 +86,15 @@ export default function QuoteFooter() {
     }
   };
 
-  // Format currency
+  // Format currency with FX conversion
+  const fxRate = pricing.conversionRate ?? 1;
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: pricing.currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount * fxRate);
   };
 
   return (

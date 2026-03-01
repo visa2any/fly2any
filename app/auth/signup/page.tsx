@@ -3,8 +3,9 @@
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useMemo, Suspense } from 'react';
-import { Mail, Lock, User, Plane, Eye, EyeOff, CheckCircle2, Loader2, AlertTriangle, Globe, Shield, Star, Home, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { Mail, Lock, User, Plane, Eye, EyeOff, CheckCircle2, Loader2, AlertTriangle, Globe, Shield, Star, Home, Users, TrendingUp, BarChart3, Briefcase, DollarSign, HeadphonesIcon, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 
@@ -20,9 +21,33 @@ const GoogleLogo = () => (
 
 // Context-aware content
 const HOST_PATHS = ['/host', '/list-your-property'];
+const AGENT_PATHS = ['/agent'];
 
 const contextContent = {
+  agent: {
+    slogan: 'The smart platform for travel professionals',
+    heading: (
+      <>
+        Start your
+        <br />
+        journey as a
+        <br />
+        <span className="text-secondary-300">travel agent.</span>
+      </>
+    ),
+    subtitle: 'Create your account to apply for the Fly2Any agent program and start earning commissions.',
+    formTitle: 'Create agent account',
+    formSubtitle: 'Join Fly2Any\'s agent program & start earning',
+    submitLabel: 'Apply to Join',
+    stats: [
+      { value: 'Up to 15%', label: 'Commission', icon: DollarSign },
+      { value: '900+', label: 'Airlines', icon: Plane },
+      { value: '24/7', label: 'Agent Support', icon: HeadphonesIcon },
+      { value: 'Live', label: 'Booking Tools', icon: BookOpen },
+    ],
+  },
   host: {
+    slogan: 'Grow your hosting business with Fly2Any',
     heading: (
       <>
         Start earning
@@ -35,6 +60,7 @@ const contextContent = {
     subtitle: 'Create an account to list your property, manage bookings, and maximize your revenue.',
     formTitle: 'Create host account',
     formSubtitle: 'List your property and start earning',
+    submitLabel: 'Create Account',
     stats: [
       { value: '10K+', label: 'Active Hosts', icon: Users },
       { value: '98%', label: 'Occupancy', icon: TrendingUp },
@@ -43,6 +69,7 @@ const contextContent = {
     ],
   },
   traveler: {
+    slogan: 'Fly anywhere. Any airline. Best price.',
     heading: (
       <>
         Join the
@@ -55,6 +82,7 @@ const contextContent = {
     subtitle: 'Create an account to save searches, set price alerts, and get exclusive deals.',
     formTitle: 'Create your account',
     formSubtitle: 'Join Fly2Any for exclusive deals & easy bookings',
+    submitLabel: 'Create Account',
     stats: [
       { value: '900+', label: 'Airlines', icon: Plane },
       { value: '500K+', label: 'Travelers', icon: Globe },
@@ -67,12 +95,18 @@ const contextContent = {
 function SignUpContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const callbackUrl = searchParams?.get('callbackUrl') || '/account';
+  const rawCallbackUrl = searchParams?.get('callbackUrl') || '';
 
-  // Detect context from callbackUrl
+  // Detect context from callbackUrl (or referrer path hint)
   const context = useMemo(() => {
-    return HOST_PATHS.some(p => callbackUrl?.includes(p)) ? 'host' : 'traveler';
-  }, [callbackUrl]);
+    if (AGENT_PATHS.some(p => rawCallbackUrl?.startsWith(p))) return 'agent';
+    if (HOST_PATHS.some(p => rawCallbackUrl?.includes(p))) return 'host';
+    return 'traveler';
+  }, [rawCallbackUrl]);
+
+  // Resolve final callbackUrl with smart defaults per context
+  const callbackUrl = rawCallbackUrl ||
+    (context === 'agent' ? '/agent' : context === 'host' ? '/host' : '/account');
 
   const content = contextContent[context];
 
@@ -85,6 +119,7 @@ function SignUpContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [accountExists, setAccountExists] = useState(false);
   const [success, setSuccess] = useState(false);
   const [honeypot, setHoneypot] = useState('');
 
@@ -98,11 +133,6 @@ function SignUpContent() {
     enableOneTap: true,
     onError: (err) => setError(err),
   });
-
-  const handleGoogleSignUp = async () => {
-    setError('');
-    await signInWithPopup();
-  };
 
   const handleCredentialsSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +167,13 @@ function SignUpContent() {
       });
 
       const data = await response.json();
+
+      if (response.status === 409) {
+        setAccountExists(true);
+        setError('An account with this email already exists.');
+        setIsLoading(false);
+        return;
+      }
 
       if (!response.ok) {
         setError(data.error || 'Failed to create account');
@@ -182,41 +219,32 @@ function SignUpContent() {
 
   return (
     <div className="h-[100dvh] flex overflow-hidden">
-      {/* ═══════════════════════════════════════════════
-          LEFT PANEL — Brand Visual (Desktop only)
-          ═══════════════════════════════════════════════ */}
+      {/* LEFT PANEL */}
       <div className="hidden lg:flex lg:w-[45%] xl:w-[50%] relative overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-500 to-secondary-500" />
-
-        {/* Decorative pattern overlay */}
         <div className="absolute inset-0 opacity-[0.06]" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
           backgroundSize: '32px 32px'
         }} />
-
-        {/* Floating decorative orbs */}
         <div className="absolute top-[15%] right-[10%] w-[300px] h-[300px] bg-secondary-400/30 rounded-full blur-[100px] animate-pulse" />
         <div className="absolute bottom-[20%] left-[5%] w-[250px] h-[250px] bg-white/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }} />
         <div className="absolute top-[60%] right-[30%] w-[180px] h-[180px] bg-primary-300/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '4s' }} />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-10 xl:p-14 w-full">
           {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-12 h-12 bg-white/15 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 group-hover:bg-white/25 transition-all shadow-lg">
-                {context === 'host' ? (
-                  <Home className="w-6 h-6 text-white" />
-                ) : (
-                  <Plane className="w-6 h-6 text-white" />
-                )}
-              </div>
-              <span className="text-2xl font-black text-white tracking-tight">FLY2ANY</span>
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <Link href="/" className="inline-flex flex-col gap-1.5 group">
+              <Image
+                src="/logo-transparent.png"
+                alt="Fly2Any"
+                width={140}
+                height={42}
+                className="w-[140px] h-auto brightness-0 invert drop-shadow-lg"
+                priority
+              />
+              <span className="text-white/80 text-[11px] font-semibold tracking-wide uppercase pl-0.5">
+                {content.slogan}
+              </span>
             </Link>
           </motion.div>
 
@@ -236,11 +264,7 @@ function SignUpContent() {
           </motion.div>
 
           {/* Trust Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
             <div className="grid grid-cols-2 gap-3">
               {content.stats.map((stat, i) => (
                 <motion.div
@@ -266,47 +290,36 @@ function SignUpContent() {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-          RIGHT PANEL — Signup Form (viewport-locked)
-          ═══════════════════════════════════════════════ */}
+      {/* RIGHT PANEL */}
       <div className="flex-1 flex flex-col h-[100dvh] bg-neutral-50 overflow-hidden">
-        {/* Mobile-only top bar */}
-        <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 px-5 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex-shrink-0">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-white/15 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
-              {context === 'host' ? (
-                <Home className="w-4.5 h-4.5 text-white" />
-              ) : (
-                <Plane className="w-4.5 h-4.5 text-white" />
-              )}
-            </div>
-            <span className="text-lg font-black text-white tracking-tight">FLY2ANY</span>
+        {/* Mobile top bar */}
+        <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 px-5 pt-[max(env(safe-area-inset-top),12px)] pb-3 flex-shrink-0">
+          <Link href="/" className="inline-flex flex-col gap-0.5">
+            <Image
+              src="/logo-transparent.png"
+              alt="Fly2Any"
+              width={100}
+              height={30}
+              className="w-[100px] h-auto brightness-0 invert"
+              priority
+            />
+            <span className="text-white/80 text-[10px] font-semibold tracking-wide uppercase">
+              {content.slogan}
+            </span>
           </Link>
         </div>
 
-        {/* Form — centered, no scroll */}
+        {/* Form */}
         <div className="flex-1 flex items-center justify-center px-5 sm:px-8 overflow-hidden">
           <div className="w-full max-w-[400px]">
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-5"
-            >
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
               <h1 className="text-2xl sm:text-3xl font-black text-neutral-800 mb-1.5 tracking-tight">
                 {content.formTitle}
               </h1>
-              <p className="text-neutral-500 text-sm">
-                {content.formSubtitle}
-              </p>
+              <p className="text-neutral-500 text-sm">{content.formSubtitle}</p>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              {/* Success */}
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               {success && (
                 <div className="mb-3 p-3 bg-success-50 border-2 border-success-200 rounded-xl flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-success-600 flex-shrink-0" />
@@ -314,10 +327,23 @@ function SignUpContent() {
                 </div>
               )}
 
-              {/* Google Sign Up — Disabled until OAuth is configured */}
-
-              {/* Error */}
-              {error && (
+              {accountExists ? (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-3 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl"
+                >
+                  <p className="text-amber-800 text-xs font-semibold mb-2">
+                    You already have a Fly2Any account with this email.
+                  </p>
+                  <Link
+                    href={`/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    Sign in to continue →
+                  </Link>
+                </motion.div>
+              ) : error ? (
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -328,104 +354,55 @@ function SignUpContent() {
                     <p className="text-error-700 text-xs font-semibold">{error}</p>
                   </div>
                 </motion.div>
-              )}
+              ) : null}
 
-              {/* Form */}
               <form onSubmit={handleCredentialsSignUp} className="space-y-3">
-                {/* Honeypot — hidden from humans, bots auto-fill */}
+                {/* Honeypot */}
                 <div className="absolute" style={{ left: '-9999px', top: '-9999px' }} aria-hidden="true">
                   <label htmlFor="signup-website">Website</label>
-                  <input
-                    id="signup-website"
-                    name="website"
-                    type="text"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
-                    tabIndex={-1}
-                    autoComplete="off"
-                  />
+                  <input id="signup-website" name="website" type="text" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
                 </div>
+
                 {/* Name */}
                 <div>
-                  <label htmlFor="name" className="block text-xs font-semibold text-neutral-600 mb-1">
-                    Full Name
-                  </label>
+                  <label htmlFor="name" className="block text-xs font-semibold text-neutral-600 mb-1">Full Name</label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      autoComplete="name"
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name"
                       className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
-                      placeholder="John Doe"
-                    />
+                      placeholder="John Doe" />
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-xs font-semibold text-neutral-600 mb-1">
-                    Email Address
-                  </label>
+                  <label htmlFor="email" className="block text-xs font-semibold text-neutral-600 mb-1">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input id="email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setAccountExists(false); setError(''); }} required autoComplete="email"
                       className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
-                      placeholder="you@example.com"
-                    />
+                      placeholder="you@example.com" />
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label htmlFor="password" className="block text-xs font-semibold text-neutral-600 mb-1">
-                    Password
-                  </label>
+                  <label htmlFor="password" className="block text-xs font-semibold text-neutral-600 mb-1">Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input id="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password"
                       className="w-full pl-10 pr-11 py-2.5 bg-white border-2 border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-500 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm"
-                      placeholder="At least 8 characters"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
+                      placeholder="At least 8 characters" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5" aria-label={showPassword ? 'Hide password' : 'Show password'}>
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  {/* Password strength */}
                   {password && (
                     <div className="mt-1.5 flex items-center gap-2">
                       <div className="flex-1 h-1 bg-neutral-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                          style={{ width: `${(passwordStrength.strength / 4) * 100}%` }}
-                        />
+                        <div className={`h-full ${passwordStrength.color} transition-all duration-300`} style={{ width: `${(passwordStrength.strength / 4) * 100}%` }} />
                       </div>
-                      <span className={`text-[10px] font-semibold ${
-                        passwordStrength.strength <= 1 ? 'text-error-500' :
-                        passwordStrength.strength === 2 ? 'text-warning-500' :
-                        passwordStrength.strength === 3 ? 'text-secondary-600' : 'text-success-600'
-                      }`}>
+                      <span className={`text-[10px] font-semibold ${passwordStrength.strength <= 1 ? 'text-error-500' : passwordStrength.strength === 2 ? 'text-warning-500' : passwordStrength.strength === 3 ? 'text-secondary-600' : 'text-success-600'}`}>
                         {passwordStrength.label}
                       </span>
                     </div>
@@ -434,50 +411,28 @@ function SignUpContent() {
 
                 {/* Confirm Password */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-xs font-semibold text-neutral-600 mb-1">
-                    Confirm Password
-                  </label>
+                  <label htmlFor="confirmPassword" className="block text-xs font-semibold text-neutral-600 mb-1">Confirm Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                    <input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+                    <input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} autoComplete="new-password"
                       className={`w-full pl-10 pr-11 py-2.5 bg-white border-2 rounded-xl focus:ring-2 focus:ring-primary-100 transition-all text-neutral-800 font-medium placeholder:text-neutral-400 outline-none text-sm ${
-                        confirmPassword && confirmPassword !== password
-                          ? 'border-error-300 focus:border-error-500'
-                          : confirmPassword && confirmPassword === password
-                          ? 'border-success-300 focus:border-success-500'
-                          : 'border-neutral-200 focus:border-primary-500'
+                        confirmPassword && confirmPassword !== password ? 'border-error-300 focus:border-error-500' :
+                        confirmPassword && confirmPassword === password ? 'border-success-300 focus:border-success-500' : 'border-neutral-200 focus:border-primary-500'
                       }`}
-                      placeholder="Confirm your password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5"
-                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                    >
+                      placeholder="Confirm your password" />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors p-0.5" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {confirmPassword && (
-                    <p className={`mt-1 text-[10px] font-semibold ${
-                      confirmPassword === password ? 'text-success-600' : 'text-error-500'
-                    }`}>
+                    <p className={`mt-1 text-[10px] font-semibold ${confirmPassword === password ? 'text-success-600' : 'text-error-500'}`}>
                       {confirmPassword === password ? '✓ Passwords match' : '✗ Passwords do not match'}
                     </p>
                   )}
                 </div>
 
                 {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={isLoading || success}
+                <button type="submit" disabled={isLoading || success}
                   className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 hover:from-primary-600 hover:to-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm"
                 >
                   {isLoading ? (
@@ -485,9 +440,7 @@ function SignUpContent() {
                       <Loader2 className="w-4 h-4 animate-spin" />
                       Creating Account...
                     </span>
-                  ) : (
-                    'Create Account'
-                  )}
+                  ) : content.submitLabel}
                 </button>
               </form>
 
@@ -500,7 +453,6 @@ function SignUpContent() {
               </div>
             </motion.div>
 
-            {/* Terms */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

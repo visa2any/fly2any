@@ -65,18 +65,17 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
   }, [state.destination, state.startDate, state.travelers]);
   // ═══ END SYNC ═══
 
-  // Auto-collapse form when search results arrive
+  // Auto-collapse form when search results arrive (fallback)
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
-      const timer = setTimeout(() => setFormCollapsed(true), 500);
-      return () => clearTimeout(timer);
+      setFormCollapsed(true);
     }
   }, [searchResults, searchLoading]);
 
   // Mark unified results as seen when this tab is viewed
   useEffect(() => {
-    if (hasUnifiedResults && unifiedContext?.hasNewResults?.activities) {
-      unifiedContext.markResultsSeen("activities");
+    if (hasUnifiedResults && (unifiedContext as any)?.hasNewResults?.activities) {
+      (unifiedContext as any).markResultsSeen?.("activities");
     }
   }, [hasUnifiedResults, unifiedContext]);
 
@@ -180,6 +179,7 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
       return;
     }
 
+    setFormCollapsed(true);
     setSearchResults(true, null);
 
     try {
@@ -253,7 +253,7 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
 
     // ActivityItem type expects: name, location, description, duration, time, participants, includes, image
     addItem({
-      type: isTourMode ? "tour" : "activity",
+      type: isTourMode ? "tour" as any : "activity",
       price: parseFloat(activity.price?.amount) || 0,
       currency: "USD",
       date: selectedDate,
@@ -267,7 +267,7 @@ export default function ActivitiesSearchPanel({ isTourMode = false }: { isTourMo
       includes: activity.includes || activity.inclusions || [],
       apiSource: "viator",
       apiOfferId: activity.id,
-    });
+    } as any);
 
     setError(null);
   };

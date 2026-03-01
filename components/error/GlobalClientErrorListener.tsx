@@ -16,6 +16,11 @@ export function GlobalClientErrorListener() {
   useEffect(() => {
     // Handle uncaught errors
     const handleError = (event: ErrorEvent) => {
+      const msg = event.error?.message || event.message || '';
+      if (msg === 'NEXT_REDIRECT' || msg === 'NEXT_NOT_FOUND') {
+        event.preventDefault();
+        return;
+      }
       reportClientError(event.error || event.message, {
         component: 'GlobalErrorListener',
         action: 'uncaughtError',
@@ -33,6 +38,19 @@ export function GlobalClientErrorListener() {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const error = event.reason;
       const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Ignore Next.js internal signals — these are navigation events, not errors
+      if (
+        errorMessage === "NEXT_REDIRECT" ||
+        errorMessage === "NEXT_NOT_FOUND" ||
+        (error?.digest && (
+          String(error.digest).startsWith("NEXT_REDIRECT") ||
+          String(error.digest).startsWith("NEXT_NOT_FOUND")
+        ))
+      ) {
+        event.preventDefault();
+        return;
+      }
 
       // Determine category based on error type
       let category = ErrorCategory.UNKNOWN;

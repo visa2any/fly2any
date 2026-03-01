@@ -33,7 +33,7 @@ export default function TrustCenterPage() {
             </div>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-600">Protocol Security</span>
           </div>
-          <h1 className="text-4xl font-black text-midnight-navy mb-3 tracking-tighter">Trust & Protocol Center</h1>
+          <h1 className="text-4xl font-black text-[#0A0A0A] mb-3 tracking-tighter">Trust & Protocol Center</h1>
           <p className="text-neutral-500 max-w-2xl font-medium leading-relaxed">
             Maintain your ultra-premium reputation across the global short-term rental ecosystem. 
             Your score dictates platform priority and insurance premium reductions.
@@ -53,7 +53,7 @@ export default function TrustCenterPage() {
                 <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 mb-8 group-hover:scale-110 transition-transform">
                   <Fingerprint className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-black text-midnight-navy mb-2">Biometric ID</h3>
+                <h3 className="text-2xl font-black text-[#0A0A0A] mb-2">Biometric ID</h3>
                 <p className="text-sm text-neutral-500 font-medium leading-relaxed mb-6">
                   Secured biometric hash anchored to sovereign identity ledger.
                 </p>
@@ -73,7 +73,7 @@ export default function TrustCenterPage() {
                 <div className="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 mb-8 group-hover:scale-110 transition-transform">
                   <Globe className="w-8 h-8" />
                 </div>
-                <h3 className="text-2xl font-black text-midnight-navy mb-2">Global History</h3>
+                <h3 className="text-2xl font-black text-[#0A0A0A] mb-2">Global History</h3>
                 <p className="text-sm text-neutral-500 font-medium leading-relaxed mb-6">
                   Multijurisdictional background screening via Fly2Any API.
                 </p>
@@ -118,7 +118,7 @@ export default function TrustCenterPage() {
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <h3 className="text-lg font-black text-midnight-navy tracking-tight">Protocol Activity</h3>
+                  <h3 className="text-lg font-black text-[#0A0A0A] tracking-tight">Protocol Activity</h3>
                 </div>
                 <Activity className="w-5 h-5 text-neutral-300" />
               </div>
@@ -128,7 +128,7 @@ export default function TrustCenterPage() {
                   <div key={i} className="flex gap-4 group cursor-default">
                     <div className="w-1 bg-neutral-100 rounded-full group-hover:bg-primary-500 transition-colors" />
                     <div>
-                      <p className="text-sm font-black text-midnight-navy mb-0.5">{item.text}</p>
+                      <p className="text-sm font-black text-[#0A0A0A] mb-0.5">{item.text}</p>
                       <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">{item.status}</p>
                       <p className="text-[10px] font-bold text-neutral-500">{item.time}</p>
                     </div>
@@ -142,14 +142,14 @@ export default function TrustCenterPage() {
                <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center border border-primary-100 mb-6">
                   <Lock className="w-6 h-6" />
                </div>
-               <h3 className="text-xl font-black text-midnight-navy mb-2 tracking-tight">Financial Trust</h3>
+               <h3 className="text-xl font-black text-[#0A0A0A] mb-2 tracking-tight">Financial Trust</h3>
                <p className="text-sm text-neutral-500 font-medium mb-6 leading-relaxed">
                   Open banking liquidity verification completed for Q3. Higher limits approved.
                </p>
                <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 flex items-center justify-between">
                   <div>
                     <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Liability Policy</p>
-                    <p className="text-sm font-black text-midnight-navy">$5M Policy Active</p>
+                    <p className="text-sm font-black text-[#0A0A0A]">$5M Policy Active</p>
                   </div>
                   <Smartphone className="w-5 h-5 text-neutral-300" />
                </div>

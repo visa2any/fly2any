@@ -63,7 +63,7 @@ export default function RecentActivity({ quotes = [], bookings = [] }: RecentAct
     }
   };
 
-  const getRelativeTime = (date: Date) => {
+  const getRelativeTime = (date: Date | string) => {
     const diffMs = Date.now() - new Date(date).getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);

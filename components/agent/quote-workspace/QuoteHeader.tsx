@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Check, Edit2, Eye, Settings, User, X, Command, Plus, Bell, ChevronDown, Share2, Download, HelpCircle, MoreHorizontal } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, X, Plus, Bell, ChevronDown, Share2, Download, Printer, HelpCircle, MoreHorizontal, Sparkles, Clock, CalendarDays, LogOut, User, Calendar } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useQuoteAnalysis } from "./hooks/useQuoteAnalysis";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
+import FollowUpSchedulerModal from "./overlays/FollowUpSchedulerModal";
 
 function QuoteStrengthBadge() {
   const { analysis, isLoading } = useQuoteAnalysis();
@@ -46,7 +48,89 @@ export default function QuoteHeader() {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(state.tripName);
   const [showMore, setShowMore] = useState(false);
+  const [isGeneratingNarrative, setIsGeneratingNarrative] = useState(false);
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
+  const [expiryDate, setExpiryDate] = useState<string>("");
+  const [showFollowUp, setShowFollowUp] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Load follow-ups as notifications
+  useEffect(() => {
+    const raw = localStorage.getItem("agent-followups");
+    if (raw) {
+      try { setNotifications(JSON.parse(raw)); } catch { setNotifications([]); }
+    }
+  }, [showNotifications]);
+
+  // Click-outside to close dropdowns
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotifications(false);
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setShowProfile(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Load persisted expiry from localStorage
+  useEffect(() => {
+    if (state.id) {
+      const saved = localStorage.getItem(`quote-expiry-${state.id}`);
+      if (saved) setExpiryDate(saved);
+    }
+  }, [state.id]);
+
+  const handleSaveExpiry = (date: string) => {
+    setExpiryDate(date);
+    if (state.id) localStorage.setItem(`quote-expiry-${state.id}`, date);
+    setShowExpiryPicker(false);
+    toast.success("Expiry date set");
+  };
+
+  const expiryDaysLeft = expiryDate
+    ? Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000)
+    : null;
+
+  const handleGenerateNarrative = useCallback(async () => {
+    if (isGeneratingNarrative) return;
+    if (!state.destination && state.items.length === 0) {
+      toast.error("Add a destination or items first.");
+      return;
+    }
+    setIsGeneratingNarrative(true);
+    const toastId = toast.loading("✨ Crafting your trip story...");
+    try {
+      const res = await fetch("/api/agents/quotes/narrative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripName: state.tripName,
+          destination: state.destination,
+          startDate: state.startDate,
+          endDate: state.endDate,
+          travelers: state.travelers?.total,
+          items: state.items.slice(0, 10),
+          tone: "friendly",
+          clientName: state.client?.firstName,
+        }),
+      });
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      if (data.narrative) {
+        await navigator.clipboard.writeText(data.narrative);
+        toast.success("Trip narrative copied to clipboard!", { id: toastId, duration: 4000 });
+      }
+    } catch {
+      toast.error("Failed to generate narrative", { id: toastId });
+    } finally {
+      setIsGeneratingNarrative(false);
+    }
+  }, [state, isGeneratingNarrative]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -72,23 +156,32 @@ export default function QuoteHeader() {
     let quoteId = state.id;
     if (!quoteId && saveQuote) {
       const saved = await saveQuote();
-      quoteId = saved?.id || state.id;
+      quoteId = saved?.quote?.id || state.id;
     }
     if (quoteId) {
       window.open(`/api/agents/quotes/${quoteId}/pdf`, "_blank");
     } else {
-      alert("Please save the quote first before exporting to PDF.");
+      toast.error("Please save the quote first before exporting to PDF.");
     }
   };
 
   const toolbarIcons = [
     { icon: Share2, label: "Share quote", action: () => openSendModal?.() },
     { icon: Download, label: "Export PDF", action: handleExport },
+    { icon: Printer, label: "Print quote", action: () => window.print() },
     { icon: HelpCircle, label: "Keyboard shortcuts", action: () => window.dispatchEvent(new CustomEvent("open-shortcuts")) },
     { icon: MoreHorizontal, label: "More options", action: () => setShowMore(!showMore) },
   ];
 
+
   return (
+    <>
+    <FollowUpSchedulerModal
+      isOpen={showFollowUp}
+      onClose={() => setShowFollowUp(false)}
+      quoteId={state.id}
+      clientName={state.client?.firstName}
+    />
     <div className="h-14 px-4 flex items-center justify-between gap-4 bg-white border-b border-gray-200 shadow-sm">
       {/* Left: Back + Title + Status + Product Icons */}
       <div className="flex items-center gap-2">
@@ -126,6 +219,85 @@ export default function QuoteHeader() {
 
         {/* Toolbar Actions */}
         <div className="hidden lg:flex items-center gap-1 ml-3 pl-3 border-l border-gray-200">
+          {/* AI Narrative Generator */}
+          <button
+            onClick={handleGenerateNarrative}
+            disabled={isGeneratingNarrative}
+            title="Generate AI trip narrative (copies to clipboard)"
+            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+              isGeneratingNarrative
+                ? "bg-violet-50 text-violet-400 cursor-wait"
+                : "text-violet-600 hover:bg-violet-50 hover:text-violet-700"
+            }`}
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${isGeneratingNarrative ? "animate-pulse" : ""}`} />
+            <span>AI Story</span>
+          </button>
+
+          {/* Expiry Date */}
+          <div className="relative">
+            <button
+              onClick={() => setShowExpiryPicker(!showExpiryPicker)}
+              title="Set quote expiry date"
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                expiryDate
+                  ? expiryDaysLeft !== null && expiryDaysLeft <= 1
+                    ? "text-red-600 bg-red-50"
+                    : expiryDaysLeft !== null && expiryDaysLeft <= 3
+                    ? "text-amber-600 bg-amber-50"
+                    : "text-emerald-600 bg-emerald-50"
+                  : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              {expiryDate && expiryDaysLeft !== null ? (
+                <span>{expiryDaysLeft <= 0 ? "Expired" : `${expiryDaysLeft}d left`}</span>
+              ) : (
+                <span>Expiry</span>
+              )}
+            </button>
+            <AnimatePresence>
+              {showExpiryPicker && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                  className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-50 min-w-[200px]"
+                >
+                  <p className="text-[10px] font-semibold text-gray-500 mb-2 uppercase tracking-wide flex items-center gap-1">
+                    <Clock className="w-3 h-3" />Quote Expiry
+                  </p>
+                  <input
+                    type="date"
+                    defaultValue={expiryDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={(e) => handleSaveExpiry(e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  />
+                  <div className="flex gap-1 mt-2">
+                    {[1, 3, 7].map((d) => {
+                      const dt = new Date();
+                      dt.setDate(dt.getDate() + d);
+                      const val = dt.toISOString().split("T")[0];
+                      return (
+                        <button key={d} onClick={() => handleSaveExpiry(val)}
+                          className="flex-1 py-1 text-[10px] font-semibold bg-gray-50 hover:bg-indigo-50 hover:text-indigo-700 rounded transition-colors">
+                          {d}d
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {expiryDate && (
+                    <button onClick={() => { setExpiryDate(""); if (state.id) localStorage.removeItem(`quote-expiry-${state.id}`); setShowExpiryPicker(false); }}
+                      className="mt-2 w-full text-[10px] text-red-500 hover:text-red-700 text-center">
+                      Clear expiry
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {toolbarIcons.map(({ icon: Icon, label, action }, idx) => (
             <button
               key={idx}
@@ -136,6 +308,16 @@ export default function QuoteHeader() {
               <Icon className="w-4 h-4 stroke-[1.5]" />
             </button>
           ))}
+
+          {/* Follow-Up Scheduler */}
+          <button
+            onClick={() => setShowFollowUp(true)}
+            title="Schedule follow-up reminder"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium text-amber-600 hover:bg-amber-50 transition-all duration-150"
+          >
+            <Bell className="w-3.5 h-3.5" />
+            <span>Follow-up</span>
+          </button>
         </div>
       </div>
 
@@ -173,30 +355,119 @@ export default function QuoteHeader() {
           variant="minimal"
         />
 
-        {/* New Quote Button */}
-        <Link
-          href="/agent/quotes/workspace"
+        {/* New Quote Button — auto-saves current quote first */}
+        <button
+          onClick={async () => {
+            if (state.items.length > 0) {
+              const result = await saveQuote?.();
+              if (!result?.success && !result?.quote) {
+                // Show a toast but still allow navigation
+                import("react-hot-toast").then(({ default: t }) =>
+                  t.error("Could not auto-save. Check autosave status.")
+                );
+              }
+            }
+            window.location.href = "/agent/quotes/workspace";
+          }}
           className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-200 transition-all"
-          title="Create new quote"
+          title="Save current quote and create a new one"
         >
           <Plus className="w-4 h-4" />
           <span>New</span>
-        </Link>
-
-        {/* Notifications */}
-        <button className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150 relative">
-          <Bell className="w-5 h-5 stroke-[1.5]" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
         </button>
 
+        {/* Notifications */}
+        <div ref={notifRef} className="relative">
+          <button
+            onClick={() => setShowNotifications((v) => !v)}
+            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150 relative"
+          >
+            <Bell className="w-5 h-5 stroke-[1.5]" />
+            {notifications.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+            )}
+          </button>
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                transition={{ duration: 0.12 }}
+                className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-xl z-[60] overflow-hidden"
+              >
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">Notifications</span>
+                  {notifications.length > 0 && (
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full">{notifications.length}</span>
+                  )}
+                </div>
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-sm text-gray-400">No notifications</div>
+                ) : (
+                  <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
+                    {notifications.map((n, i) => (
+                      <div key={i} className="px-4 py-3 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                            <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-900 truncate">Follow-up: {n.clientName || "Client"}</p>
+                            <p className="text-[10px] text-gray-500">{n.followUpDate} · via {n.channel}</p>
+                            {n.note && <p className="text-[10px] text-gray-400 truncate mt-0.5">{n.note}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* User Profile */}
-        <div className="relative z-50 flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-lg transition-all duration-150 cursor-pointer">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-[0_2px_8px_rgba(99,102,241,0.25)]">
-            {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0)?.toUpperCase() || 'A'}
-          </div>
-          <ChevronDown className="w-4 h-4 text-gray-400 stroke-[1.5]" />
+        <div ref={profileRef} className="relative">
+          <button
+            onClick={() => setShowProfile((v) => !v)}
+            className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded-lg transition-all duration-150"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-[0_2px_8px_rgba(99,102,241,0.25)]">
+              {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0)?.toUpperCase() || 'A'}
+            </div>
+            <ChevronDown className={`w-4 h-4 text-gray-400 stroke-[1.5] transition-transform ${showProfile ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {showProfile && (
+              <motion.div
+                initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                transition={{ duration: 0.12 }}
+                className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-[60] overflow-hidden"
+              >
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{session?.user?.name || "Agent"}</p>
+                  <p className="text-[10px] text-gray-400 truncate">{session?.user?.email}</p>
+                </div>
+                <div className="py-1">
+                  <a href="/agent" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    <User className="w-4 h-4 text-gray-400" />My Profile
+                  </a>
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />Sign out
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>
+    </>
   );
 }

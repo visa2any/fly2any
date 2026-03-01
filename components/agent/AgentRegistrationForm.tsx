@@ -1,927 +1,750 @@
 "use client";
 
 // components/agent/AgentRegistrationForm.tsx
-// Level 6 Ultra-Premium 6-Step Agent Registration Wizard
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import {
   User, Building2, Award, FileText, CreditCard, CheckCircle,
-  ChevronRight, ChevronLeft, Sparkles, Globe, Phone,
+  ChevronRight, ChevronLeft, Globe, Phone,
   Mail, MapPin, Upload, Shield, RefreshCw, AlertCircle,
-  Briefcase, Hash, Lock
+  Briefcase, Hash, Lock, Smartphone, CheckCircle2, X,
 } from "lucide-react";
 
 interface Props {
   user: { id?: string; name?: string | null; email?: string | null };
 }
 
-const steps = [
-  { id: 1, title: "Personal", icon: User, desc: "Your details" },
-  { id: 2, title: "Business", icon: Building2, desc: "Company info" },
-  { id: 3, title: "Credentials", icon: Award, desc: "IATA / ARC" },
-  { id: 4, title: "Tax & ID", icon: FileText, desc: "Documents" },
-  { id: 5, title: "Payment", icon: CreditCard, desc: "Billing" },
-  { id: 6, title: "Review", icon: CheckCircle, desc: "Confirm" },
+const STEPS = [
+  { id: 1, title: "Personal",    icon: User,       desc: "Your details"   },
+  { id: 2, title: "Business",    icon: Building2,  desc: "Company info"   },
+  { id: 3, title: "Credentials", icon: Award,      desc: "IATA / ARC"     },
+  { id: 4, title: "Tax & ID",    icon: FileText,   desc: "Documents"      },
+  { id: 5, title: "Payment",     icon: CreditCard, desc: "Billing"        },
+  { id: 6, title: "Review",      icon: CheckCircle,desc: "Confirm & send" },
 ];
 
-const specializations = [
-  "Luxury Travel", "Honeymoons", "Family Travel", "Adventure",
-  "Business Travel", "Group Travel", "Cruises", "All-Inclusive",
-  "European Travel", "Asian Travel", "Caribbean", "Weddings",
+const SPECS = [
+  "Luxury Travel","Honeymoons","Family Travel","Adventure",
+  "Business Travel","Group Travel","Cruises","All-Inclusive",
+  "European Travel","Asian Travel","Caribbean","Weddings",
 ];
 
 const US_STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
-  "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
-  "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
-  "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota",
-  "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
-  "New Hampshire", "New Jersey", "New Mexico", "New York",
-  "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
-  "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
-  "West Virginia", "Wisconsin", "Wyoming"
+  "Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut",
+  "Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa",
+  "Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan",
+  "Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada",
+  "New Hampshire","New Jersey","New Mexico","New York","North Carolina",
+  "North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island",
+  "South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont",
+  "Virginia","Washington","West Virginia","Wisconsin","Wyoming",
 ];
 
 export default function AgentRegistrationForm({ user }: Props) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const idFileRef   = useRef<HTMLInputElement>(null);
+  const einFileRef  = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadingId, setUploadingId]   = useState(false);
+  const [uploadingEin, setUploadingEin] = useState(false);
+  const [dragId,  setDragId]  = useState(false);
+  const [dragEin, setDragEin] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [mobileSessionId] = useState(() =>
+    typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+  );
+  const [mobilePolling, setMobilePolling] = useState(false);
 
-  const [formData, setFormData] = useState({
-    // Step 1: Personal
+  const [f, setF] = useState({
     firstName: user.name?.split(" ")[0] || "",
-    lastName: user.name?.split(" ").slice(1).join(" ") || "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
+    lastName:  user.name?.split(" ").slice(1).join(" ") || "",
+    phone: "", workPhone: "", address: "", city: "", state: "", zipCode: "",
     country: "United States",
-
-    // Step 2: Business
-    businessName: "",
-    businessType: "INDIVIDUAL",
+    workEmail: "",
+    businessName: "", businessDba: "", businessType: "INDIVIDUAL",
+    businessAddress: "", businessCity: "", businessState: "", businessZip: "",
+    businessEmail: "", businessPhone: "",
     website: "",
-    yearsExperience: "",
-    specializations: [] as string[],
-    bio: "",
-
-    // Step 3: Credentials
-    credentialType: "none" as "none" | "iata" | "arc" | "both",
-    iataNumber: "",
-    arcNumber: "",
-
-    // Step 4: Tax & Documents
-    ssnOrItin: "",
-    ein: "",
-    idDocumentType: "drivers_license" as "drivers_license" | "passport" | "state_id",
-    idDocumentUrl: "",
-    idDocumentName: "",
-
-    // Step 5: Payment
+    yearsExperience: "", specializations: [] as string[], bio: "",
+    credentialType: "none" as "none"|"iata"|"arc"|"both",
+    iataNumber: "", arcNumber: "",
+    ssnOrItin: "", ein: "",
+    idDocumentType: "drivers_license" as "drivers_license"|"passport"|"state_id",
+    idDocumentUrl: "", idDocumentName: "",
+    einLetterUrl: "", einLetterName: "",
     hasPaymentMethod: false,
-    cardNumber: "",
-    cardExpiry: "",
-    cardCvc: "",
-    cardName: "",
-
-    // Step 6: Terms
-    termsAccepted: false,
-    privacyAccepted: false,
+    cardNumber: "", cardExpiry: "", cardCvc: "", cardName: "",
+    termsAccepted: false, privacyAccepted: false,
   });
 
-  const updateField = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const upd = (k: string, v: any) => setF((p) => ({ ...p, [k]: v }));
+  const toggleSpec = (s: string) => upd("specializations",
+    f.specializations.includes(s) ? f.specializations.filter((x) => x !== s) : [...f.specializations, s]
+  );
 
-  const toggleSpec = (spec: string) => {
-    updateField(
-      "specializations",
-      formData.specializations.includes(spec)
-        ? formData.specializations.filter((s) => s !== spec)
-        : [...formData.specializations, spec]
+  const fmtSSN  = (v: string) => { const c=v.replace(/\D/g,"").slice(0,9); return c.length<=3?c:c.length<=5?`${c.slice(0,3)}-${c.slice(3)}`:`${c.slice(0,3)}-${c.slice(3,5)}-${c.slice(5)}`; };
+  const fmtEIN  = (v: string) => { const c=v.replace(/\D/g,"").slice(0,9); return c.length<=2?c:`${c.slice(0,2)}-${c.slice(2)}`; };
+  const fmtCard = (v: string) => v.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim();
+  const fmtExp  = (v: string) => { const c=v.replace(/\D/g,"").slice(0,4); return c.length<=2?c:`${c.slice(0,2)}/${c.slice(2)}`; };
+
+  // Generate QR when entering step 4
+  useEffect(() => {
+    if (step !== 4) return;
+    const url = `${window.location.origin}/agent/upload-mobile?session=${mobileSessionId}`;
+    import('qrcode').then(QRCode =>
+      QRCode.toDataURL(url, { width: 180, margin: 1, color: { dark: '#0A0A0A', light: '#FAFAFA' } })
+        .then(setQrDataUrl)
     );
-  };
+  }, [step, mobileSessionId]);
 
-  // Format SSN/ITIN: XXX-XX-XXXX
-  const formatSSN = (value: string) => {
-    const cleaned = value.replace(/\D/g, "").slice(0, 9);
-    if (cleaned.length <= 3) return cleaned;
-    if (cleaned.length <= 5) return `${cleaned.slice(0, 3)}-${cleaned.slice(3)}`;
-    return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 5)}-${cleaned.slice(5)}`;
-  };
-
-  // Format EIN: XX-XXXXXXX
-  const formatEIN = (value: string) => {
-    const cleaned = value.replace(/\D/g, "").slice(0, 9);
-    if (cleaned.length <= 2) return cleaned;
-    return `${cleaned.slice(0, 2)}-${cleaned.slice(2)}`;
-  };
-
-  // Format credit card: XXXX XXXX XXXX XXXX
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\D/g, "").slice(0, 16);
-    return cleaned.replace(/(.{4})/g, "$1 ").trim();
-  };
-
-  // Format expiry: MM/YY
-  const formatExpiry = (value: string) => {
-    const cleaned = value.replace(/\D/g, "").slice(0, 4);
-    if (cleaned.length <= 2) return cleaned;
-    return `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
-  };
-
-  // Handle document upload
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Please upload a valid image or PDF file");
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size must be less than 5MB");
-      return;
-    }
-
-    setUploadingDoc(true);
+  // Poll mobile session for uploads
+  const pollMobileSession = useCallback(async () => {
+    setMobilePolling(true);
     try {
-      // Create FormData for upload
-      const uploadData = new FormData();
-      uploadData.append("file", file);
-      uploadData.append("type", "agent_id_document");
+      const res = await fetch(`/api/agent/upload-session?id=${mobileSessionId}`);
+      const { files } = await res.json();
+      if (files.idDocumentUrl) { upd("idDocumentUrl", files.idDocumentUrl); upd("idDocumentName", files.idDocumentName || "Mobile upload"); }
+      if (files.einLetterUrl)  { upd("einLetterUrl",  files.einLetterUrl);  upd("einLetterName",  files.einLetterName  || "EIN letter"); }
+      if (files.idDocumentUrl || files.einLetterUrl) toast.success("Documents received from mobile!");
+      else toast("No uploads found yet. Try again in a moment.", { icon: "📱" });
+    } catch { toast.error("Could not check mobile uploads"); }
+    finally { setMobilePolling(false); }
+  }, [mobileSessionId]);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: uploadData,
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-
+  const handleUploadFile = async (
+    file: File,
+    type: "agent_id_document" | "agent_ein_letter",
+    setUploading: (v: boolean) => void,
+    urlKey: string, nameKey: string
+  ) => {
+    if (!["image/jpeg","image/png","image/webp","application/pdf"].includes(file.type)) { toast.error("Upload a valid image or PDF"); return; }
+    if (file.size > 10*1024*1024) { toast.error("Max 10MB"); return; }
+    setUploading(true);
+    try {
+      const fd = new FormData(); fd.append("file", file); fd.append("type", type);
+      const res = await fetch("/api/upload",{method:"POST",body:fd});
+      if (!res.ok) throw new Error();
       const { url } = await res.json();
-      updateField("idDocumentUrl", url);
-      updateField("idDocumentName", file.name);
-      toast.success("Document uploaded successfully");
-    } catch (err) {
-      toast.error("Failed to upload document. Please try again.");
-    } finally {
-      setUploadingDoc(false);
-    }
+      upd(urlKey, url); upd(nameKey, file.name);
+      toast.success("Document uploaded");
+    } catch { toast.error("Upload failed. Try again."); }
+    finally { setUploading(false); }
   };
 
-  const canProceed = () => {
-    switch (step) {
-      case 1:
-        return formData.firstName && formData.lastName && formData.phone;
-      case 2:
-        return formData.businessName && formData.city;
-      case 3:
-        // If they have credentials, they need to provide numbers
-        if (formData.credentialType === "iata" && !formData.iataNumber) return false;
-        if (formData.credentialType === "arc" && !formData.arcNumber) return false;
-        if (formData.credentialType === "both" && (!formData.iataNumber || !formData.arcNumber)) return false;
-        return true;
-      case 4:
-        // SSN/ITIN is required, EIN optional, ID document required
-        return formData.ssnOrItin.length >= 11 && formData.idDocumentUrl;
-      case 5:
-        // Payment info is optional but if provided, must be complete
-        if (formData.hasPaymentMethod) {
-          return formData.cardNumber.length >= 19 && formData.cardExpiry.length === 5 && formData.cardCvc.length >= 3 && formData.cardName;
-        }
-        return true;
-      case 6:
-        return formData.termsAccepted && formData.privacyAccepted;
-      default:
-        return true;
-    }
+  const handleIdUpload  = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; e.target.value = '';
+    if (file) handleUploadFile(file, "agent_id_document", setUploadingId, "idDocumentUrl", "idDocumentName");
+  };
+  const handleEinUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; e.target.value = '';
+    if (file) handleUploadFile(file, "agent_ein_letter", setUploadingEin, "einLetterUrl", "einLetterName");
   };
 
-  const handleSubmit = async () => {
+  const handleDrop = (e: React.DragEvent, type: "id" | "ein") => {
+    e.preventDefault();
+    if (type === "id") { setDragId(false); const file = e.dataTransfer.files?.[0]; if (file) handleUploadFile(file, "agent_id_document", setUploadingId, "idDocumentUrl", "idDocumentName"); }
+    else               { setDragEin(false); const file = e.dataTransfer.files?.[0]; if (file) handleUploadFile(file, "agent_ein_letter", setUploadingEin, "einLetterUrl", "einLetterName"); }
+  };
+
+  const canNext = () => {
+    if (step===1) return !!(f.firstName && f.lastName && f.phone && f.address && f.city);
+    if (step===2) return !!(f.businessName && f.businessAddress && f.businessCity && f.businessEmail && f.businessPhone);
+    if (step===3) {
+      if (f.credentialType==="iata" && !f.iataNumber) return false;
+      if (f.credentialType==="arc"  && !f.arcNumber)  return false;
+      if (f.credentialType==="both" && (!f.iataNumber||!f.arcNumber)) return false;
+      return true;
+    }
+    if (step===4) return f.ssnOrItin.length>=11 && !!f.idDocumentUrl;
+    if (step===5) return !f.hasPaymentMethod || (f.cardNumber.length>=19 && f.cardExpiry.length===5 && f.cardCvc.length>=3 && !!f.cardName);
+    if (step===6) return f.termsAccepted && f.privacyAccepted;
+    return true;
+  };
+
+  const submit = async () => {
     setLoading(true);
     try {
-      // Prepare data for API (mask sensitive info)
-      const submitData = {
-        ...formData,
-        // Only send last 4 of card if provided
-        cardLastFour: formData.cardNumber ? formData.cardNumber.slice(-4) : undefined,
-        // Don't send full card details to our backend
-        cardNumber: undefined,
-        cardExpiry: undefined,
-        cardCvc: undefined,
-      };
-
-      const res = await fetch("/api/agents/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(submitData),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Registration failed");
-      }
-
-      toast.success("Application submitted! We'll review it within 24-48 hours.");
+      const body = {...f, cardLastFour: f.cardNumber?f.cardNumber.slice(-4):undefined, cardNumber:undefined, cardExpiry:undefined, cardCvc:undefined};
+      const res = await fetch("/api/agents/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      if (!res.ok) { const d=await res.json(); throw new Error(d.error||"Registration failed"); }
+      toast.success("Application submitted! We'll review it within 24–48 hours.");
       router.push("/agent");
-    } catch (err: any) {
-      toast.error(err.message || "Registration failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (e:any) { toast.error(e.message||"Registration failed. Please try again."); }
+    finally { setLoading(false); }
   };
 
-  const inputClass = "w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
+  // Compact shared classes
+  const inp = "w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all";
+  const lbl = "block text-xs font-semibold text-gray-600 mb-1";
+  const icoWrap = "absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400";
+
+  const CurrentIcon = STEPS[step-1].icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-full text-sm font-medium mb-4">
-            <Sparkles className="w-4 h-4" />
-            Become a Travel Agent
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Join Fly2Any</h1>
-          <p className="text-gray-600 mt-2">Start earning commissions on every booking</p>
-        </motion.div>
+    <div className="h-full flex flex-col gap-2.5 min-h-0">
 
-        {/* Progress Steps - Scrollable on mobile */}
-        <div className="flex items-center justify-between mb-8 overflow-x-auto pb-2 px-2">
-          {steps.map((s, idx) => {
+      {/* ── Step progress bar ── */}
+      <div className="bg-white rounded-xl border border-gray-100 px-4 py-2.5 flex-shrink-0 shadow-sm">
+        {/* Progress track */}
+        <div className="relative flex items-center justify-between">
+          {/* Background line */}
+          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gray-100 z-0" />
+          {/* Active line */}
+          <motion.div
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-primary-400 z-0 origin-left"
+            animate={{ width: `${((step-1)/(STEPS.length-1))*100}%` }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          />
+          {STEPS.map((s) => {
             const Icon = s.icon;
-            const isActive = step === s.id;
-            const isComplete = step > s.id;
+            const done = step > s.id;
+            const active = step === s.id;
             return (
-              <div key={s.id} className="flex items-center flex-shrink-0">
-                <div className="flex flex-col items-center">
-                  <motion.div
-                    animate={{ scale: isActive ? 1.1 : 1 }}
-                    className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all ${
-                      isComplete
-                        ? "bg-emerald-500 text-white"
-                        : isActive
-                        ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-400"
-                    }`}
-                  >
-                    {isComplete ? <CheckCircle className="w-4 h-4 md:w-5 md:h-5" /> : <Icon className="w-4 h-4 md:w-5 md:h-5" />}
-                  </motion.div>
-                  <p className={`text-[10px] md:text-xs mt-1 font-medium whitespace-nowrap ${isActive ? "text-indigo-600" : "text-gray-500"}`}>
-                    {s.title}
-                  </p>
-                </div>
-                {idx < steps.length - 1 && (
-                  <div className={`w-6 md:w-12 h-1 mx-1 md:mx-2 rounded ${isComplete ? "bg-emerald-500" : "bg-gray-200"}`} />
-                )}
+              <div key={s.id} className="flex flex-col items-center z-10">
+                <motion.div
+                  animate={{ scale: active ? 1.15 : 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                    done   ? "bg-emerald-500 text-white shadow-sm" :
+                    active ? "bg-primary-500 text-white shadow-md shadow-primary-500/30" :
+                             "bg-gray-100 text-gray-400"
+                  }`}
+                >
+                  {done ? <CheckCircle className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                </motion.div>
+                <span className={`text-[9px] mt-0.5 font-semibold whitespace-nowrap ${
+                  active ? "text-primary-600" : done ? "text-emerald-600" : "text-gray-400"
+                }`}>
+                  {s.title}
+                </span>
               </div>
             );
           })}
         </div>
+      </div>
 
-        {/* Form Card */}
-        <motion.div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="p-6 md:p-8"
-            >
-              {/* Step 1: Personal */}
-              {step === 1 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelClass}>First Name *</label>
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => updateField("firstName", e.target.value)}
-                        className={inputClass}
-                        placeholder="John"
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Last Name *</label>
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => updateField("lastName", e.target.value)}
-                        className={inputClass}
-                        placeholder="Doe"
-                      />
+      {/* ── Form card — fills remaining height ── */}
+      <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-0">
+
+        {/* Card header — compact */}
+        <div className="flex items-center gap-2.5 px-5 py-3 border-b border-gray-100 bg-gray-50/60 flex-shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
+            <CurrentIcon className="w-3.5 h-3.5 text-primary-600" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-primary-600 uppercase tracking-wider leading-none">
+              Step {step} of {STEPS.length}
+            </p>
+            <p className="text-sm font-bold text-gray-900 leading-tight mt-0.5">{STEPS[step-1].desc}</p>
+          </div>
+        </div>
+
+        {/* Scrollable field area */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.18 }}
+            className="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col"
+          >
+
+            {/* ── STEP 1: Personal ── */}
+            {step === 1 && (
+              <div className="flex-1 flex flex-col justify-between gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lbl}>First Name <span className="text-primary-500">*</span></label>
+                    <input type="text" value={f.firstName} onChange={(e)=>upd("firstName",e.target.value)} className={inp} placeholder="John" />
+                  </div>
+                  <div>
+                    <label className={lbl}>Last Name <span className="text-primary-500">*</span></label>
+                    <input type="text" value={f.lastName} onChange={(e)=>upd("lastName",e.target.value)} className={inp} placeholder="Doe" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lbl}>Personal Email</label>
+                    <div className="relative">
+                      <Mail className={icoWrap} />
+                      <input type="email" value={user.email||""} disabled className={`${inp} pl-8 bg-gray-50 text-gray-400 cursor-not-allowed`} />
                     </div>
                   </div>
                   <div>
-                    <label className={labelClass}>Email</label>
+                    <label className={lbl}>Work Email <span className="text-gray-400 font-normal">(optional)</span></label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input type="email" value={user.email || ""} disabled className={`${inputClass} pl-11 bg-gray-50`} />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Phone Number *</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => updateField("phone", e.target.value)}
-                        placeholder="+1 (555) 000-0000"
-                        className={`${inputClass} pl-11`}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Street Address</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) => updateField("address", e.target.value)}
-                        placeholder="123 Main Street"
-                        className={`${inputClass} pl-11`}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="col-span-2 md:col-span-1">
-                      <label className={labelClass}>City *</label>
-                      <input
-                        type="text"
-                        value={formData.city}
-                        onChange={(e) => updateField("city", e.target.value)}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>State</label>
-                      <select
-                        value={formData.state}
-                        onChange={(e) => updateField("state", e.target.value)}
-                        className={inputClass}
-                      >
-                        <option value="">Select</option>
-                        {US_STATES.map((st) => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClass}>ZIP Code</label>
-                      <input
-                        type="text"
-                        value={formData.zipCode}
-                        onChange={(e) => updateField("zipCode", e.target.value)}
-                        className={inputClass}
-                        maxLength={10}
-                      />
+                      <Mail className={icoWrap} />
+                      <input type="email" value={f.workEmail} onChange={(e)=>upd("workEmail",e.target.value)} placeholder="work@agency.com" className={`${inp} pl-8`} />
                     </div>
                   </div>
                 </div>
-              )}
-
-              {/* Step 2: Business */}
-              {step === 2 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold text-gray-900">Business Details</h2>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>Business Name *</label>
+                    <label className={lbl}>Mobile Phone <span className="text-primary-500">*</span></label>
                     <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.businessName}
-                        onChange={(e) => updateField("businessName", e.target.value)}
-                        placeholder="Your Travel Agency"
-                        className={`${inputClass} pl-11`}
-                      />
+                      <Phone className={icoWrap} />
+                      <input type="tel" value={f.phone} onChange={(e)=>upd("phone",e.target.value)} placeholder="+1 (555) 000-0000" className={`${inp} pl-8`} />
                     </div>
                   </div>
                   <div>
-                    <label className={labelClass}>Business Type</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { value: "INDIVIDUAL", label: "Independent Agent" },
-                        { value: "AGENCY", label: "Travel Agency" },
-                        { value: "TOUR_OPERATOR", label: "Tour Operator" },
-                        { value: "OTHER", label: "Other" },
-                      ].map((type) => (
-                        <button
-                          key={type.value}
-                          type="button"
-                          onClick={() => updateField("businessType", type.value)}
-                          className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                            formData.businessType === type.value
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Website (Optional)</label>
+                    <label className={lbl}>Work Phone <span className="text-gray-400 font-normal">(optional)</span></label>
                     <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="url"
-                        value={formData.website}
-                        onChange={(e) => updateField("website", e.target.value)}
-                        placeholder="https://youragency.com"
-                        className={`${inputClass} pl-11`}
-                      />
+                      <Phone className={icoWrap} />
+                      <input type="tel" value={f.workPhone} onChange={(e)=>upd("workPhone",e.target.value)} placeholder="+1 (555) 000-0000" className={`${inp} pl-8`} />
                     </div>
                   </div>
-                  <div>
-                    <label className={labelClass}>Years of Experience</label>
-                    <select
-                      value={formData.yearsExperience}
-                      onChange={(e) => updateField("yearsExperience", e.target.value)}
-                      className={inputClass}
-                    >
-                      <option value="">Select...</option>
-                      <option value="0-1">Less than 1 year</option>
-                      <option value="1-3">1-3 years</option>
-                      <option value="3-5">3-5 years</option>
-                      <option value="5-10">5-10 years</option>
-                      <option value="10+">10+ years</option>
+                </div>
+                <div>
+                  <label className={lbl}>Street Address <span className="text-primary-500">*</span></label>
+                  <div className="relative">
+                    <MapPin className={icoWrap} />
+                    <input type="text" value={f.address} onChange={(e)=>upd("address",e.target.value)} placeholder="123 Main Street" className={`${inp} pl-8`} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-5 gap-2.5">
+                  <div className="col-span-2">
+                    <label className={lbl}>City <span className="text-primary-500">*</span></label>
+                    <input type="text" value={f.city} onChange={(e)=>upd("city",e.target.value)} className={inp} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className={lbl}>State</label>
+                    <select value={f.state} onChange={(e)=>upd("state",e.target.value)} className={inp}>
+                      <option value="">—</option>
+                      {US_STATES.map((st)=><option key={st} value={st}>{st}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className={labelClass}>Specializations</label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {specializations.map((spec) => (
-                        <button
-                          key={spec}
-                          type="button"
-                          onClick={() => toggleSpec(spec)}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                            formData.specializations.includes(spec)
-                              ? "bg-indigo-500 text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                        >
-                          {spec}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className={labelClass}>Bio (Optional)</label>
-                    <textarea
-                      value={formData.bio}
-                      onChange={(e) => updateField("bio", e.target.value)}
-                      rows={3}
-                      placeholder="Tell clients about your experience..."
-                      className={`${inputClass} resize-none`}
-                    />
+                    <label className={lbl}>ZIP</label>
+                    <input type="text" value={f.zipCode} onChange={(e)=>upd("zipCode",e.target.value)} className={inp} maxLength={10} />
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Step 3: Credentials (IATA/ARC) */}
-              {step === 3 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold text-gray-900">Industry Credentials</h2>
-                  <p className="text-sm text-gray-600">
-                    Select your accreditation status. This helps us verify your professional standing.
-                  </p>
-
+            {/* ── STEP 2: Business ── */}
+            {step === 2 && (
+              <div className="flex-1 flex flex-col justify-between gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>Accreditation Status</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { value: "none", label: "None", desc: "No IATA/ARC credentials" },
-                        { value: "iata", label: "IATA Only", desc: "International Air Transport Association" },
-                        { value: "arc", label: "ARC Only", desc: "Airlines Reporting Corporation" },
-                        { value: "both", label: "Both", desc: "IATA and ARC accredited" },
-                      ].map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => updateField("credentialType", opt.value)}
-                          className={`p-4 rounded-xl border-2 text-left transition-all ${
-                            formData.credentialType === opt.value
-                              ? "border-indigo-500 bg-indigo-50"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <p className={`font-medium ${formData.credentialType === opt.value ? "text-indigo-700" : "text-gray-900"}`}>
-                            {opt.label}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
-                        </button>
-                      ))}
+                    <label className={lbl}>Legal Business Name <span className="text-primary-500">*</span></label>
+                    <div className="relative">
+                      <Building2 className={icoWrap} />
+                      <input type="text" value={f.businessName} onChange={(e)=>upd("businessName",e.target.value)} placeholder="Fly2Any Travel LLC" className={`${inp} pl-8`} />
                     </div>
                   </div>
-
-                  {(formData.credentialType === "iata" || formData.credentialType === "both") && (
-                    <div>
-                      <label className={labelClass}>IATA Number *</label>
-                      <div className="relative">
-                        <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type="text"
-                          value={formData.iataNumber}
-                          onChange={(e) => updateField("iataNumber", e.target.value)}
-                          placeholder="Enter your IATA number"
-                          className={`${inputClass} pl-11`}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {(formData.credentialType === "arc" || formData.credentialType === "both") && (
-                    <div>
-                      <label className={labelClass}>ARC Number *</label>
-                      <div className="relative">
-                        <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                          type="text"
-                          value={formData.arcNumber}
-                          onChange={(e) => updateField("arcNumber", e.target.value)}
-                          placeholder="Enter your ARC number"
-                          className={`${inputClass} pl-11`}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {formData.credentialType === "none" && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                      <div className="flex gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-amber-800">No credentials? No problem!</p>
-                          <p className="text-xs text-amber-700 mt-1">
-                            You can still join as an independent agent. We offer training and resources to help you get started.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <label className={lbl}>Trade Name <span className="text-gray-400 font-normal">(DBA, if different)</span></label>
+                    <input type="text" value={f.businessDba} onChange={(e)=>upd("businessDba",e.target.value)} placeholder="e.g. My Travel Co." className={inp} />
+                  </div>
                 </div>
-              )}
-
-              {/* Step 4: Tax Info & Documents */}
-              {step === 4 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold text-gray-900">Tax Information & ID</h2>
-                  <p className="text-sm text-gray-600">
-                    This information is required for commission payments and tax reporting.
-                  </p>
-
+                <div>
+                  <label className={lbl}>Business Type</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      {v:"INDIVIDUAL",l:"Independent"},
+                      {v:"AGENCY",l:"Agency"},
+                      {v:"TOUR_OPERATOR",l:"Tour Operator"},
+                      {v:"OTHER",l:"Other"},
+                    ].map(({v,l})=>(
+                      <button key={v} type="button" onClick={()=>upd("businessType",v)}
+                        className={`py-2 px-2 rounded-lg border text-xs font-semibold transition-all ${f.businessType===v?"border-primary-500 bg-primary-50 text-primary-700":"border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className={lbl}>Business Address <span className="text-primary-500">*</span></label>
+                  <div className="relative">
+                    <MapPin className={icoWrap} />
+                    <input type="text" value={f.businessAddress} onChange={(e)=>upd("businessAddress",e.target.value)} placeholder="123 Business Ave" className={`${inp} pl-8`} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-5 gap-2.5">
+                  <div className="col-span-2">
+                    <label className={lbl}>City <span className="text-primary-500">*</span></label>
+                    <input type="text" value={f.businessCity} onChange={(e)=>upd("businessCity",e.target.value)} className={inp} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className={lbl}>State</label>
+                    <select value={f.businessState} onChange={(e)=>upd("businessState",e.target.value)} className={inp}>
+                      <option value="">—</option>
+                      {US_STATES.map((st)=><option key={st} value={st}>{st}</option>)}
+                    </select>
+                  </div>
                   <div>
-                    <label className={labelClass}>
-                      SSN or ITIN * <span className="text-gray-400 font-normal">(Required for 1099)</span>
-                    </label>
+                    <label className={lbl}>ZIP</label>
+                    <input type="text" value={f.businessZip} onChange={(e)=>upd("businessZip",e.target.value)} className={inp} maxLength={10} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lbl}>Business Email <span className="text-primary-500">*</span></label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.ssnOrItin}
-                        onChange={(e) => updateField("ssnOrItin", formatSSN(e.target.value))}
-                        placeholder="XXX-XX-XXXX"
-                        className={`${inputClass} pl-11 font-mono`}
-                        maxLength={11}
-                      />
+                      <Mail className={icoWrap} />
+                      <input type="email" value={f.businessEmail} onChange={(e)=>upd("businessEmail",e.target.value)} placeholder="info@agency.com" className={`${inp} pl-8`} />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
-                      Encrypted and stored securely. Never shared.
-                    </p>
+                  </div>
+                  <div>
+                    <label className={lbl}>Business Phone <span className="text-primary-500">*</span></label>
+                    <div className="relative">
+                      <Phone className={icoWrap} />
+                      <input type="tel" value={f.businessPhone} onChange={(e)=>upd("businessPhone",e.target.value)} placeholder="+1 (555) 000-0000" className={`${inp} pl-8`} />
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={lbl}>Website <span className="text-gray-400 font-normal">(optional)</span></label>
+                    <div className="relative">
+                      <Globe className={icoWrap} />
+                      <input type="url" value={f.website} onChange={(e)=>upd("website",e.target.value)} placeholder="https://..." className={`${inp} pl-8`} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={lbl}>Years of Experience</label>
+                    <select value={f.yearsExperience} onChange={(e)=>upd("yearsExperience",e.target.value)} className={inp}>
+                      <option value="">Select...</option>
+                      <option value="0-1">{'< 1 year'}</option>
+                      <option value="1-3">1–3 years</option>
+                      <option value="3-5">3–5 years</option>
+                      <option value="5-10">5–10 years</option>
+                      <option value="10+">10+ years</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className={lbl}>Specializations <span className="text-gray-400 font-normal">(optional)</span></label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SPECS.map((s)=>(
+                      <button key={s} type="button" onClick={()=>toggleSpec(s)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${f.specializations.includes(s)?"bg-primary-500 text-white border-primary-500":"bg-white text-gray-600 border-gray-200 hover:border-primary-300 hover:text-primary-600"}`}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 3: Credentials ── */}
+            {step === 3 && (
+              <div className="flex-1 flex flex-col justify-between gap-3">
+                <p className="text-xs text-gray-500">Select your accreditation status. This helps us verify your professional standing.</p>
+                <div>
+                  <label className={lbl}>Accreditation Status</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      {v:"none",l:"None",d:"No IATA/ARC credentials"},
+                      {v:"iata",l:"IATA Only",d:"International Air Transport"},
+                      {v:"arc", l:"ARC Only", d:"Airlines Reporting Corp."},
+                      {v:"both",l:"Both",     d:"IATA and ARC accredited"},
+                    ].map(({v,l,d})=>(
+                      <button key={v} type="button" onClick={()=>upd("credentialType",v)}
+                        className={`p-3 rounded-xl border-2 text-left transition-all ${f.credentialType===v?"border-primary-500 bg-primary-50":"border-gray-200 hover:border-gray-300"}`}>
+                        <p className={`text-xs font-bold ${f.credentialType===v?"text-primary-700":"text-gray-900"}`}>{l}</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{d}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {(f.credentialType==="iata"||f.credentialType==="both") && (
+                  <div>
+                    <label className={lbl}>IATA Number <span className="text-primary-500">*</span></label>
+                    <div className="relative"><Hash className={icoWrap} />
+                      <input type="text" value={f.iataNumber} onChange={(e)=>upd("iataNumber",e.target.value)} placeholder="Enter your IATA number" className={`${inp} pl-8`} />
+                    </div>
+                  </div>
+                )}
+                {(f.credentialType==="arc"||f.credentialType==="both") && (
+                  <div>
+                    <label className={lbl}>ARC Number <span className="text-primary-500">*</span></label>
+                    <div className="relative"><Hash className={icoWrap} />
+                      <input type="text" value={f.arcNumber} onChange={(e)=>upd("arcNumber",e.target.value)} placeholder="Enter your ARC number" className={`${inp} pl-8`} />
+                    </div>
+                  </div>
+                )}
+                {f.credentialType==="none" && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-amber-800">No credentials? No problem!</p>
+                      <p className="text-[11px] text-amber-700 mt-0.5">You can join as an independent agent. We offer training and resources to help you get started.</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── STEP 4: Tax & ID ── */}
+            {step === 4 && (
+              <div className="flex-1 flex flex-col gap-3">
+                <p className="text-xs text-gray-500">Required for commission payments and tax reporting (1099-NEC).</p>
+
+                {/* Tax Numbers */}
+                <div>
+                  <label className={lbl}>SSN or ITIN <span className="text-primary-500">*</span> <span className="text-gray-400 font-normal">(for 1099)</span></label>
+                  <div className="relative"><Lock className={icoWrap} />
+                    <input type="text" value={f.ssnOrItin} onChange={(e)=>upd("ssnOrItin",fmtSSN(e.target.value))}
+                      placeholder="XXX-XX-XXXX" className={`${inp} pl-8 font-mono tracking-wider`} maxLength={11} />
+                  </div>
+                  <p className="flex items-center gap-1 text-[10px] text-gray-400 mt-1"><Shield className="w-2.5 h-2.5" />Encrypted · Never shared</p>
+                </div>
+                <div>
+                  <label className={lbl}>EIN <span className="text-gray-400 font-normal">(optional — LLCs / corps)</span></label>
+                  <div className="relative"><Briefcase className={icoWrap} />
+                    <input type="text" value={f.ein} onChange={(e)=>upd("ein",fmtEIN(e.target.value))}
+                      placeholder="XX-XXXXXXX" className={`${inp} pl-8 font-mono tracking-wider`} maxLength={10} />
+                  </div>
+                </div>
+
+                {/* Documents Section */}
+                <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="bg-gray-50 px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Document Uploads</p>
+                    <span className="text-[10px] text-gray-400">JPG · PNG · PDF · Max 10MB</span>
                   </div>
 
-                  <div>
-                    <label className={labelClass}>
-                      EIN <span className="text-gray-400 font-normal">(If applicable)</span>
-                    </label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={formData.ein}
-                        onChange={(e) => updateField("ein", formatEIN(e.target.value))}
-                        placeholder="XX-XXXXXXX"
-                        className={`${inputClass} pl-11 font-mono`}
-                        maxLength={10}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Required for LLCs and corporations</p>
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-5">
-                    <label className={labelClass}>Government-Issued ID *</label>
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      {[
-                        { value: "drivers_license", label: "Driver's License" },
-                        { value: "passport", label: "Passport" },
-                        { value: "state_id", label: "State ID" },
-                      ].map((type) => (
-                        <button
-                          key={type.value}
-                          type="button"
-                          onClick={() => updateField("idDocumentType", type.value)}
-                          className={`p-2 rounded-lg border text-sm font-medium transition-all ${
-                            formData.idDocumentType === type.value
-                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-gray-200 hover:border-gray-300 text-gray-600"
-                          }`}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleDocumentUpload}
-                      accept="image/*,.pdf"
-                      className="hidden"
-                    />
-
-                    {formData.idDocumentUrl ? (
-                      <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                        <CheckCircle className="w-5 h-5 text-emerald-600" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-emerald-800">Document uploaded</p>
-                          <p className="text-xs text-emerald-600">{formData.idDocumentName}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="text-sm text-emerald-700 hover:underline"
-                        >
-                          Replace
-                        </button>
+                  <div className="p-3 space-y-2.5">
+                    {/* ID Document */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className={`${lbl} mb-0`}>Government-Issued ID <span className="text-primary-500">*</span></label>
                       </div>
-                    ) : (
+                      <div className="grid grid-cols-3 gap-1.5 mb-2">
+                        {[{v:"drivers_license",l:"Driver's License"},{v:"passport",l:"Passport"},{v:"state_id",l:"State ID"}].map(({v,l})=>(
+                          <button key={v} type="button" onClick={()=>upd("idDocumentType",v)}
+                            className={`py-1 px-1.5 rounded-lg border text-[10px] font-bold transition-all ${f.idDocumentType===v?"border-primary-500 bg-primary-50 text-primary-700":"border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                      <input type="file" ref={idFileRef} onChange={handleIdUpload} accept="image/*,.pdf" className="hidden" />
+                      {f.idDocumentUrl ? (
+                        <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0"><p className="text-[11px] font-bold text-emerald-800 truncate">{f.idDocumentName}</p></div>
+                          <button type="button" onClick={()=>{ upd("idDocumentUrl",""); upd("idDocumentName",""); }}
+                            className="text-emerald-600 hover:text-red-500 transition-colors"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ) : (
+                        <div
+                          onDragOver={(e)=>{e.preventDefault();setDragId(true);}}
+                          onDragLeave={()=>setDragId(false)}
+                          onDrop={(e)=>handleDrop(e,"id")}
+                          onClick={()=>idFileRef.current?.click()}
+                          className={`w-full p-3 border-2 border-dashed rounded-xl cursor-pointer transition-all ${dragId?"border-primary-400 bg-primary-50":"border-gray-200 hover:border-primary-300 hover:bg-primary-50/20"}`}>
+                          {uploadingId
+                            ? <div className="flex items-center justify-center gap-2"><RefreshCw className="w-4 h-4 text-primary-500 animate-spin" /><span className="text-xs text-primary-600 font-semibold">Uploading...</span></div>
+                            : <div className="text-center">
+                                <Upload className={`w-5 h-5 mx-auto mb-1 ${dragId?"text-primary-500":"text-gray-300"}`} />
+                                <p className="text-xs font-semibold text-gray-500">{dragId?"Drop to upload":"Drag & drop or click to upload"}</p>
+                              </div>
+                          }
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t border-gray-100" />
+
+                    {/* EIN Letter */}
+                    <div>
+                      <label className={`${lbl} mb-1.5`}>EIN Letter <span className="text-gray-400 font-normal">(optional — IRS confirmation letter)</span></label>
+                      <input type="file" ref={einFileRef} onChange={handleEinUpload} accept="image/*,.pdf" className="hidden" />
+                      {f.einLetterUrl ? (
+                        <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0"><p className="text-[11px] font-bold text-emerald-800 truncate">{f.einLetterName}</p></div>
+                          <button type="button" onClick={()=>{ upd("einLetterUrl",""); upd("einLetterName",""); }}
+                            className="text-emerald-600 hover:text-red-500 transition-colors"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ) : (
+                        <div
+                          onDragOver={(e)=>{e.preventDefault();setDragEin(true);}}
+                          onDragLeave={()=>setDragEin(false)}
+                          onDrop={(e)=>handleDrop(e,"ein")}
+                          onClick={()=>einFileRef.current?.click()}
+                          className={`w-full p-3 border-2 border-dashed rounded-xl cursor-pointer transition-all ${dragEin?"border-primary-400 bg-primary-50":"border-gray-200 hover:border-primary-300 hover:bg-primary-50/20"}`}>
+                          {uploadingEin
+                            ? <div className="flex items-center justify-center gap-2"><RefreshCw className="w-4 h-4 text-primary-500 animate-spin" /><span className="text-xs text-primary-600 font-semibold">Uploading...</span></div>
+                            : <div className="text-center">
+                                <FileText className={`w-5 h-5 mx-auto mb-1 ${dragEin?"text-primary-500":"text-gray-300"}`} />
+                                <p className="text-xs font-semibold text-gray-500">{dragEin?"Drop to upload":"Drag & drop or click to upload"}</p>
+                              </div>
+                          }
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* QR Code — Mobile Upload */}
+                <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="bg-gray-50 px-3 py-2 border-b border-gray-100 flex items-center gap-2">
+                    <Smartphone className="w-3.5 h-3.5 text-gray-400" />
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Upload from Phone</p>
+                  </div>
+                  <div className="p-3 flex gap-3 items-start">
+                    {/* QR */}
+                    <div className="flex-shrink-0">
+                      {qrDataUrl
+                        ? <img src={qrDataUrl} alt="QR Code" className="w-20 h-20 rounded-lg border border-gray-200" />
+                        : <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center"><RefreshCw className="w-5 h-5 text-gray-300 animate-spin" /></div>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-800 mb-0.5">Scan to upload with your phone</p>
+                      <p className="text-[10px] text-gray-500 leading-relaxed">Scan the QR code to open a secure upload page on your phone. Use your camera to take photos of all your documents — ID and EIN letter — then check below.</p>
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadingDoc}
-                        className="w-full p-6 border-2 border-dashed border-gray-300 rounded-xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all group"
+                        onClick={pollMobileSession}
+                        disabled={mobilePolling}
+                        className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-[11px] font-bold text-primary-700 transition-all disabled:opacity-50"
                       >
-                        {uploadingDoc ? (
-                          <RefreshCw className="w-8 h-8 text-indigo-500 mx-auto animate-spin" />
-                        ) : (
-                          <Upload className="w-8 h-8 text-gray-400 mx-auto group-hover:text-indigo-500" />
-                        )}
-                        <p className="text-sm font-medium text-gray-700 mt-2">
-                          {uploadingDoc ? "Uploading..." : "Click to upload your ID"}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">JPG, PNG, WebP or PDF (max 5MB)</p>
+                        {mobilePolling ? <RefreshCw className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                        {mobilePolling ? "Checking..." : "Check for mobile uploads"}
                       </button>
-                    )}
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Step 5: Payment */}
-              {step === 5 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold text-gray-900">Payment Method</h2>
-                  <p className="text-sm text-gray-600">
-                    Add a credit card for platform fees and service charges.
-                  </p>
-
-                  <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                    <input
-                      type="checkbox"
-                      id="hasPayment"
-                      checked={formData.hasPaymentMethod}
-                      onChange={(e) => updateField("hasPaymentMethod", e.target.checked)}
-                      className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                    />
-                    <label htmlFor="hasPayment" className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Add payment method now</p>
-                      <p className="text-xs text-gray-500">You can also add this later from your dashboard</p>
-                    </label>
+            {/* ── STEP 5: Payment ── */}
+            {step === 5 && (
+              <div className="flex-1 flex flex-col justify-between gap-3">
+                <p className="text-xs text-gray-500">Add a card for platform fees. You can also skip and add it later.</p>
+                <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                  <input type="checkbox" checked={f.hasPaymentMethod} onChange={(e)=>upd("hasPaymentMethod",e.target.checked)}
+                    className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500" />
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Add payment method now</p>
+                    <p className="text-[10px] text-gray-500">You can also add this later from your dashboard</p>
                   </div>
-
-                  {formData.hasPaymentMethod && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="space-y-4"
-                    >
+                </label>
+                {f.hasPaymentMethod && (
+                  <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} className="space-y-3 overflow-hidden">
+                    <div>
+                      <label className={lbl}>Cardholder Name <span className="text-primary-500">*</span></label>
+                      <input type="text" value={f.cardName} onChange={(e)=>upd("cardName",e.target.value)} placeholder="Name on card" className={inp} />
+                    </div>
+                    <div>
+                      <label className={lbl}>Card Number <span className="text-primary-500">*</span></label>
+                      <div className="relative"><CreditCard className={icoWrap} />
+                        <input type="text" value={f.cardNumber} onChange={(e)=>upd("cardNumber",fmtCard(e.target.value))}
+                          placeholder="1234 5678 9012 3456" className={`${inp} pl-8 font-mono`} maxLength={19} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className={labelClass}>Cardholder Name *</label>
-                        <input
-                          type="text"
-                          value={formData.cardName}
-                          onChange={(e) => updateField("cardName", e.target.value)}
-                          placeholder="Name on card"
-                          className={inputClass}
-                        />
+                        <label className={lbl}>Expiry <span className="text-primary-500">*</span></label>
+                        <input type="text" value={f.cardExpiry} onChange={(e)=>upd("cardExpiry",fmtExp(e.target.value))} placeholder="MM/YY" className={`${inp} font-mono`} maxLength={5} />
                       </div>
                       <div>
-                        <label className={labelClass}>Card Number *</label>
-                        <div className="relative">
-                          <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                          <input
-                            type="text"
-                            value={formData.cardNumber}
-                            onChange={(e) => updateField("cardNumber", formatCardNumber(e.target.value))}
-                            placeholder="1234 5678 9012 3456"
-                            className={`${inputClass} pl-11 font-mono`}
-                            maxLength={19}
-                          />
-                        </div>
+                        <label className={lbl}>CVC <span className="text-primary-500">*</span></label>
+                        <input type="text" value={f.cardCvc} onChange={(e)=>upd("cardCvc",e.target.value.replace(/\D/g,"").slice(0,4))} placeholder="123" className={`${inp} font-mono`} maxLength={4} />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className={labelClass}>Expiry *</label>
-                          <input
-                            type="text"
-                            value={formData.cardExpiry}
-                            onChange={(e) => updateField("cardExpiry", formatExpiry(e.target.value))}
-                            placeholder="MM/YY"
-                            className={`${inputClass} font-mono`}
-                            maxLength={5}
-                          />
-                        </div>
-                        <div>
-                          <label className={labelClass}>CVC *</label>
-                          <input
-                            type="text"
-                            value={formData.cardCvc}
-                            onChange={(e) => updateField("cardCvc", e.target.value.replace(/\D/g, "").slice(0, 4))}
-                            placeholder="123"
-                            className={`${inputClass} font-mono`}
-                            maxLength={4}
-                          />
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                        <Shield className="w-3 h-3" />
-                        Your card details are encrypted and processed securely via Stripe.
-                      </p>
-                    </motion.div>
-                  )}
+                    </div>
+                    <p className="flex items-center gap-1 text-[10px] text-gray-400"><Shield className="w-2.5 h-2.5" />Encrypted and processed securely via Stripe.</p>
+                  </motion.div>
+                )}
+                {!f.hasPaymentMethod && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                    <p className="text-xs text-blue-700"><strong>No payment required now.</strong> Add a payment method later when you make your first booking.</p>
+                  </div>
+                )}
+              </div>
+            )}
 
-                  {!formData.hasPaymentMethod && (
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                      <p className="text-sm text-blue-800">
-                        <strong>No payment required now.</strong> You can add a payment method later when you make your first booking.
-                      </p>
+            {/* ── STEP 6: Review ── */}
+            {step === 6 && (
+              <div className="flex-1 flex flex-col justify-between gap-3">
+                <div className="grid gap-2">
+                  {[
+                    { label:"Personal",    lines:[`${f.firstName} ${f.lastName}`, `${user.email}${f.phone?` · ${f.phone}`:""}`, f.city?`${f.city}${f.state?`, ${f.state}`:""}`:""].filter(Boolean) },
+                    { label:"Business",    lines:[f.businessName, f.businessDba?`DBA: ${f.businessDba}`:null, `${f.businessType}${f.yearsExperience?` · ${f.yearsExperience} exp`:""}`, f.businessCity?`${f.businessCity}${f.businessState?`, ${f.businessState}`:""}`:""].filter(Boolean) as string[] },
+                    { label:"Credentials", lines:[f.credentialType==="none"?"No IATA/ARC":f.credentialType==="both"?"IATA & ARC":f.credentialType.toUpperCase(), f.iataNumber?`IATA: ${f.iataNumber}`:null, f.arcNumber?`ARC: ${f.arcNumber}`:null].filter(Boolean) as string[] },
+                  ].map(({label,lines})=>(
+                    <div key={label} className="p-3 bg-gray-50 rounded-xl">
+                      <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mb-1">{label}</p>
+                      {lines.map((l,i)=>(
+                        <p key={i} className={`text-xs ${i===0?"font-bold text-gray-900":"text-gray-500 mt-0.5"}`}>{l}</p>
+                      ))}
+                    </div>
+                  ))}
+                  {f.specializations.length>0 && (
+                    <div className="p-3 bg-gray-50 rounded-xl">
+                      <p className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mb-1.5">Specializations</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {f.specializations.map((s)=>(
+                          <span key={s} className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-[10px] font-bold">{s}</span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-              )}
-
-              {/* Step 6: Review */}
-              {step === 6 && (
-                <div className="space-y-5">
-                  <h2 className="text-xl font-semibold text-gray-900">Review Your Application</h2>
-
-                  <div className="space-y-3">
-                    <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Personal</p>
-                      <p className="font-medium text-gray-900">{formData.firstName} {formData.lastName}</p>
-                      <p className="text-sm text-gray-600">{user.email} • {formData.phone}</p>
-                      {formData.city && <p className="text-sm text-gray-600">{formData.city}, {formData.state}</p>}
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Business</p>
-                      <p className="font-medium text-gray-900">{formData.businessName}</p>
-                      <p className="text-sm text-gray-600">{formData.businessType} • {formData.yearsExperience || "New"} experience</p>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 rounded-xl">
-                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Credentials</p>
-                      <p className="font-medium text-gray-900">
-                        {formData.credentialType === "none"
-                          ? "No IATA/ARC"
-                          : formData.credentialType === "both"
-                          ? "IATA & ARC"
-                          : formData.credentialType.toUpperCase()}
-                      </p>
-                      {formData.iataNumber && <p className="text-sm text-gray-600">IATA: {formData.iataNumber}</p>}
-                      {formData.arcNumber && <p className="text-sm text-gray-600">ARC: {formData.arcNumber}</p>}
-                    </div>
-
-                    {formData.specializations.length > 0 && (
-                      <div className="p-4 bg-gray-50 rounded-xl">
-                        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Specializations</p>
-                        <div className="flex flex-wrap gap-2">
-                          {formData.specializations.map((s) => (
-                            <span key={s} className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-5 space-y-3">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.termsAccepted}
-                        onChange={(e) => updateField("termsAccepted", e.target.checked)}
-                        className="mt-1 w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                      />
-                      <span className="text-sm text-gray-600">
-                        I agree to the{" "}
-                        <a href="/terms" target="_blank" className="text-indigo-600 hover:underline">
-                          Terms of Service
-                        </a>{" "}
-                        and{" "}
-                        <a href="/agent-agreement" target="_blank" className="text-indigo-600 hover:underline">
-                          Agent Agreement
-                        </a>
-                      </span>
-                    </label>
-
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.privacyAccepted}
-                        onChange={(e) => updateField("privacyAccepted", e.target.checked)}
-                        className="mt-1 w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-                      />
-                      <span className="text-sm text-gray-600">
-                        I acknowledge the{" "}
-                        <a href="/privacy" target="_blank" className="text-indigo-600 hover:underline">
-                          Privacy Policy
-                        </a>{" "}
-                        and consent to processing my data
-                      </span>
-                    </label>
-                  </div>
-
-                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                    <p className="text-sm text-emerald-800">
-                      <strong>What happens next?</strong> Our team will review your application within 24-48 hours.
-                      You will receive an email notification once your account is approved.
-                    </p>
-                  </div>
+                <div className="border-t border-gray-100 pt-3 space-y-2.5">
+                  <label className="flex items-start gap-2.5 cursor-pointer group">
+                    <input type="checkbox" checked={f.termsAccepted} onChange={(e)=>upd("termsAccepted",e.target.checked)} className="mt-0.5 w-3.5 h-3.5 text-primary-600 rounded border-gray-300 focus:ring-primary-500" />
+                    <span className="text-xs text-gray-600">
+                      I agree to the <a href="/terms" target="_blank" className="text-primary-600 font-semibold hover:underline">Terms of Service</a> and <a href="/agent-agreement" target="_blank" className="text-primary-600 font-semibold hover:underline">Agent Agreement</a>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2.5 cursor-pointer group">
+                    <input type="checkbox" checked={f.privacyAccepted} onChange={(e)=>upd("privacyAccepted",e.target.checked)} className="mt-0.5 w-3.5 h-3.5 text-primary-600 rounded border-gray-300 focus:ring-primary-500" />
+                    <span className="text-xs text-gray-600">
+                      I acknowledge the <a href="/privacy" target="_blank" className="text-primary-600 font-semibold hover:underline">Privacy Policy</a> and consent to processing my data
+                    </span>
+                  </label>
                 </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <p className="text-xs font-bold text-emerald-800 mb-0.5">What happens next?</p>
+                  <p className="text-[11px] text-emerald-700">Our team reviews your application within 24–48 hours. You'll receive an email once approved and can start booking immediately.</p>
+                </div>
+              </div>
+            )}
 
-          {/* Navigation */}
-          <div className="px-6 md:px-8 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-            <button
-              onClick={() => setStep((s) => s - 1)}
-              disabled={step === 1}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </button>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* ── Navigation — always visible at bottom ── */}
+        <div className="flex-shrink-0 px-5 py-3 bg-white border-t border-gray-100 flex items-center justify-between">
+          <button onClick={()=>setStep((s)=>s-1)} disabled={step===1}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded-lg hover:bg-gray-100">
+            <ChevronLeft className="w-3.5 h-3.5" />Back
+          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Dot indicators */}
+            <div className="flex gap-1">
+              {STEPS.map((s)=>(
+                <div key={s.id} className={`rounded-full transition-all ${
+                  step===s.id?"w-4 h-1.5 bg-primary-500":
+                  step>s.id ?"w-1.5 h-1.5 bg-emerald-400":"w-1.5 h-1.5 bg-gray-200"
+                }`} />
+              ))}
+            </div>
+
             {step < 6 ? (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setStep((s) => s + 1)}
-                disabled={!canProceed()}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Continue
-                <ChevronRight className="w-4 h-4" />
+              <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}}
+                onClick={()=>setStep((s)=>s+1)} disabled={!canNext()}
+                className="flex items-center gap-1.5 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold rounded-xl shadow-md shadow-primary-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                Continue<ChevronRight className="w-3.5 h-3.5" />
               </motion.button>
             ) : (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleSubmit}
-                disabled={loading || !canProceed()}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                {loading ? "Submitting..." : "Submit Application"}
+              <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}}
+                onClick={submit} disabled={loading||!canNext()}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md shadow-emerald-500/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                {loading?<RefreshCw className="w-3.5 h-3.5 animate-spin" />:<CheckCircle className="w-3.5 h-3.5" />}
+                {loading?"Submitting...":"Submit Application"}
               </motion.button>
             )}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

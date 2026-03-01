@@ -113,8 +113,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API routes (non-auth) - network first with cache fallback
+  // API routes (non-auth) - selective caching
   if (url.pathname.startsWith('/api/')) {
+    // Never intercept long-running or streaming search APIs — let the browser handle them natively.
+    // If SW wraps these it causes "unexpected error" when the request takes 30+ seconds.
+    const BYPASS_APIS = [
+      '/api/flights/',
+      '/api/hotels/',
+      '/api/cars/',
+      '/api/activities/',
+      '/api/transfers/',
+      '/api/tours/',
+      '/api/ai/',
+      '/api/upload',
+      '/api/agent/upload-session',
+    ];
+    if (BYPASS_APIS.some(p => url.pathname.startsWith(p))) {
+      return; // Let browser handle directly — no SW interception
+    }
     event.respondWith(networkFirstStrategy(request, API_CACHE));
     return;
   }

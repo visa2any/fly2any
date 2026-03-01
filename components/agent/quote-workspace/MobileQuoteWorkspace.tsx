@@ -11,7 +11,7 @@ import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "./QuoteWorksp
 type MobileTab = "search" | "itinerary" | "pricing";
 
 export default function MobileQuoteWorkspace() {
-  const { state, updateTripDetails } = useQuoteWorkspace();
+  const { state, setTripName } = useQuoteWorkspace();
   const items = useQuoteItems();
   const pricing = useQuotePricing();
   const [activeTab, setActiveTab] = useState<MobileTab>("itinerary");
@@ -45,7 +45,7 @@ export default function MobileQuoteWorkspace() {
               <input
                 type="text"
                 value={state.tripName}
-                onChange={(e) => updateTripDetails({ tripName: e.target.value })}
+                onChange={(e) => setTripName(e.target.value)}
                 placeholder="Trip Name"
                 className="text-lg font-semibold text-gray-900 bg-transparent border-none focus:outline-none w-full"
               />
@@ -56,7 +56,7 @@ export default function MobileQuoteWorkspace() {
                   </span>
                 )}
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" /> {state.duration || 0} days
+                  <Clock className="w-3.5 h-3.5" /> {state.startDate && state.endDate ? Math.ceil((new Date(state.endDate).getTime() - new Date(state.startDate).getTime()) / 86400000) : 0} days
                 </span>
                 <span className="flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" /> {state.travelers.total}

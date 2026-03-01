@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 // Agent Registration Endpoint
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-
+import { resendClient, RESEND_CONFIG } from "@/lib/email/resend-client";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     // Create agent profile
     const agent = await prisma!.travelAgent.create({
-      data: agentData,
+      data: agentData as any,
       include: {
         user: {
           select: {
@@ -137,15 +137,42 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Notify admin of new agent registration (non-blocking)
+    const agentAny = agent as any;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL;
+    if (adminEmail) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fly2any.com';
+      resendClient.send({
+        to: adminEmail,
+        from: RESEND_CONFIG.fromEmail,
+        subject: `New Agent Registration: ${agentData.agencyName || agentAny.user?.name || 'Unknown'}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+            <h2 style="color:#E74035">New Agent Registration</h2>
+            <p>A new travel agent has submitted a registration and requires review.</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0">
+              <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb">Name</td><td style="padding:8px;border:1px solid #e5e7eb">${agentAny.user?.name || 'N/A'}</td></tr>
+              <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb">Email</td><td style="padding:8px;border:1px solid #e5e7eb">${agentAny.user?.email || 'N/A'}</td></tr>
+              <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb">Business</td><td style="padding:8px;border:1px solid #e5e7eb">${agentData.agencyName || 'N/A'}</td></tr>
+              <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb">Phone</td><td style="padding:8px;border:1px solid #e5e7eb">${agentData.phoneNumber || 'N/A'}</td></tr>
+              <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb">IATA</td><td style="padding:8px;border:1px solid #e5e7eb">${agentData.iataNumber || 'None'}</td></tr>
+            </table>
+            <a href="${baseUrl}/admin/agents?status=PENDING" style="display:inline-block;background:#E74035;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Review Application →</a>
+          </div>
+        `,
+        tags: ['agent-registration'],
+      }).catch(() => {}); // Non-blocking
+    }
+
     return NextResponse.json({
       success: true,
       agent: {
         id: agent.id,
         tier: agent.tier,
         status: agent.status,
-        onboardingCompleted: agent.onboardingCompleted,
-        onboardingStep: agent.onboardingStep,
-        user: agent.user,
+        onboardingCompleted: (agent as any).onboardingCompleted,
+        onboardingStep: (agent as any).onboardingStep,
+        user: agentAny.user,
       },
     }, { status: 201 });
 

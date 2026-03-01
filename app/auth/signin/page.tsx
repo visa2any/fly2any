@@ -3,8 +3,9 @@
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, Suspense } from 'react';
-import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle, Sparkles, Globe, Shield, Star, Home, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { Mail, Lock, Plane, Eye, EyeOff, Loader2, AlertTriangle, Globe, Shield, Star, Home, Users, TrendingUp, BarChart3, Briefcase, DollarSign, HeadphonesIcon, BookOpen } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useGoogleAuth } from '@/lib/hooks/useGoogleAuth';
 import { accountErrorTracker } from '@/lib/tracking/account-errors';
@@ -30,12 +31,36 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 };
 
 // ──────────────────────────────────────────────
-// Context-aware content: Host vs Traveler
+// Context-aware content: Agent vs Host vs Traveler
 // ──────────────────────────────────────────────
 const HOST_PATHS = ['/host', '/list-your-property'];
+const AGENT_PATHS = ['/agent'];
 
 const contextContent = {
+  agent: {
+    slogan: 'The smart platform for travel professionals',
+    heading: (
+      <>
+        Your agency.
+        <br />
+        Your clients.
+        <br />
+        <span className="text-secondary-300">All in one place.</span>
+      </>
+    ),
+    subtitle: 'Manage quotes, bookings, commissions and client accounts — all from your agent portal.',
+    formTitle: 'Agent Portal',
+    formSubtitle: 'Sign in to access your bookings & agent dashboard',
+    icon: Briefcase,
+    stats: [
+      { value: 'Up to 15%', label: 'Commission', icon: DollarSign },
+      { value: '900+', label: 'Airlines', icon: Plane },
+      { value: '24/7', label: 'Agent Support', icon: HeadphonesIcon },
+      { value: 'Live', label: 'Booking Tools', icon: BookOpen },
+    ],
+  },
   host: {
+    slogan: 'Grow your hosting business with Fly2Any',
     heading: (
       <>
         Manage your
@@ -48,6 +73,7 @@ const contextContent = {
     subtitle: 'Sign in to manage listings, track bookings, view analytics, and connect with guests.',
     formTitle: 'Host sign-in',
     formSubtitle: 'Access your host dashboard & property listings',
+    icon: Home,
     stats: [
       { value: '10K+', label: 'Active Hosts', icon: Users },
       { value: '98%', label: 'Occupancy', icon: TrendingUp },
@@ -56,6 +82,7 @@ const contextContent = {
     ],
   },
   traveler: {
+    slogan: 'Fly anywhere. Any airline. Best price.',
     heading: (
       <>
         Your next
@@ -68,6 +95,7 @@ const contextContent = {
     subtitle: 'Sign in to access your bookings, saved searches, price alerts, and personalized travel deals.',
     formTitle: 'Welcome back',
     formSubtitle: 'Sign in to access your bookings & saved searches',
+    icon: Plane,
     stats: [
       { value: '900+', label: 'Airlines', icon: Plane },
       { value: '500K+', label: 'Travelers', icon: Globe },
@@ -82,11 +110,12 @@ function SignInContent() {
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/account';
   const urlError = searchParams?.get('error');
-  const isAgentLogin = callbackUrl?.includes('/agent');
 
   // Detect context from callbackUrl
   const context = useMemo(() => {
-    return HOST_PATHS.some(p => callbackUrl?.includes(p)) ? 'host' : 'traveler';
+    if (AGENT_PATHS.some(p => callbackUrl?.startsWith(p))) return 'agent';
+    if (HOST_PATHS.some(p => callbackUrl?.includes(p))) return 'host';
+    return 'traveler';
   }, [callbackUrl]);
 
   const content = contextContent[context];
@@ -96,7 +125,6 @@ function SignInContent() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [error, setError] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
@@ -140,19 +168,6 @@ function SignInContent() {
   const handleGoogleSignIn = async () => {
     setError('');
     await signInWithPopup();
-  };
-
-  const handleDemoLogin = async () => {
-    setIsDemoLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/auth/demo', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to start demo');
-      router.push('/agent');
-    } catch (err) {
-      setError('Failed to start demo. Please try again.');
-      setIsDemoLoading(false);
-    }
   };
 
   const handleCredentialsSignIn = async (e: React.FormEvent) => {
@@ -229,15 +244,18 @@ function SignInContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-12 h-12 bg-white/15 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 group-hover:bg-white/25 transition-all shadow-lg">
-                {context === 'host' ? (
-                  <Home className="w-6 h-6 text-white" />
-                ) : (
-                  <Plane className="w-6 h-6 text-white" />
-                )}
-              </div>
-              <span className="text-2xl font-black text-white tracking-tight">FLY2ANY</span>
+            <Link href="/" className="inline-flex flex-col gap-1.5 group">
+              <Image
+                src="/logo-transparent.png"
+                alt="Fly2Any"
+                width={140}
+                height={42}
+                className="w-[140px] h-auto brightness-0 invert drop-shadow-lg"
+                priority
+              />
+              <span className="text-white/80 text-[11px] font-semibold tracking-wide uppercase pl-0.5">
+                {content.slogan}
+              </span>
             </Link>
           </motion.div>
 
@@ -292,16 +310,19 @@ function SignInContent() {
           ═══════════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col h-[100dvh] bg-neutral-50 overflow-hidden">
         {/* Mobile-only top bar with brand */}
-        <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 px-5 pt-[max(env(safe-area-inset-top),12px)] pb-4 flex-shrink-0">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-white/15 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
-              {context === 'host' ? (
-                <Home className="w-4.5 h-4.5 text-white" />
-              ) : (
-                <Plane className="w-4.5 h-4.5 text-white" />
-              )}
-            </div>
-            <span className="text-lg font-black text-white tracking-tight">FLY2ANY</span>
+        <div className="lg:hidden bg-gradient-to-r from-primary-500 to-primary-600 px-5 pt-[max(env(safe-area-inset-top),12px)] pb-3 flex-shrink-0">
+          <Link href="/" className="inline-flex flex-col gap-0.5">
+            <Image
+              src="/logo-transparent.png"
+              alt="Fly2Any"
+              width={100}
+              height={30}
+              className="w-[100px] h-auto brightness-0 invert"
+              priority
+            />
+            <span className="text-white/80 text-[10px] font-semibold tracking-wide uppercase">
+              {content.slogan}
+            </span>
           </Link>
         </div>
 
@@ -451,29 +472,20 @@ function SignInContent() {
                 </button>
               </form>
 
-              {/* Sign Up Link */}
-              <div className="mt-5 text-center text-sm text-neutral-500">
-                Don&apos;t have an account?{' '}
-                <Link href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
-                  Create one
-                </Link>
-              </div>
-
-              {/* Agent Demo Button */}
-              {isAgentLogin && (
-                <div className="mt-4 pt-4 border-t border-neutral-200">
-                  <button
-                    onClick={handleDemoLogin}
-                    disabled={isDemoLoading}
-                    className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold shadow-lg shadow-violet-500/20 hover:shadow-xl hover:from-violet-600 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm"
-                  >
-                    {isDemoLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-4 h-4" />
-                    )}
-                    <span>{isDemoLoading ? 'Starting Demo...' : 'Try Agent Demo'}</span>
-                  </button>
+              {/* Sign Up / Register Link */}
+              {context === 'agent' ? (
+                <div className="mt-5 text-center text-sm text-neutral-500">
+                  Not an agent yet?{' '}
+                  <Link href="/auth/signup?callbackUrl=%2Fagent%2Fregister" className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+                    Apply to join
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-5 text-center text-sm text-neutral-500">
+                  Don&apos;t have an account?{' '}
+                  <Link href={`/auth/signup?callbackUrl=${encodeURIComponent(callbackUrl)}`} className="text-primary-500 hover:text-primary-600 font-semibold transition-colors">
+                    Create one
+                  </Link>
                 </div>
               )}
             </motion.div>

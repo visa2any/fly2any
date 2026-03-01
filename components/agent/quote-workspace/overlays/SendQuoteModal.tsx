@@ -71,8 +71,9 @@ export default function SendQuoteModal() {
   // --- Template Logic ---
 
   const templateVariables = useMemo(() => {
-    if (!state.client || !state.id) return null;
-    const viewToken = `qt-${state.id}`;
+    if (!state.id) return null;
+    const viewToken = (state as any).shareableLink || `qt-${state.id}`;
+    const client = state.client || { firstName: "Valued Client", lastName: "" };
     return prepareTemplateVariables(
       {
         tripName: state.tripName,
@@ -81,10 +82,10 @@ export default function SendQuoteModal() {
         endDate: state.endDate,
         total: state.pricing.total,
         currency: state.pricing.currency,
-        viewToken: viewToken,
+        viewToken,
       },
-      state.client,
-      { name: "", businessName: "" }, // Agent info usually from auth context
+      client,
+      { name: "", businessName: "" },
       state.travelers.total
     );
   }, [state]);
@@ -124,12 +125,12 @@ export default function SendQuoteModal() {
       return;
     }
 
-    // Validation
-    if (!state.client) {
+    // Validation — client required for email/sms/whatsapp but not for link
+    if (!state.client && channel !== "link") {
       setError("Please select a client first");
       return;
     }
-    
+
     if ((channel === "sms" || channel === "whatsapp") && !phoneNumber) {
       setError("Phone number is required for this channel");
       return;

@@ -181,14 +181,11 @@ export async function validatePricingConsistency(
     });
   }
 
-  // Validate subtotal
-  const itemsTotal = computeItemsTotal(quoteData);
-  if (Math.abs(itemsTotal - computedPricing.subtotal) > 0.01) {
-    throw QuoteErrorFactory.itemsInconsistent(correlationId, {
-      expectedTotal: itemsTotal,
-      calculatedTotal: computedPricing.subtotal,
-    });
-  }
+  // NOTE: Raw item price sum intentionally skipped here.
+  // Items use priceType/priceAppliesTo (per_person, per_night, etc.) so the raw
+  // sum will differ from the computed subtotal that accounts for travelers/nights.
+  // The backend recalculates pricing from scratch via calculateQuotePricingSafe —
+  // no need to cross-validate against the client-provided raw sum.
 }
 
 /**

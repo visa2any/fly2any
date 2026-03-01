@@ -65,13 +65,13 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
         {/* Header */}
         <div className="px-6 py-5 border-b border-neutral-100 flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur-md z-10">
           <div>
-            <h2 className="text-xl font-black text-midnight-navy flex items-center gap-2">
+            <h2 className="text-xl font-black text-[#0A0A0A] flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-indigo-600" />
               Calendar Sync
             </h2>
             <p className="text-sm font-medium text-neutral-500 mt-1">Cross-platform integration for {propertyName}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-midnight-navy transition-colors">
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-[#0A0A0A] transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -89,7 +89,7 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
 
           {/* Export Section */}
           <div>
-            <h3 className="text-sm font-bold text-midnight-navy uppercase tracking-wider mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[#0A0A0A] uppercase tracking-wider mb-4 flex items-center gap-2">
               <Download className="w-4 h-4 text-emerald-500" /> Export from Fly2Any
             </h3>
             
@@ -106,7 +106,7 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
                  </div>
                  <button 
                   onClick={handleCopyExport}
-                  className="px-5 py-3 rounded-xl bg-midnight-navy hover:bg-black text-white text-sm font-bold shadow-sm transition-all whitespace-nowrap"
+                  className="px-5 py-3 rounded-xl bg-[#0A0A0A] hover:bg-black text-white text-sm font-bold shadow-sm transition-all whitespace-nowrap"
                  >
                    Copy Link
                  </button>
@@ -116,7 +116,7 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
 
           {/* Import Section */}
           <div>
-             <h3 className="text-sm font-bold text-midnight-navy uppercase tracking-wider mb-4 flex items-center gap-2">
+             <h3 className="text-sm font-bold text-[#0A0A0A] uppercase tracking-wider mb-4 flex items-center gap-2">
               <Upload className="w-4 h-4 text-amber-500" /> Import External Calendars
             </h3>
             
@@ -131,7 +131,7 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <Check className="w-4 h-4 text-emerald-500" />
-                          <h4 className="text-sm font-bold text-midnight-navy">{feed.name}</h4>
+                          <h4 className="text-sm font-bold text-[#0A0A0A]">{feed.name}</h4>
                         </div>
                         <p className="text-xs text-neutral-500 truncate mb-1">{feed.url}</p>
                         <p className="text-[10px] font-medium text-neutral-400">Last synced: {feed.lastSync}</p>
@@ -159,7 +159,7 @@ export function ICalSyncModal({ propertyId, propertyName, onClose, onSyncComplet
                       value={importUrl}
                       onChange={(e) => setImportUrl(e.target.value)}
                       placeholder="https://www.airbnb.com/calendar/ical/..."
-                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl py-3 pl-10 pr-4 text-sm text-midnight-navy focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder:text-neutral-400"
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-xl py-3 pl-10 pr-4 text-sm text-[#0A0A0A] focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder:text-neutral-400"
                     />
                   </div>
                   <button 

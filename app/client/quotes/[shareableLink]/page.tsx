@@ -14,8 +14,9 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const quote = await prisma!.agentQuote.findUnique({
-    where: { shareableLink: params.shareableLink },
+  const idFromToken = params.shareableLink.startsWith('qt-') ? params.shareableLink.slice(3) : null;
+  const quote = await prisma!.agentQuote.findFirst({
+    where: idFromToken ? { id: idFromToken } : { shareableLink: params.shareableLink },
   });
 
   if (!quote) {
@@ -31,8 +32,13 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function ClientQuoteViewPage({ params }: PageProps) {
-  const quote = await prisma!.agentQuote.findUnique({
-    where: { shareableLink: params.shareableLink },
+  // Try shareableLink first; fall back to qt-{id} pattern for backwards compat
+  const idFromToken = params.shareableLink.startsWith('qt-') ? params.shareableLink.slice(3) : null;
+
+  const quote = await prisma!.agentQuote.findFirst({
+    where: idFromToken
+      ? { id: idFromToken }
+      : { shareableLink: params.shareableLink },
     include: {
       client: true,
       agent: {

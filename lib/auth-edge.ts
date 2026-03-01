@@ -74,7 +74,24 @@ export const authEdgeConfig = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  // Required so CSRF tokens are validated correctly on all hosts/proxies
+  trustHost: true,
+  // Match cookie names with auth.config.ts — avoids __Host- prefix issues on HTTP (localhost)
+  cookies: {
+    sessionToken: {
+      name: 'authjs.session-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    callbackUrl: {
+      name: 'authjs.callback-url',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    csrfToken: {
+      name: 'authjs.csrf-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+  },
 } satisfies NextAuthConfig;
 
 export const { auth: authEdge, handlers, signIn, signOut } = NextAuth(authEdgeConfig);

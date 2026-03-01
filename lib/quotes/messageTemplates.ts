@@ -195,7 +195,7 @@ export function prepareTemplateVariables(
     startDate: formatDate(quote.startDate),
     endDate: formatDate(quote.endDate),
     agentName: agent.name || agent.businessName || 'Your Travel Advisor',
-    quoteUrl: `${baseUrl}/quote/${quote.viewToken}`,
+    quoteUrl: `${baseUrl}/client/quotes/${quote.viewToken}`,
   };
 }
 

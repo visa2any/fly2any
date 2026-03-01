@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { useAgentShortcuts, CommandPalette, ShortcutsOverlay, SaveToast } from "./velocity";
-import { SendQuoteModal } from "./SendQuoteModal";
 
 interface QuoteWorkspaceLayoutProps {
   header: ReactNode;
@@ -113,16 +112,31 @@ export default function QuoteWorkspaceLayout({
   }, [isResizing, setDiscoveryPanelWidth]);
 
   return (
+    <>
+    {/* Print styles: only show itinerary canvas (agent view).
+        Client preview overlay has its own print styles that take precedence when open. */}
+    <style>{`
+      @media print {
+        body > * { display: none !important; }
+        /* Agent itinerary canvas */
+        #quote-print-area { display: block !important; position: static !important; overflow: visible !important; width: 100% !important; height: auto !important; background: white !important; }
+        #quote-print-area * { display: revert !important; }
+        /* Client preview overlay — overrides above when present */
+        #quote-client-preview { display: block !important; position: static !important; overflow: visible !important; background: white !important; }
+        #quote-client-preview * { display: revert !important; }
+        #quote-client-preview-header { display: none !important; }
+      }
+    `}</style>
     <div className="fixed inset-0 lg:left-16 bg-gray-50 flex flex-col overflow-hidden">
       {/* Full Header */}
-      <header className="flex-shrink-0 z-40">
+      <header className="flex-shrink-0 z-40 print:hidden">
         {header}
       </header>
 
       {/* Main Layout - Zero gaps */}
       <main className="flex-1 min-h-0 flex">
         {/* Left: Discovery Panel */}
-        <aside className="hidden lg:flex flex-shrink-0 bg-white border-r border-gray-100 z-30">
+        <aside className="hidden lg:flex flex-shrink-0 bg-white border-r border-gray-100 z-30 print:hidden">
           <div className="relative flex overflow-hidden" style={{ width: panelWidth }}>
             {/* Scrollable content - Premium thin scrollbar */}
             <div
@@ -176,22 +190,25 @@ export default function QuoteWorkspaceLayout({
         </aside>
 
         {/* Center: Itinerary Canvas - ZERO PADDING for full-width banner */}
-        <section className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-gray-50/80 to-white">
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <section
+          id="quote-print-area"
+          className="flex-1 flex flex-col min-h-0 min-w-0 overflow-x-hidden bg-gradient-to-b from-gray-50/80 to-white"
+        >
+          <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
             {itinerary}
           </div>
         </section>
 
         {/* Right: Pricing - Full height */}
-        <aside className="hidden lg:flex flex-shrink-0 w-64 flex-col bg-white border-l border-gray-100 overflow-hidden">
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
+        <aside className="hidden lg:flex flex-shrink-0 w-64 flex-col bg-white border-l border-gray-100 overflow-hidden print:hidden">
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent hover:scrollbar-thumb-gray-300">
             {pricing}
           </div>
         </aside>
       </main>
 
       {/* Minimal Footer */}
-      <footer className="flex-shrink-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-100">
+      <footer className="flex-shrink-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-100 print:hidden">
         {footer}
       </footer>
 
@@ -214,5 +231,6 @@ export default function QuoteWorkspaceLayout({
       {/* Accessibility announcement */}
       <div id="shortcut-announcement" className="sr-only" aria-live="polite" />
     </div>
+    </>
   );
 }

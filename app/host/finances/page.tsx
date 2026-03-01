@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import { DollarSign, Download, TrendingUp, Calendar, AlertCircle, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
@@ -28,7 +29,7 @@ export default function FinancesPage() {
   }, []);
 
   const handleExport = () => {
-    alert("Downloading CSV report for tax filing...");
+    toast.success('CSV report is being prepared for download.');
   };
 
   if (loading) {
@@ -49,7 +50,7 @@ export default function FinancesPage() {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Wealth Portfolio</span>
                 </div>
-                <h1 className="text-4xl font-black text-midnight-navy mb-3 tracking-tighter">Wealth Management</h1>
+                <h1 className="text-4xl font-black text-[#0A0A0A] mb-3 tracking-tighter">Wealth Management</h1>
                 <p className="text-neutral-500 max-w-2xl font-medium leading-relaxed">
                     Ultra-premium property management analytics. Gain deep insights into your portfolio's financial health and optimize for maximum yield.
                 </p>
@@ -63,7 +64,7 @@ export default function FinancesPage() {
                         <option value="ytd">Year to Date (2026)</option>
                         <option value="all">All Time</option>
                     </select>
-                    <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-midnight-navy hover:scale-105 active:scale-95 text-white text-xs font-black shadow-soft transition-all">
+                    <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0A0A0A] hover:scale-105 active:scale-95 text-white text-xs font-black shadow-soft transition-all">
                         <Download className="w-4 h-4" />
                         Export CSV
                     </button>
@@ -79,7 +80,7 @@ export default function FinancesPage() {
                     </div>
                     <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Net Earnings (YTD)</p>
-                        <h2 className="text-5xl font-black text-midnight-navy tracking-tighter">${data?.netYTD?.toLocaleString() || '0'}</h2>
+                        <h2 className="text-5xl font-black text-[#0A0A0A] tracking-tighter">${data?.netYTD?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
 
@@ -107,7 +108,7 @@ export default function FinancesPage() {
                     </div>
                     <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-2">Platform Fees & Taxes</p>
-                        <h2 className="text-5xl font-black text-midnight-navy tracking-tighter">${data?.platformFees?.toLocaleString() || '0'}</h2>
+                        <h2 className="text-5xl font-black text-[#0A0A0A] tracking-tighter">${data?.platformFees?.toLocaleString() || '0'}</h2>
                     </div>
                 </div>
             </div>
@@ -118,7 +119,7 @@ export default function FinancesPage() {
                 {/* Main Revenue Chart */}
                 <div className="lg:col-span-2 bg-white rounded-3xl border border-neutral-200 p-6 lg:p-8 shadow-sm">
                     <div className="mb-6">
-                        <h3 className="text-lg font-bold text-midnight-navy">Revenue Analysis</h3>
+                        <h3 className="text-lg font-bold text-[#0A0A0A]">Revenue Analysis</h3>
                         <p className="text-sm text-neutral-500">Gross vs Net earnings per month</p>
                     </div>
                     <div className="h-[300px] w-full">
@@ -142,7 +143,7 @@ export default function FinancesPage() {
                 {/* YoY Pacing */}
                 <div className="bg-white rounded-3xl border border-neutral-200 p-6 lg:p-8 shadow-sm flex flex-col">
                     <div className="mb-6">
-                        <h3 className="text-lg font-bold text-midnight-navy">YoY Pacing</h3>
+                        <h3 className="text-lg font-bold text-[#0A0A0A]">YoY Pacing</h3>
                         <p className="text-sm text-neutral-500">Current month vs last year</p>
                     </div>
                     <div className="flex-1 min-h-[250px] w-full">
@@ -177,7 +178,7 @@ export default function FinancesPage() {
                     <div className="flex items-center justify-between mb-8">
                         <div>
                            <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1">Revenue Projection</p>
-                           <h3 className="text-2xl font-black text-midnight-navy">12-Month Predictive</h3>
+                           <h3 className="text-2xl font-black text-[#0A0A0A]">12-Month Predictive</h3>
                         </div>
                         <div className="text-right">
                            <p className="text-2xl font-black text-emerald-600 uppercase tracking-tighter font-mono">$124,500</p>
@@ -205,11 +206,11 @@ export default function FinancesPage() {
                            <Sparkles className="w-3.5 h-3.5 text-secondary-500" />
                            AI Concierge Insights
                         </div>
-                        <h4 className="text-2xl font-black text-midnight-navy mb-4 tracking-tight">Tax Optimization Strategy</h4>
+                        <h4 className="text-2xl font-black text-[#0A0A0A] mb-4 tracking-tight">Tax Optimization Strategy</h4>
                         <p className="text-sm text-neutral-500 font-medium mb-8 leading-relaxed max-w-sm">
                            You haven't logged any maintenance expenses for the Knightsbridge property this quarter.
                            <br /><br />
-                           <span className="text-midnight-navy font-bold">Pro Tip:</span> Expense your recent HVAC repair as a capital improvement to lower your 2026 liability.
+                           <span className="text-[#0A0A0A] font-bold">Pro Tip:</span> Expense your recent HVAC repair as a capital improvement to lower your 2026 liability.
                         </p>
                         <button className="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em] flex items-center gap-2 group/btn">
                            Explore Tax Center 

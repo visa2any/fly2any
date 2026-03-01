@@ -111,8 +111,8 @@ export class RoutingEngine {
 
     // Log decision if enabled - FIRE AND FORGET (don't block search)
     if (this.config.logDecisions) {
-      logRoutingDecision(input, result, this.config.searchId, offerId).catch(err => {
-        console.error('[RoutingEngine] Failed to log decision:', err);
+      logRoutingDecision(input, result, this.config.searchId, offerId).catch(() => {
+        // Circuit breaker in logRoutingDecision handles errors + rate-limited logging
       });
     }
 

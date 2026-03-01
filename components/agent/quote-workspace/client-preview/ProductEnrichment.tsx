@@ -37,8 +37,8 @@ export default function ProductEnrichment({
   children,
 }: ProductEnrichmentProps) {
   const seed = idToSeed(itemId);
-  const headline = getProductHeadline(tone, type, seed);
-  const selectionReason = getSelectionReason(type, seed);
+  const headline = getProductHeadline(tone, type as any, seed);
+  const selectionReason = getSelectionReason(type as any, seed);
 
   return (
     <motion.div
@@ -119,7 +119,7 @@ export function EnrichedHeadline({
   itemId: string;
 }) {
   const seed = idToSeed(itemId);
-  const headline = getProductHeadline(tone, type, seed);
+  const headline = getProductHeadline(tone, type as any, seed);
 
   return (
     <div className="flex items-center gap-1.5 mb-1">
@@ -137,7 +137,7 @@ export function SelectionReason({
   itemId: string;
 }) {
   const seed = idToSeed(itemId);
-  const reason = getSelectionReason(type, seed);
+  const reason = getSelectionReason(type as any, seed);
 
   return (
     <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-gray-100">

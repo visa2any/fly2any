@@ -75,18 +75,17 @@ export default function TransfersSearchPanel() {
   }, [state.destination, state.startDate, state.travelers]);
   // ═══ END SYNC ═══
 
-  // Auto-collapse form when search results arrive
+  // Auto-collapse form when search results arrive (fallback)
   useEffect(() => {
     if (searchResults && searchResults.length > 0 && !searchLoading) {
-      const timer = setTimeout(() => setFormCollapsed(true), 500);
-      return () => clearTimeout(timer);
+      setFormCollapsed(true);
     }
   }, [searchResults, searchLoading]);
 
   // Mark unified results as seen when this tab is viewed
   useEffect(() => {
-    if (hasUnifiedResults && unifiedContext?.hasNewResults?.transfers) {
-      unifiedContext.markResultsSeen("transfers");
+    if (hasUnifiedResults && (unifiedContext as any)?.hasNewResults?.transfers) {
+      (unifiedContext as any).markResultsSeen?.("transfers");
     }
   }, [hasUnifiedResults, unifiedContext]);
 
@@ -223,6 +222,7 @@ export default function TransfersSearchPanel() {
       return;
     }
 
+    setFormCollapsed(true);
     setSearchResults(true, null);
     setVisibleCount(10);
 
@@ -280,7 +280,7 @@ export default function TransfersSearchPanel() {
       meetAndGreet: transfer.meetAndGreet ?? false,
       apiSource: "viator",
       apiOfferId: transfer.offerId || transfer.id,
-    });
+    } as any);
   };
 
   return (

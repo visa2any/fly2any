@@ -5,8 +5,9 @@ import { format, parseISO, differenceInDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Calendar, Users, Globe, MessageCircle, CheckCircle2, Sparkles } from "lucide-react";
+import { Calendar, MessageCircle, CheckCircle2, Sparkles, Clock } from "lucide-react";
 import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "../QuoteWorkspaceProvider";
+import ConflictWarningBanner from "./ConflictWarningBanner";
 import SortableItineraryCard from "./SortableItineraryCard";
 import TimelineDayAnchor from "./TimelineDayAnchor";
 import FreeTimeBlock, { determineFreeTimeType } from "./FreeTimeBlock";
@@ -53,6 +54,18 @@ function groupByDate(items: QuoteItem[]): Map<string, QuoteItem[]> {
 }
 
 // Group items by time of day
+function getTimeSegment(time: string | undefined): string {
+  if (!time) return "flexible";
+  try {
+    const hour = parseInt((time.includes("T") ? time.split("T")[1] : time).split(":")[0], 10);
+    if (isNaN(hour)) return "flexible";
+    if (hour < 12) return "morning";
+    if (hour < 17) return "afternoon";
+    if (hour < 21) return "evening";
+    return "night";
+  } catch { return "flexible"; }
+}
+
 function groupByTimeOfDay(items: QuoteItem[]): Map<string, QuoteItem[]> {
   const segments = new Map<string, QuoteItem[]>();
 
@@ -86,7 +99,7 @@ function extractTime(item: QuoteItem): string | undefined {
   }
 
   // Activities/Tours: use start time
-  if (item.type === "activity" || item.type === "tour") {
+  if (item.type === "activity" || (item as any).type === "tour") {
     return details.time || details.startTime;
   }
 
@@ -233,7 +246,7 @@ export default function ItineraryTimeline() {
 
     return detectTone({
       destination: state.destination,
-      travelers: state.travelers,
+      travelers: state.travelers?.total || 1,
       hasKids: (state.travelers?.children || 0) > 0 || (state.travelers?.infants || 0) > 0,
       hotelStars: maxStars,
       activities: activities.map(a => (a as any).name || ""),
@@ -265,10 +278,19 @@ export default function ItineraryTimeline() {
   };
   const tripDuration = safeParseDays();
 
+  // Quote expiry from localStorage
+  const expiryDate = typeof window !== "undefined" && state.id
+    ? localStorage.getItem(`quote-expiry-${state.id}`) || ""
+    : "";
+  const expiryDaysLeft = expiryDate
+    ? Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000)
+    : null;
+
   // Use pricing from Single Source of Truth (QuotePricingService)
   const pricing = useQuotePricing();
+  const fxRate = pricing.conversionRate ?? 1;
   const formatTotalPrice = (amount: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: pricing.currency, minimumFractionDigits: 0 }).format(amount);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: pricing.currency, minimumFractionDigits: 0 }).format(amount * fxRate);
 
   // Auto-generate trip name if empty
   const displayTripName = state.tripName ||
@@ -307,6 +329,11 @@ export default function ItineraryTimeline() {
 
       {/* Timeline Content - PADDED CONTAINER */}
       <div className={`px-6 py-4 ${viewMode === "agent" ? "space-y-2" : "space-y-4"}`}>
+
+      {/* Conflict Warnings - Agent View Only */}
+      {viewMode === "agent" && (
+        <ConflictWarningBanner className="mb-2" />
+      )}
 
       {/* Client View Greeting */}
       {viewMode === "client" && (
@@ -425,7 +452,7 @@ export default function ItineraryTimeline() {
                           <SortableItineraryCard
                             key={item.id}
                             item={item}
-                            viewMode={viewMode}
+                            viewMode={viewMode === "journey" ? "client" : viewMode as "agent" | "client"}
                             tone={tone}
                           />
                         ))}
@@ -503,6 +530,26 @@ export default function ItineraryTimeline() {
               </div>
             </div>
           </motion.div>
+
+          {/* Expiry Countdown */}
+          {expiryDaysLeft !== null && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={`flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-sm font-semibold ${
+                expiryDaysLeft <= 1
+                  ? "bg-red-50 border border-red-200 text-red-700"
+                  : expiryDaysLeft <= 3
+                  ? "bg-amber-50 border border-amber-200 text-amber-700"
+                  : "bg-gray-50 border border-gray-200 text-gray-600"
+              }`}
+            >
+              <Clock className="w-4 h-4" />
+              {expiryDaysLeft <= 0
+                ? "This quote has expired. Contact your agent."
+                : `This quote expires in ${expiryDaysLeft} day${expiryDaysLeft === 1 ? "" : "s"} — secure your trip today`}
+            </motion.div>
+          )}
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">

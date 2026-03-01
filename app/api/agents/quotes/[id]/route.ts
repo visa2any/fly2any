@@ -85,7 +85,7 @@ export async function GET(
 
 // PATCH /api/agents/quotes/[id] - Update quote (HARDENED)
 const UpdateQuoteSchema = z.object({
-  version: z.number().int().positive(), // REQUIRED for optimistic locking
+  version: z.number().int().positive().optional(), // Optional — skips optimistic locking when absent
   tripName: z.string().optional(),
   destination: z.string().optional(),
   startDate: z.string().datetime().optional(),
@@ -354,7 +354,8 @@ export async function PATCH(
 
     // Handle QuoteApiError (already structured)
     if (error && typeof error === 'object' && 'errorCode' in error) {
-      return NextResponse.json(error, { status: 500 });
+      const statusCode = (error as { errorCode: string }).errorCode === 'QUOTE_ALREADY_SENT' ? 409 : 500;
+      return NextResponse.json(error, { status: statusCode });
     }
 
     // Handle unknown errors

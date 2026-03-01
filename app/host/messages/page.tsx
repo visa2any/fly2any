@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { toast } from 'react-hot-toast';
 
 interface Conversation {
   id: string;
@@ -120,7 +121,7 @@ export default function MessagesPage() {
               throw new Error(data.error);
           }
       } catch (e: any) {
-          alert("Failed to generate AI reply: " + e.message);
+          toast.error("Failed to generate AI reply: " + e.message);
       } finally {
           setIsGeneratingAI(false);
       }
@@ -154,7 +155,7 @@ export default function MessagesPage() {
       fetchMessages();
       fetchConversations();
     } catch {
-      alert('Failed to send message');
+      toast.error('Failed to send message');
       setMessages(prev => prev.filter(m => m.id !== optimisticMsg.id));
       setNewMessage(content);
     }
@@ -185,7 +186,7 @@ export default function MessagesPage() {
                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Active Node</span>
                 </div>
-                <h2 className="text-2xl font-black text-midnight-navy tracking-tighter mb-5">Command Center</h2>
+                <h2 className="text-2xl font-black text-[#0A0A0A] tracking-tighter mb-5">Command Center</h2>
                 
                 {/* Smart Timeline (High Fidelity) */}
                 <div className="mb-6 p-4 bg-[#F8FAFC] rounded-2xl border border-neutral-100 divide-y divide-neutral-100">
@@ -195,7 +196,7 @@ export default function MessagesPage() {
                     </div>
                     <div className="py-3">
                        <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1.5">Today, Oct 24</p>
-                       <div className="flex items-center justify-between text-xs font-bold text-midnight-navy">
+                       <div className="flex items-center justify-between text-xs font-bold text-[#0A0A0A]">
                           <span>Penthouse Suite</span>
                           <span className="text-neutral-400">3:00 PM</span>
                        </div>
@@ -209,7 +210,7 @@ export default function MessagesPage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search command center..."
-                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-primary-400 shadow-sm focus:shadow-soft-lg transition-all text-sm font-semibold text-midnight-navy"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 placeholder-neutral-400 focus:outline-none focus:border-primary-400 shadow-sm focus:shadow-soft-lg transition-all text-sm font-semibold text-[#0A0A0A]"
                     />
                 </div>
             </div>
@@ -240,11 +241,11 @@ export default function MessagesPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className={cn("font-black text-sm truncate tracking-tight", conv.unreadCountHost > 0 ? "text-midnight-navy" : "text-neutral-500")}>{conv.guest.name}</span>
+                                    <span className={cn("font-black text-sm truncate tracking-tight", conv.unreadCountHost > 0 ? "text-[#0A0A0A]" : "text-neutral-500")}>{conv.guest.name}</span>
                                     <span className="text-[10px] font-black text-neutral-300 whitespace-nowrap uppercase tracking-widest">{format(new Date(conv.lastMessageAt), 'MMM d')}</span>
                                 </div>
                                 <p className="text-[10px] font-black text-[#4F46E5] uppercase tracking-widest truncate mb-1.5">{conv.property?.name}</p>
-                                <p className={cn("text-xs truncate", conv.unreadCountHost > 0 ? "text-midnight-navy font-bold" : "text-neutral-400 font-medium")}>{conv.lastMessage}</p>
+                                <p className={cn("text-xs truncate", conv.unreadCountHost > 0 ? "text-[#0A0A0A] font-bold" : "text-neutral-400 font-medium")}>{conv.lastMessage}</p>
                             </div>
                         </button>
                     ))
@@ -259,11 +260,11 @@ export default function MessagesPage() {
                     <div className="p-6 border-b border-neutral-100 flex items-center justify-between bg-white/80 backdrop-blur-xl z-10 relative">
                          <div className="flex items-center gap-4">
                              {/* Mobile back button */}
-                             <button onClick={() => setShowSidebar(true)} className="md:hidden p-2 -ml-2 text-neutral-400 hover:text-midnight-navy bg-neutral-50 rounded-xl">
+                             <button onClick={() => setShowSidebar(true)} className="md:hidden p-2 -ml-2 text-neutral-400 hover:text-[#0A0A0A] bg-neutral-50 rounded-xl">
                                <X className="w-5 h-5" />
                              </button>
                              <div>
-                               <h3 className="font-extrabold text-midnight-navy text-lg tracking-tight">
+                               <h3 className="font-extrabold text-[#0A0A0A] text-lg tracking-tight">
                                    {activeConversation.guest.name}
                                </h3>
                                <p className="text-xs font-bold text-neutral-400 mt-0.5 tracking-wide">{activeConversation.property?.name}</p>
@@ -271,7 +272,7 @@ export default function MessagesPage() {
                          </div>
                          <button 
                              onClick={() => setShowContextDrawer(!showContextDrawer)}
-                             className={cn("px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm", showContextDrawer ? "bg-secondary-50 text-secondary-800 border border-secondary-200" : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-midnight-navy hover:shadow-soft")}
+                             className={cn("px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 font-bold text-sm shadow-sm", showContextDrawer ? "bg-secondary-50 text-secondary-800 border border-secondary-200" : "bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-50 hover:text-[#0A0A0A] hover:shadow-soft")}
                              title="Guest Context"
                          >
                              <span className="hidden xl:inline">Guest Details</span>
@@ -294,7 +295,7 @@ export default function MessagesPage() {
                                      <div key={msg.id} className={cn("flex", isMe ? "justify-end" : "justify-start")}>
                                          <div className={cn(
                                              "max-w-[75%] rounded-[1.5rem] px-5 py-3 text-sm shadow-sm",
-                                             isMe ? "bg-primary-500 text-white rounded-br-sm shadow-[0_4px_12px_rgba(231,64,53,0.15)]" : "bg-white border border-neutral-100 text-midnight-navy rounded-bl-sm font-medium"
+                                             isMe ? "bg-primary-500 text-white rounded-br-sm shadow-[0_4px_12px_rgba(231,64,53,0.15)]" : "bg-white border border-neutral-100 text-[#0A0A0A] rounded-bl-sm font-medium"
                                          )}>
                                              {msg.content}
                                              <div className={cn("text-[10px] mt-1.5 opacity-60 font-bold tracking-wider", isMe ? "text-white" : "text-neutral-500")}>
@@ -350,7 +351,7 @@ export default function MessagesPage() {
                                 onChange={e => setNewMessage(e.target.value)}
                                 type="text" 
                                 placeholder="Type a message..." 
-                                className="flex-1 bg-white border border-neutral-200 shadow-sm hover:shadow-soft rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-midnight-navy font-medium placeholder-neutral-400" 
+                                className="flex-1 bg-white border border-neutral-200 shadow-sm hover:shadow-soft rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-[#0A0A0A] font-medium placeholder-neutral-400" 
                             />
                             <button 
                                 type="submit"
@@ -382,7 +383,7 @@ export default function MessagesPage() {
                 >
                     <div className="p-6 overflow-y-auto w-[340px]">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-lg font-black text-midnight-navy tracking-tight">Context</h3>
+                            <h3 className="text-lg font-black text-[#0A0A0A] tracking-tight">Context</h3>
                             <button onClick={() => setShowContextDrawer(false)} className="p-1.5 text-neutral-400 hover:bg-neutral-200 rounded-lg">
                                 <X className="w-5 h-5" />
                             </button>
@@ -396,7 +397,7 @@ export default function MessagesPage() {
                                     <User className="w-10 h-10 text-indigo-400" />
                                 </div>
                             )}
-                            <h4 className="font-bold text-midnight-navy text-xl tracking-tight leading-tight">{activeConversation.guest.name}</h4>
+                            <h4 className="font-bold text-[#0A0A0A] text-xl tracking-tight leading-tight">{activeConversation.guest.name}</h4>
                             <p className="text-sm font-medium text-neutral-500">Verified Guest</p>
                         </div>
                         
@@ -404,10 +405,10 @@ export default function MessagesPage() {
                             <div className="bg-white p-5 rounded-3xl border border-neutral-200 shadow-sm relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-12 bg-primary-500/5 rounded-full blur-xl -mr-6 -mt-6 group-hover:bg-primary-500/10 transition-colors" />
                                 <h5 className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Trip Info</h5>
-                                <p className="text-base font-bold text-midnight-navy mb-2 leading-tight">{activeConversation.property?.name}</p>
+                                <p className="text-base font-bold text-[#0A0A0A] mb-2 leading-tight">{activeConversation.property?.name}</p>
                                 <div className="space-y-2 mt-4 pt-4 border-t border-neutral-100">
                                    <p className="text-xs font-semibold text-neutral-500 flex justify-between"><span>Status:</span> <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Upcoming</span></p>
-                                   <p className="text-xs font-semibold text-neutral-500 flex justify-between"><span>Guests:</span> <span className="text-midnight-navy">2 Adults, 1 Pet</span></p>
+                                   <p className="text-xs font-semibold text-neutral-500 flex justify-between"><span>Guests:</span> <span className="text-[#0A0A0A]">2 Adults, 1 Pet</span></p>
                                 </div>
                             </div>
                             

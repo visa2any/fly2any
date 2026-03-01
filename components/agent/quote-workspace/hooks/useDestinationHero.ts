@@ -517,9 +517,6 @@ const DESTINATION_IMAGES: Record<string, DestinationImage[]> = {
     { url: "https://images.unsplash.com/photo-1518061296418-eb36a48c4a23?w=1920&q=80", alt: "Amazon Manaus" },
   ],
   // Argentina
-  "buenos aires": [
-    { url: "https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=1920&q=80", alt: "Buenos Aires" },
-  ],
   mendoza: [
     { url: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1920&q=80", alt: "Mendoza vineyards" },
   ],
@@ -678,7 +675,7 @@ const IATA_TO_CITY: Record<string, string> = {
   PHL: "philadelphia", CLT: "charleston", RDU: "charleston",
   HNL: "honolulu", OGG: "maui", KOA: "honolulu", LIH: "honolulu",
   DTW: "detroit", MSP: "minneapolis", STL: "minneapolis",
-  SLC: "salt lake city", ABQ: "santa fe", PHX: "scottsdale",
+  SLC: "salt lake city", ABQ: "santa fe",
   EYW: "key west", SAV: "savannah", CHS: "charleston",
   PSP: "palm springs", SNA: "los angeles", BUR: "los angeles",
 
@@ -707,7 +704,6 @@ const IATA_TO_CITY: Record<string, string> = {
   FLR: "florence", VCE: "venice", NAP: "rome",
   DBV: "dubrovnik", SPU: "split", ZAG: "dubrovnik",
   KEF: "reykjavik",
-  MCO: "monaco",
   SVQ: "seville", VLC: "valencia", BIO: "barcelona",
 
   // Asia Pacific

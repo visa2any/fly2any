@@ -1,25 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/properties — List properties (public sees active only, owners see their own)
 export async function GET(request: NextRequest) {
-  try {
-    // 1. Critical DB check
+  return handleApiError(request, async () => {
     if (!prisma) {
-      console.error('CRITICAL: Prisma client is NULL in /api/properties');
       return NextResponse.json({ success: false, error: 'Database configuration missing' }, { status: 503 });
     }
 
     let session;
-    try {
-      session = await auth();
-    } catch (e: any) {
-      console.error('Auth check failed in /api/properties:', e);
-      // Don't fail immediately, public access might be allowed
-    }
+    try { session = await auth(); } catch { /* public access allowed */ }
 
     const { searchParams } = new URL(request.url);
     const ownerId = searchParams.get('ownerId');
@@ -34,11 +28,9 @@ export async function GET(request: NextRequest) {
     const where: any = {};
 
     if (mine && session?.user?.id) {
-      // Owner viewing their own properties — allow any status
       where.owner = { userId: session.user.id };
       if (status) where.status = status;
     } else {
-      // Public access — only show active properties
       where.status = 'active';
       if (ownerId) where.ownerId = ownerId;
     }
@@ -67,19 +59,12 @@ export async function GET(request: NextRequest) {
       data: properties,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
-  } catch (error: any) {
-    console.error('Error fetching properties:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error.message || 'Failed to fetch properties',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    }, { status: 500 });
-  }
+  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });
 }
 
 // POST /api/properties — Create a new property
 export async function POST(request: NextRequest) {
-  try {
+  return handleApiError(request, async () => {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
@@ -87,14 +72,12 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // Generate slug from name
     const slug = (body.name || 'property')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
       + '-' + Date.now().toString(36);
 
-    // Ensure PropertyOwner exists for this user
     const owner = await prisma.propertyOwner.upsert({
       where: { userId: session.user.id },
       update: {},
@@ -189,8 +172,5 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, data: property }, { status: 201 });
-  } catch (error: any) {
-    console.error('Error creating property:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Failed to create property' }, { status: 500 });
-  }
+  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });
 }

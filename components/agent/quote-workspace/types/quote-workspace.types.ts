@@ -74,6 +74,9 @@ export interface QuoteItemBase {
   sortOrder: number;
   date: string; // ISO date for timeline grouping
   createdAt: string;
+  // Raw API response details — may exist on items fetched from external APIs
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  details?: any;
 }
 
 // Flight item
@@ -220,6 +223,7 @@ export interface QuotePricing {
   total: number;            // Final total
   perPerson: number;         // Total / travelers
   currency: Currency;
+  conversionRate: number;    // FX rate relative to USD (1.0 = USD)
 }
 
 // Client reference

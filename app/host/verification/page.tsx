@@ -73,7 +73,7 @@ export default function TrustCenterPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 className="text-3xl font-bold text-midnight-navy flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-[#0A0A0A] flex items-center gap-3">
                 <Shield className="w-8 h-8 text-primary-600" />
                 Trust & Verification Center
             </h1>
@@ -95,11 +95,11 @@ export default function TrustCenterPage() {
                             className="transition-all duration-1000 ease-out"
                     />
                 </svg>
-                <span className="absolute text-xl font-black text-midnight-navy leading-none">{trustScore}</span>
+                <span className="absolute text-xl font-black text-[#0A0A0A] leading-none">{trustScore}</span>
             </div>
             <div>
                 <div className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Current Trust Level</div>
-                <div className="text-sm font-black text-midnight-navy">
+                <div className="text-sm font-black text-[#0A0A0A]">
                     {trustScore < 50 ? 'Standard Host' : trustScore < 80 ? 'Verified Partner' : 'Elite Trusted Host'}
                 </div>
             </div>
@@ -128,7 +128,7 @@ export default function TrustCenterPage() {
                                 <Smartphone className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="font-black text-midnight-navy text-lg">Digital Identity</h3>
+                                <h3 className="font-black text-[#0A0A0A] text-lg">Digital Identity</h3>
                                 <p className="text-sm text-neutral-500 font-medium">Government ID + Secure Selfie Check</p>
                             </div>
                         </div>
@@ -150,7 +150,7 @@ export default function TrustCenterPage() {
                                 <Lock className="w-5 h-5" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-midnight-navy">Step 2: Authenticate Property</h3>
+                                <h3 className="font-bold text-[#0A0A0A]">Step 2: Authenticate Property</h3>
                                 <p className="text-sm text-neutral-500">Verify you have access to the listing</p>
                             </div>
                         </div>
@@ -159,7 +159,7 @@ export default function TrustCenterPage() {
 
                     {trustScore >= 50 && !method && (
                         <div className="p-8">
-                            <h4 className="text-lg font-bold text-midnight-navy mb-6 text-center">Choose your verification path</h4>
+                            <h4 className="text-lg font-bold text-[#0A0A0A] mb-6 text-center">Choose your verification path</h4>
                             
                             <div className="grid md:grid-cols-2 gap-4">
                                 {/* Path A: Instant GPS */}
@@ -174,7 +174,7 @@ export default function TrustCenterPage() {
                                         <MapPin className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h5 className="font-bold text-midnight-navy">I am at the property</h5>
+                                        <h5 className="font-bold text-[#0A0A0A]">I am at the property</h5>
                                         <p className="text-xs text-neutral-500 mt-1">
                                             Instant verification using your device's secure GPS location.
                                         </p>
@@ -190,7 +190,7 @@ export default function TrustCenterPage() {
                                         <Video className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h5 className="font-bold text-midnight-navy">I am remote</h5>
+                                        <h5 className="font-bold text-[#0A0A0A]">I am remote</h5>
                                         <p className="text-xs text-neutral-500 mt-1">
                                             Upload a 30s video walkthrough showing you unlocking the door.
                                         </p>

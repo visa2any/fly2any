@@ -230,6 +230,18 @@ export function detectConflicts(items: QuoteItem[]): Map<string, TimeConflict> {
       // Check if items are on the same day (for activities)
       if (!isSameDay(range1.start, range2.start)) return;
 
+      // Special case: flight + hotel — arriving and checking in same day is valid travel
+      // Only flag if the flight departs strictly mid-stay (not on checkIn or checkOut day)
+      if (
+        (item1.type === 'flight' && item2.type === 'hotel') ||
+        (item1.type === 'hotel' && item2.type === 'flight')
+      ) {
+        const flight = (item1.type === 'flight' ? item1 : item2) as FlightItem;
+        const hotel = (item1.type === 'hotel' ? item1 : item2) as HotelItem;
+        // Skip: arriving on check-in day or departing on checkout day are both valid
+        if (flight.date === hotel.checkIn || flight.date === hotel.checkOut) return;
+      }
+
       // Check for overlap
       const overlap = rangesOverlap(range1, range2);
       const tight = !overlap && isTightConnection(range1, range2);

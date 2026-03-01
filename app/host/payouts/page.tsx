@@ -98,7 +98,7 @@ export default function PayoutsPage() {
     <div className="min-h-screen bg-[#FDFDFD] pt-4 pb-20">
       <MaxWidthContainer>
         <div className="mb-10 mt-2">
-          <h1 className="text-3xl font-black text-midnight-navy mb-1 tracking-tight">Payout Management</h1>
+          <h1 className="text-3xl font-black text-[#0A0A0A] mb-1 tracking-tight">Payout Management</h1>
           <p className="text-neutral-400 font-bold text-[10px] uppercase tracking-widest">Manage how you receive your earnings from bookings.</p>
         </div>
 
@@ -142,7 +142,7 @@ export default function PayoutsPage() {
         {/* Payout Methods */}
         <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden mb-8">
           <div className="p-6 border-b border-neutral-100">
-            <h2 className="font-bold text-midnight-navy text-lg">Payout Methods</h2>
+            <h2 className="font-bold text-[#0A0A0A] text-lg">Payout Methods</h2>
             <p className="text-sm text-neutral-500 mt-1">Add your preferred payment method to receive earnings.</p>
           </div>
 
@@ -151,7 +151,7 @@ export default function PayoutsPage() {
               <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-4">
                 <CreditCard className="w-8 h-8 text-neutral-300" />
               </div>
-              <h3 className="font-bold text-midnight-navy mb-2">No payout methods added</h3>
+              <h3 className="font-bold text-[#0A0A0A] mb-2">No payout methods added</h3>
               <p className="text-neutral-500 text-sm max-w-sm mx-auto mb-6">
                 We support bank transfers. Add your banking details to start receiving payments.
               </p>
@@ -213,7 +213,7 @@ export default function PayoutsPage() {
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="flex-1 py-3 rounded-xl bg-midnight-navy text-white font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 py-3 rounded-xl bg-[#0A0A0A] text-white font-bold hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSaving ? (
                       <>
@@ -246,7 +246,7 @@ export default function PayoutsPage() {
                   <CreditCard className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-midnight-navy">{payoutData.bankName}</p>
+                  <p className="font-bold text-[#0A0A0A]">{payoutData.bankName}</p>
                   <p className="text-sm text-neutral-500">{payoutData.accountHolder} — ****{payoutData.accountNumberLast4}</p>
                 </div>
                 <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Active</span>
@@ -258,13 +258,13 @@ export default function PayoutsPage() {
         {/* Payout History */}
         <div className="bg-white border border-neutral-200 rounded-2xl overflow-hidden">
           <div className="p-6 border-b border-neutral-100">
-            <h2 className="font-bold text-midnight-navy text-lg">Payout History</h2>
+            <h2 className="font-bold text-[#0A0A0A] text-lg">Payout History</h2>
           </div>
           <div className="p-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-4">
               <Clock className="w-8 h-8 text-neutral-300" />
             </div>
-            <h3 className="font-bold text-midnight-navy mb-2">No payouts yet</h3>
+            <h3 className="font-bold text-[#0A0A0A] mb-2">No payouts yet</h3>
             <p className="text-neutral-500 text-sm max-w-sm mx-auto">
               Payouts will appear here once you receive bookings and have a payout method configured.
             </p>

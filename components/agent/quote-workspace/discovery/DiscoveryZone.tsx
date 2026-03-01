@@ -95,15 +95,16 @@ export default function DiscoveryZone() {
         </div>
       </div>
 
-      {/* ═══ PREDICTIVE BUNDLING SUGGESTIONS ═══ */}
-      {suggestions.length > 0 && (
-        <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-amber-50">
+      {/* ═══ PREDICTIVE BUNDLING SUGGESTIONS - horizontal chips ═══ */}
+      {suggestions.length > 0 && isEnabled && (
+        <div className="flex-shrink-0 px-3 py-1.5 border-b border-amber-100 bg-amber-50/60">
           <SuggestionsPanel
             suggestions={suggestions}
             onAccept={accept}
             onDismiss={dismiss}
             isEnabled={isEnabled}
             onToggle={toggle}
+            layout="horizontal"
           />
         </div>
       )}

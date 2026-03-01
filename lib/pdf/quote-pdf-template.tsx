@@ -239,19 +239,21 @@ const QuotePDFTemplate: React.FC<QuotePDFProps> = ({ quote }) => {
         </View>
 
         {/* Client Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>CLIENT DETAILS</Text>
-          <View style={styles.clientInfo}>
-            <Text style={styles.cardTitle}>
-              {quote.client.firstName} {quote.client.lastName}
-            </Text>
-            <View style={styles.divider} />
-            <Text style={styles.cardDetail}>{quote.client.email}</Text>
-            {quote.client.phone && (
-              <Text style={styles.cardDetail}>{quote.client.phone}</Text>
-            )}
+        {quote.client && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>CLIENT DETAILS</Text>
+            <View style={styles.clientInfo}>
+              <Text style={styles.cardTitle}>
+                {quote.client.firstName} {quote.client.lastName}
+              </Text>
+              <View style={styles.divider} />
+              <Text style={styles.cardDetail}>{quote.client.email}</Text>
+              {quote.client.phone && (
+                <Text style={styles.cardDetail}>{quote.client.phone}</Text>
+              )}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Trip Overview */}
         <View style={styles.section}>

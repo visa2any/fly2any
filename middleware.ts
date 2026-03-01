@@ -202,8 +202,11 @@ export default authEdge((req) => {
 
   // ======================
   // Create response with performance and security headers
+  // Pass pathname to server components via request header
   // ======================
-  const response = NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-pathname', nextUrl.pathname);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
 
   // ======================
   // GEO-LOCATION AUTO-DETECTION (Vercel Edge)

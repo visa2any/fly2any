@@ -31,6 +31,16 @@ function generateQuoteNumber(): string {
   return `QT-${year}-${random}`;
 }
 
+// Generate unique shareable link token
+function generateShareableLink(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let result = '';
+  const array = new Uint8Array(12);
+  crypto.getRandomValues(array);
+  for (const byte of array) result += chars[byte % chars.length];
+  return result;
+}
+
 // GET /api/agents/quotes - List quotes
 export async function GET(request: NextRequest) {
   try {
@@ -215,7 +225,7 @@ const CustomItemSchema = z.object({
 });
 
 const CreateQuoteSchema = z.object({
-  clientId: z.string(),
+  clientId: z.string().nullable().optional(),
   tripName: z.string(),
   destination: z.string(),
   startDate: z.string().datetime(),
@@ -278,13 +288,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = CreateQuoteSchema.parse(body);
 
-    clientId = data.clientId;
+    clientId = data.clientId || null;
 
     // Initialize operation tracker
     tracker = new QuoteOperationTracker(
       'CREATE',
       agent.id,
-      data.clientId,
+      data.clientId || 'no-client',
       { body: 'REDACTED' } // Don't log sensitive data
     );
     correlationId = tracker.getCorrelationId();
@@ -295,8 +305,10 @@ export async function POST(request: NextRequest) {
     // Validate quote items
     await validateQuoteItems(data);
 
-    // Validate client ownership
-    await validateClientOwnership(data.clientId, agent.id);
+    // Validate client ownership only when client is specified
+    if (data.clientId) {
+      await validateClientOwnership(data.clientId, agent.id);
+    }
 
     // Calculate pricing
     const pricing = calculateQuotePricingSafe(data, data.adults + data.children + data.infants);
@@ -322,8 +334,9 @@ export async function POST(request: NextRequest) {
       const quote = await txClient.agentQuote.create({
         data: {
           quoteNumber: generateQuoteNumber(),
-          agentId: agent.id,
-          clientId: data.clientId,
+          agent: { connect: { id: agent.id } },
+          ...(data.clientId ? { client: { connect: { id: data.clientId } } } : {}),
+          shareableLink: generateShareableLink(),
           tripName: data.tripName,
           destination: data.destination,
           startDate: new Date(data.startDate),
@@ -339,8 +352,6 @@ export async function POST(request: NextRequest) {
           transfers: data.transfers as any,
           carRentals: data.carRentals as any,
           customItems: data.customItems as any,
-          basePrice: pricing.basePrice,
-          productMarkup: pricing.productMarkup,
           flightsCost: data.flights.reduce((sum, f) => sum + f.price, 0),
           hotelsCost: data.hotels.reduce((sum, h) => sum + h.price, 0),
           activitiesCost: data.activities.reduce((sum, a) => sum + a.price, 0),
@@ -366,8 +377,6 @@ export async function POST(request: NextRequest) {
           agentNotes: data.agentNotes,
           status: "DRAFT",
           version: 1,
-          lastModifiedBy: session.user.id,
-          lastModifiedAt: new Date(),
         },
         include: {
           client: {
@@ -399,11 +408,9 @@ export async function POST(request: NextRequest) {
           entityId: quote.id,
           metadata: {
             correlationId,
-            client: `${quote.client.firstName} ${quote.client.lastName}`,
+            client: quote.client ? `${quote.client.firstName} ${quote.client.lastName}` : 'No client',
             destination: quote.destination,
             total: quote.total,
-            basePrice: quote.basePrice,
-            productMarkup: quote.productMarkup,
             agentMarkup: quote.agentMarkup,
           },
         },

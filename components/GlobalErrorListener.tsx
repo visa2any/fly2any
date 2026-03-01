@@ -22,7 +22,12 @@ export function GlobalErrorListener({ children }: GlobalErrorListenerProps) {
   useEffect(() => {
     // Handle uncaught errors (event handlers, sync errors)
     const handleError = (event: ErrorEvent) => {
-      event.preventDefault(); // Prevent default browser error handling
+      const msg = event.error?.message || event.message || '';
+      if (msg === 'NEXT_REDIRECT' || msg === 'NEXT_NOT_FOUND') {
+        event.preventDefault();
+        return;
+      }
+      event.preventDefault();
 
       logError(event.error || new Error(event.message), {
         context: 'window-error',
@@ -38,6 +43,11 @@ export function GlobalErrorListener({ children }: GlobalErrorListenerProps) {
 
     // Handle unhandled promise rejections
     const handleRejection = (event: PromiseRejectionEvent) => {
+      const msg = event.reason instanceof Error ? event.reason.message : String(event.reason);
+      if (msg === 'NEXT_REDIRECT' || msg === 'NEXT_NOT_FOUND') {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault();
 
       const error = event.reason instanceof Error

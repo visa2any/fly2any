@@ -97,21 +97,16 @@ export const authConfig = {
         }
 
         if (!user.password) {
-          console.log(`[Auth] User has no password (Google sign-in expected): ${email}`);
           await recordFailedLogin(email).catch(() => {});
           throw new Error('Please sign in with Google');
         }
 
         // Dynamically import bcryptjs (Node.js only)
         const bcrypt = await getBcrypt();
-        const startTime = Date.now();
-        console.log(`[Auth] User found, comparing password for ${email}...`);
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
           user.password
         );
-
-        console.log(`[Auth] Password valid: ${isPasswordValid} (took ${Date.now() - startTime}ms)`);
 
         if (!isPasswordValid) {
           await recordFailedLogin(email).catch(() => {});
@@ -120,7 +115,6 @@ export const authConfig = {
 
         // Clear rate limit on successful login
         await clearLoginAttempts(email).catch(() => {});
-        console.log(`[Auth] Login successful for ${email}.`);
 
         return {
           id: user.id,
@@ -200,13 +194,22 @@ export const authConfig = {
 
       return true;
     },
-    async jwt({ token, user, account, profile, isNewUser, trigger }) {
-      // Mark if this is an admin auth attempt
-      if (account?.provider === 'google') {
-        token.adminAuth = true;
-      }
+    async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
+      }
+      // Only mark adminAuth for Google sign-ins from admin context
+      if (account?.provider === 'google' && account?.scope?.includes('admin')) {
+        token.adminAuth = true;
+      }
+      // Check session revocation on every token refresh
+      if (token.jti) {
+        try {
+          const revoked = await isSessionRevoked(token.jti);
+          if (revoked) return null as any;
+        } catch {
+          // Redis unavailable — allow session to continue
+        }
       }
       return token;
     },
@@ -241,5 +244,23 @@ export const authConfig = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  // Required for CSRF to work correctly in all environments (local dev, proxies, Vercel)
+  trustHost: true,
+  // Fix MissingCSRF on HTTP (localhost): __Host- prefix cookies require HTTPS/Secure flag.
+  // Explicitly set cookie names without the __Host- prefix so they work on HTTP.
+  cookies: {
+    sessionToken: {
+      name: 'authjs.session-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    callbackUrl: {
+      name: 'authjs.callback-url',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+    csrfToken: {
+      name: 'authjs.csrf-token',
+      options: { httpOnly: true, sameSite: 'lax', path: '/', secure: process.env.NODE_ENV === 'production' },
+    },
+  },
 } satisfies NextAuthConfig;

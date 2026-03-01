@@ -21,15 +21,12 @@ export function HostHeader({ exitHref = '/', exitLabel = 'Back to Fly2Any' }: Ho
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (session?.user) {
-      fetch('/api/host/profile')
-        .then(res => res.json())
-        .then(data => {
-          if (data?.superHost) setIsSuperhost(true);
-        })
-        .catch(console.error);
-    }
-  }, [session?.user]);
+    if (!session?.user) return;
+    fetch('/api/host/profile', { next: { revalidate: 60 } } as RequestInit)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data?.superHost) setIsSuperhost(true); })
+      .catch(() => {});
+  }, [session?.user?.email]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -70,7 +67,14 @@ export function HostHeader({ exitHref = '/', exitLabel = 'Back to Fly2Any' }: Ho
       </div>
       
       {/* User Info & Dropdown */}
-      {session?.user && (
+      {!session?.user ? (
+        <button
+          onClick={() => router.push('/auth/signin?callbackUrl=/host/dashboard')}
+          className="px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-bold hover:bg-primary-600 transition-colors"
+        >
+          Sign In
+        </button>
+      ) : (
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setShowDropdown(!showDropdown)}
@@ -147,3 +151,4 @@ export function HostHeader({ exitHref = '/', exitLabel = 'Back to Fly2Any' }: Ho
     </header>
   );
 }
+

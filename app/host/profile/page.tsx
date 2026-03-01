@@ -166,7 +166,7 @@ export default function HostProfilePage() {
                  )}
               </div>
               <div className="flex-1">
-                 <h1 className="text-3xl font-bold text-midnight-navy tracking-tight">{session?.user?.name || 'Host Profile'}</h1>
+                 <h1 className="text-3xl font-bold text-[#0A0A0A] tracking-tight">{session?.user?.name || 'Host Profile'}</h1>
                  <p className="text-neutral-500 font-medium flex items-center gap-2 mt-1">
                     Joined {profile?.hostSince ? format(new Date(profile.hostSince), 'MMMM yyyy') : 'Recently'}
                  </p>
@@ -190,7 +190,7 @@ export default function HostProfilePage() {
             <section className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8 shadow-sm space-y-6">
                <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
                   <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><User className="w-5 h-5" /></div>
-                  <h2 className="text-lg font-bold text-midnight-navy">Public Profile</h2>
+                  <h2 className="text-lg font-bold text-[#0A0A0A]">Public Profile</h2>
                </div>
                
                <div className="space-y-4">
@@ -200,7 +200,7 @@ export default function HostProfilePage() {
                         value={bio}
                         onChange={e => setBio(e.target.value)}
                         placeholder="Tell guests a little about yourself, your hosting style, or why you love your city..."
-                        className="w-full h-32 p-4 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-midnight-navy text-sm outline-none resize-none transition-all"
+                        className="w-full h-32 p-4 border border-neutral-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-[#0A0A0A] text-sm outline-none resize-none transition-all"
                      />
                   </div>
                   
@@ -235,7 +235,7 @@ export default function HostProfilePage() {
             <section className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8 shadow-sm space-y-6">
                <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
                   <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><Building2 className="w-5 h-5" /></div>
-                  <h2 className="text-lg font-bold text-midnight-navy">Business & Tax Details</h2>
+                  <h2 className="text-lg font-bold text-[#0A0A0A]">Business & Tax Details</h2>
                </div>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -275,7 +275,7 @@ export default function HostProfilePage() {
             <section className="bg-white rounded-2xl border border-neutral-200 p-6 md:p-8 shadow-sm space-y-6">
                <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><CreditCard className="w-5 h-5" /></div>
-                  <h2 className="text-lg font-bold text-midnight-navy">Payout Configuration</h2>
+                  <h2 className="text-lg font-bold text-[#0A0A0A]">Payout Configuration</h2>
                </div>
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -317,21 +317,21 @@ export default function HostProfilePage() {
                
                <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-midnight-navy flex items-center justify-center gap-1">
+                     <p className="text-2xl font-black text-[#0A0A0A] flex items-center justify-center gap-1">
                         {profile?.rating?.toFixed(1) || '0.0'} <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                      </p>
                      <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Global Rating</p>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-midnight-navy">{profile?.reviewCount || 0}</p>
+                     <p className="text-2xl font-black text-[#0A0A0A]">{profile?.reviewCount || 0}</p>
                      <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Total Reviews</p>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-midnight-navy">{profile?.responseRate || 100}%</p>
+                     <p className="text-2xl font-black text-[#0A0A0A]">{profile?.responseRate || 100}%</p>
                      <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Response Rate</p>
                   </div>
                   <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-100 text-center">
-                     <p className="text-2xl font-black text-midnight-navy">{profile?.avgResponseTime || '< 1'}h</p>
+                     <p className="text-2xl font-black text-[#0A0A0A]">{profile?.avgResponseTime || '< 1'}h</p>
                      <p className="text-[10px] font-bold text-neutral-500 uppercase mt-1">Response Time</p>
                   </div>
                </div>

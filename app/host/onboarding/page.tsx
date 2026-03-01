@@ -91,9 +91,9 @@ export default function PostPublishOnboarding() {
           <div className="relative inline-flex items-center justify-center mb-6">
             <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center shadow-lg shadow-secondary-500/30">
               {showConfetti ? (
-                <PartyPopper className="w-10 h-10 text-midnight-navy animate-bounce" />
+                <PartyPopper className="w-10 h-10 text-[#0A0A0A] animate-bounce" />
               ) : (
-                <CheckCircle2 className="w-10 h-10 text-midnight-navy" />
+                <CheckCircle2 className="w-10 h-10 text-[#0A0A0A]" />
               )}
             </div>
             {showConfetti && (
@@ -103,7 +103,7 @@ export default function PostPublishOnboarding() {
             )}
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-black text-midnight-navy mb-3 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-[#0A0A0A] mb-3 tracking-tight">
             Your Listing is Live! 🎉
           </h1>
           <p className="text-lg text-neutral-500 max-w-md mx-auto">
@@ -114,7 +114,7 @@ export default function PostPublishOnboarding() {
         {/* Progress Bar */}
         <div className="mb-10">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="font-bold text-midnight-navy">Setup Progress</span>
+            <span className="font-bold text-[#0A0A0A]">Setup Progress</span>
             <span className="text-neutral-500 font-medium">{completedSteps.size}/{ONBOARDING_STEPS.length} completed</span>
           </div>
           <div className="h-3 bg-neutral-100 rounded-full overflow-hidden shadow-inner">
@@ -156,7 +156,7 @@ export default function PostPublishOnboarding() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-bold text-lg ${isCompleted ? 'text-neutral-400 line-through' : 'text-midnight-navy'}`}>
+                      <h3 className={`font-bold text-lg ${isCompleted ? 'text-neutral-400 line-through' : 'text-[#0A0A0A]'}`}>
                         {step.title}
                       </h3>
                       {idx === 0 && !isCompleted && (
@@ -207,7 +207,7 @@ export default function PostPublishOnboarding() {
             className={`w-full py-4 rounded-2xl font-bold text-center transition-all flex items-center justify-center gap-2 ${
               allComplete
                 ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25 hover:shadow-xl hover:-translate-y-0.5'
-                : 'bg-midnight-navy text-white hover:bg-black'
+                : 'bg-[#0A0A0A] text-white hover:bg-black'
             }`}
           >
             {allComplete ? (

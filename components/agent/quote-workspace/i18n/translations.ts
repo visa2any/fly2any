@@ -5,7 +5,7 @@
 
 export type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de' | 'it' | 'ja' | 'zh' | 'ar';
 
-export const translations: Record<Locale, Record<string, Record<string, string>>> = {
+export const translations: Record<Locale, Record<string, Record<string, string | Record<string, string>>>> = {
   en: {
     common: {
       save: 'Save',

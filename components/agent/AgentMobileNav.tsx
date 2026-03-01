@@ -22,7 +22,7 @@ export default function AgentMobileNav() {
 
   const isActive = (href: string) => {
     if (href === '/agent') return pathname === '/agent';
-    return pathname.startsWith(href);
+    return (pathname ?? '').startsWith(href);
   };
 
   return (

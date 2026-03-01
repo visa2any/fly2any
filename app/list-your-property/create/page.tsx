@@ -57,14 +57,22 @@ export default function CreatePropertyPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
-  
-  const [currentStep, setCurrentStep] = useState<WizardStep>('basics');
+
+  // Innovation #1: Initialize step from URL ?step=basics
+  const rawStepParam = searchParams?.get('step') ?? null;
+  const isValidStep = (v: string | null): v is WizardStep => v !== null && STEPS.some(s => (s.id as string) === v);
+  const [currentStep, setCurrentStep] = useState<WizardStep>(
+    isValidStep(rawStepParam) ? rawStepParam : 'basics'
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [stepErrors, setStepErrors] = useState<string[]>([]);
 
+  // Innovation #3: Mobile preview drawer
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+
   // Draft ID if editing existing draft
-  const [editingId, setEditingId] = useState<string | null>(searchParams.get('id'));
+  const [editingId, setEditingId] = useState<string | null>(searchParams?.get('id') ?? null);
 
   // --------------------------------------------------------------------------
   // FORM STATE - CENTRALIZED
@@ -216,7 +224,7 @@ export default function CreatePropertyPage() {
           ecoCertifications: data.policies.ecoCertifications || [],
           
           // Status
-          status: 'DRAFT'
+          status: 'draft'
       };
   };
 
@@ -329,6 +337,27 @@ export default function CreatePropertyPage() {
           return () => clearTimeout(timer);
       }
   }, [formData, currentStep, status, editingId]);
+
+  // Innovation #1: Sync currentStep → URL (?step=xxx) so users can share/bookmark progress
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('step', currentStep);
+    window.history.replaceState({}, '', url.toString());
+  }, [currentStep]);
+
+  // Innovation #4: Enter key → advance step (skip when focus is in textarea/input)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' || e.shiftKey) return;
+      const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'textarea' || tag === 'input' || tag === 'select') return;
+      if (currentStep !== 'review') handleNext();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, formData]);
 
   // Load draft if ID present
   useEffect(() => {
@@ -472,7 +501,6 @@ export default function CreatePropertyPage() {
                 const titles = data.description.split('\n').filter((t: string) => t.length > 5);
                 setFormData(p => ({ ...p, title: titles[0].replace(/^\d+\.\s*/, '').replace(/"/g, '') }));
                 toast.success("Title generated!");
-                console.log("Alternative titles:", titles);
             } else {
                 setFormData(p => ({ ...p, description: data.description }));
                 toast.success("Description generated!");
@@ -492,7 +520,6 @@ export default function CreatePropertyPage() {
   const handleGenerateDescription = () => handleGenerateAI('description');
 
   const handleImportSuccess = (importedData: any) => {
-    console.log('📦 Import data received:', JSON.stringify(importedData, null, 2));
 
     // Convert raw image URL strings to photo objects the form expects
     const importedImages = (importedData.images || [])
@@ -658,32 +685,49 @@ export default function CreatePropertyPage() {
 
     setIsSaving(true);
     try {
-        const payload = preparePayload(formData);
-        const publishPayload = { ...payload, status: 'active' };
+        // Step 1: Ensure the property exists (save first if no editingId)
+        let propertyId = editingId;
+        if (!propertyId) {
+            const saveRes = await fetch('/api/properties', {
+                method: 'POST',
+                body: JSON.stringify(preparePayload(formData)),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!saveRes.ok) throw new Error("Failed to save property before publishing");
+            const saveData = await saveRes.json();
+            propertyId = saveData.data?.id;
+            if (!propertyId) throw new Error("No property ID returned from save");
+            setEditingId(propertyId);
+        } else {
+            // Update data before publishing
+            const updateRes = await fetch(`/api/properties/${propertyId}`, {
+                method: 'PUT',
+                body: JSON.stringify(preparePayload(formData)),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!updateRes.ok) throw new Error("Failed to update property before publishing");
+        }
 
-        const url = editingId ? `/api/properties/${editingId}` : '/api/properties';
-        const method = editingId ? 'PUT' : 'POST';
-        
-        const res = await fetch(url, {
-            method,
-            body: JSON.stringify(publishPayload),
+        // Step 2: Call dedicated publish endpoint (server-side validation)
+        const publishRes = await fetch(`/api/properties/${propertyId}/publish`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
+        const publishData = await publishRes.json();
 
-        if (!res.ok) throw new Error("Failed to publish");
-        
+        if (!publishRes.ok) {
+            const errMsg = publishData.validationErrors?.join(', ') || publishData.error || 'Failed to publish';
+            throw new Error(errMsg);
+        }
+
         // Clear draft
         if (typeof window !== 'undefined') localStorage.removeItem('fly2any_host_draft');
 
         toast.success("Property Published! 🎉");
-        // 🎊 Celebration confetti!
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
         setTimeout(() => confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 } }), 300);
-        const responseData = await res.json().catch(() => ({}));
-        const propertyId = responseData?.data?.id || editingId || '';
         setTimeout(() => router.push(`/host/onboarding?propertyId=${propertyId}`), 1500);
     } catch (e: any) {
-        console.error(e);
         toast.error("Failed to publish: " + e.message);
     } finally {
         setIsSaving(false);
@@ -1054,6 +1098,15 @@ export default function CreatePropertyPage() {
   // Wait, I can't replace the whole file easily. I will target the Sidebar area specifically.
   // Actually, I'll just add the Auth effect first, then the Sidebar change.
 
+  // Don't render wizard while auth is resolving — prevents flash for unauthenticated users
+  if (status === 'loading' || isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-neutral-50">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen overflow-hidden bg-neutral-50 flex flex-col text-gray-900 relative">
       <WizardProgressBar currentStep={currentStep} steps={STEPS} />
@@ -1086,11 +1139,16 @@ export default function CreatePropertyPage() {
                         `}
                     >
                         {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-500 rounded-r-full" />}
-                        <div className={`p-1.5 shrink-0 rounded-lg mx-auto group-hover:mx-0 ${isActive ? 'bg-primary-100 text-primary-600' : 'bg-transparent'}`}>
-                             <step.icon className="w-[18px] h-[18px]" />
+                        {/* Innovation #2: Always-visible completion indicator */}
+                        <div className="relative shrink-0 mx-auto group-hover:mx-0">
+                          <div className={`p-1.5 rounded-lg ${isActive ? 'bg-primary-100 text-primary-600' : isCompleted ? 'text-green-600' : 'bg-transparent'}`}>
+                            {isCompleted ? <Check className="w-[18px] h-[18px] text-green-500" /> : <step.icon className="w-[18px] h-[18px]" />}
+                          </div>
+                          {isCompleted && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full border border-white group-hover:hidden" />
+                          )}
                         </div>
                         <span className="flex-1 text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">{step.label}</span>
-                        {isCompleted && <Check className="w-4 h-4 text-green-500 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />}
                     </button>
                 );
             })}
@@ -1121,8 +1179,55 @@ export default function CreatePropertyPage() {
             <ChevronLeft className="w-6 h-6" />
          </button>
          <span className="font-semibold text-gray-900">Step {STEPS.findIndex(s => s.id === currentStep) + 1} of {STEPS.length}</span>
-         <button onClick={handleSaveDraft} className="text-sm font-semibold text-primary-600">Save</button>
+         {/* Innovation #3: Mobile preview button */}
+         <button onClick={() => setShowMobilePreview(true)} className="flex items-center gap-1 text-sm font-semibold text-primary-600">
+           <Eye className="w-4 h-4" /> Preview
+         </button>
       </div>
+
+      {/* Innovation #3: Mobile Preview Drawer */}
+      {showMobilePreview && (
+        <div className="md:hidden fixed inset-0 z-[100] flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMobilePreview(false)} />
+          <div className="relative bg-white rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2"><Eye className="w-4 h-4 text-primary-500" /> Guest Preview</h3>
+              <button onClick={() => setShowMobilePreview(false)} className="p-1.5 bg-neutral-100 rounded-full text-neutral-500">✕</button>
+            </div>
+            <div className="bg-white rounded-2xl border border-neutral-200 shadow-lg overflow-hidden">
+              <div className="relative aspect-[4/3] bg-neutral-100">
+                {formData.images.length > 0 && formData.images[0]?.url ? (
+                  <Image src={formData.images[0].url} alt="Cover" fill unoptimized className="object-cover" />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 gap-2">
+                    <Camera className="w-8 h-8 opacity-30" />
+                    <span className="text-xs opacity-50">No photos yet</span>
+                  </div>
+                )}
+              </div>
+              <div className="p-5 space-y-3">
+                <div>
+                  <h4 className="font-bold text-gray-900 text-lg leading-tight">{formData.title || 'Your amazing space'}</h4>
+                  <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {formData.location.city ? `${formData.location.city}, ${formData.location.country}` : 'Location not set'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                  <span>{formData.specs.guests} guests</span>•<span>{formData.specs.bedrooms} bed</span>•<span>{formData.specs.bathrooms} bath</span>
+                </div>
+                {formData.description && (
+                  <p className="text-sm text-gray-500 line-clamp-3 leading-relaxed">{formData.description}</p>
+                )}
+                <div className="pt-3 border-t border-neutral-100">
+                  <span className="text-2xl font-black text-gray-900">${formData.pricing.basePrice}</span>
+                  <span className="text-sm text-gray-400 ml-1">/ night</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
 
       {/* MAIN CONTENT AREA */}

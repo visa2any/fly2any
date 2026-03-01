@@ -296,15 +296,15 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                     <span className="font-bold text-gray-900">{f.airline} {f.flightNumber}</span>
                     <span className="text-gray-400">•</span>
                     <span className="font-medium text-gray-700">{f.origin} → {f.destination}</span>
-                    {f.aircraftType && (
+                    {(f as any).aircraftType && (
                       <>
                         <span className="text-gray-400">•</span>
-                        <span className="text-gray-500">{f.aircraftType}</span>
+                        <span className="text-gray-500">{(f as any).aircraftType}</span>
                       </>
                     )}
                   </div>
-                  {f.confirmationNumber && (
-                    <p className="text-[9px] text-gray-500 mt-1">Confirmation: <span className="font-mono font-semibold text-gray-700">{f.confirmationNumber}</span></p>
+                  {(f as any).confirmationNumber && (
+                    <p className="text-[9px] text-gray-500 mt-1">Confirmation: <span className="font-mono font-semibold text-gray-700">{(f as any).confirmationNumber}</span></p>
                   )}
                 </div>
 
@@ -412,7 +412,8 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
   }
 
   // Activity/Tour-specific card with photo and more info
-  if (item.type === "activity" || item.type === "tour") {
+  const itemTypeStr = item.type as string;
+  if (item.type === "activity" || itemTypeStr === "tour") {
     const a = item as ActivityItem;
     // DEBUG: Check image field
     if (!a.image) console.warn(`[${item.type}] No image:`, a.name, 'Image field:', a.image);
@@ -420,7 +421,7 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
       <motion.div
         layout
         className={`group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow ${
-          isExpanded ? `ring-2 ${item.type === "tour" ? "ring-orange-400" : "ring-emerald-400"}` : ""
+          isExpanded ? `ring-2 ${itemTypeStr === "tour" ? "ring-orange-400" : "ring-emerald-400"}` : ""
         }`}
       >
         {/* Drag Handle - Agent Only */}
@@ -438,15 +439,15 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
         {/* Main Content */}
         <div className="flex ml-5">
           {/* Photo Thumbnail - Standardized 128x96 */}
-          <div className={`w-32 h-24 rounded-l-xl overflow-hidden flex-shrink-0 ${item.type === "tour" ? "bg-orange-100" : "bg-emerald-100"}`}>
+          <div className={`w-32 h-24 rounded-l-xl overflow-hidden flex-shrink-0 ${itemTypeStr === "tour" ? "bg-orange-100" : "bg-emerald-100"}`}>
             {a.image ? (
               <img src={a.image} alt={a.name} className="w-full h-full object-cover" loading="lazy" onError={(e) => {
                 console.log('Image load error:', a.image);
                 e.currentTarget.style.display = 'none';
               }} />
             ) : (
-              <div className={`w-full h-full flex items-center justify-center ${item.type === "tour" ? "bg-gradient-to-br from-orange-200 to-red-200" : "bg-gradient-to-br from-emerald-200 to-teal-200"}`}>
-                {item.type === "tour" ? <MapPin className="w-8 h-8 text-orange-400" /> : <Compass className="w-8 h-8 text-emerald-400" />}
+              <div className={`w-full h-full flex items-center justify-center ${itemTypeStr === "tour" ? "bg-gradient-to-br from-orange-200 to-red-200" : "bg-gradient-to-br from-emerald-200 to-teal-200"}`}>
+                {itemTypeStr === "tour" ? <MapPin className="w-8 h-8 text-orange-400" /> : <Compass className="w-8 h-8 text-emerald-400" />}
               </div>
             )}
           </div>
@@ -616,9 +617,9 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-bold text-gray-900 text-sm truncate">{h.name}</h4>
-                  {h.starRating && (
+                  {(h.stars || (h as any).starRating) && (
                     <div className="flex items-center gap-0.5">
-                      {[...Array(h.starRating)].map((_, i) => (
+                      {[...Array(h.stars || (h as any).starRating)].map((_, i) => (
                         <Star key={i} className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                       ))}
                     </div>
@@ -626,8 +627,8 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-[9px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded font-medium">{h.roomType}</span>
-                  {h.boardType && (
-                    <span className="text-[9px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{h.boardType}</span>
+                  {(h as any).boardType && (
+                    <span className="text-[9px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{(h as any).boardType}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -1059,7 +1060,15 @@ export default function ItineraryCard({ item, dragListeners, isDragging, viewMod
                 <span>Conflict</span>
               </div>
             )}
-            <p className="font-bold text-gray-900 text-sm">{formatPrice(item.price)}</p>
+            <p className="font-bold text-gray-900 text-sm">
+              {(() => {
+                const qi = item as unknown as QuoteItem;
+                const price = qi.priceType === 'per_night' && qi.type === 'hotel' && 'nights' in qi
+                  ? qi.price * ((qi as unknown as HotelItem).nights || 1)
+                  : qi.price;
+                return formatPrice(price);
+              })()}
+            </p>
           </div>
 
           {/* Actions */}

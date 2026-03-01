@@ -105,6 +105,7 @@ export function SectionConfidence({ productType, itemCount }: { productType: Pro
     hotel: "Carefully selected for location and amenities",
     car: "Chosen for reliability and convenience",
     activity: "Curated experiences for your trip style",
+    tour: "Expert-guided tours for memorable moments",
     transfer: "Seamless connections arranged",
     insurance: "Comprehensive coverage for peace of mind",
     custom: "Personalized additions for your journey",

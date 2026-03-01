@@ -9,8 +9,9 @@ export async function GET(
   { params }: { params: { shareableLink: string } }
 ) {
   try {
-    const quote = await prisma!.agentQuote.findUnique({
-      where: { shareableLink: params.shareableLink },
+    const idFromToken = params.shareableLink.startsWith('qt-') ? params.shareableLink.slice(3) : null;
+    const quote = await prisma!.agentQuote.findFirst({
+      where: idFromToken ? { id: idFromToken } : { shareableLink: params.shareableLink },
       include: {
         client: {
           select: {

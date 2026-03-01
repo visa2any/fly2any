@@ -12,6 +12,14 @@ import { getSql } from '@/lib/db/connection';
 import { createHash } from 'crypto';
 import { getCached, setCache } from '@/lib/cache/helpers';
 
+// Warn once about missing analytics table — avoids log spam on every search
+let _missingTableWarned = false;
+function _warnMissingTableOnce() {
+  if (_missingTableWarned) return;
+  _missingTableWarned = true;
+  console.warn('[Analytics] flight_search_logs table does not exist. Run migration: lib/db/migrations/001_flight_search_analytics.sql');
+}
+
 export interface FlightSearchLog {
   // Search parameters
   origin: string;
@@ -227,7 +235,13 @@ export async function logFlightSearch(
   } catch (error) {
     // Don't block search if logging fails - silently fail
     if (process.env.NODE_ENV === 'development') {
-      console.error('Failed to log flight search:', error instanceof Error ? error.message : 'Unknown error');
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      // Suppress repeated "table doesn't exist" noise — log only once
+      if (msg.includes('flight_search_logs') || msg.includes('does not exist')) {
+        _warnMissingTableOnce();
+      } else {
+        console.error('Failed to log flight search:', msg);
+      }
     }
     return null;
   }
