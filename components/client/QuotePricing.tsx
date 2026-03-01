@@ -13,6 +13,11 @@ interface QuotePricingProps {
     discount: number;
     total: number;
     currency: string;
+    depositRequired?: boolean;
+    depositAmount?: number | null;
+    depositDueDate?: string | Date | null;
+    finalPaymentDueDate?: string | Date | null;
+    termsAndConditions?: string | null;
   };
 }
 
@@ -109,14 +114,36 @@ export default function QuotePricing({ quote }: QuotePricingProps) {
         <div className="mt-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Payment Terms</h3>
           <div className="space-y-2">
-            <div className="flex items-start gap-2.5 text-sm text-gray-600">
-              <CreditCard className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-              <span>25% deposit to secure booking</span>
-            </div>
-            <div className="flex items-start gap-2.5 text-sm text-gray-600">
-              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-              <span>Balance due 30 days before departure</span>
-            </div>
+            {quote.depositRequired && quote.depositAmount ? (
+              <div className="flex items-start gap-2.5 text-sm text-gray-600">
+                <CreditCard className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                <span>
+                  {formatCurrency(quote.depositAmount)} deposit to secure booking
+                  {quote.depositDueDate && (
+                    <> — due by {new Date(quote.depositDueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</>
+                  )}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2.5 text-sm text-gray-600">
+                <CreditCard className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                <span>25% deposit to secure booking</span>
+              </div>
+            )}
+            {quote.finalPaymentDueDate ? (
+              <div className="flex items-start gap-2.5 text-sm text-gray-600">
+                <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                <span>Balance due by {new Date(quote.finalPaymentDueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2.5 text-sm text-gray-600">
+                <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                <span>Balance due 30 days before departure</span>
+              </div>
+            )}
+            {quote.termsAndConditions && (
+              <p className="text-xs text-gray-500 mt-2 leading-relaxed">{quote.termsAndConditions}</p>
+            )}
           </div>
         </div>
       </div>

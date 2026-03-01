@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { resendClient } from "@/lib/email/resend-client";
 
 // Validation schema for send request
 const SendRequestSchema = z.object({
@@ -154,7 +155,6 @@ export async function POST(
   }
 }
 
-// Email sending function (placeholder - integrate with AWS SES or similar)
 async function sendEmail(params: {
   to: string;
   subject: string;
@@ -162,57 +162,67 @@ async function sendEmail(params: {
   quoteUrl: string;
   quote: any;
 }) {
-  // TODO: Integrate with AWS SES or email service
-  console.log("[SEND_EMAIL]", {
+  const agentName = params.quote.agent?.user?.name || params.quote.agent?.businessName || "Your Travel Agent";
+  const destination = params.quote.destination || "your destination";
+  const clientFirst = params.quote.client?.firstName || "";
+  const total = params.quote.total ? `$${Number(params.quote.total).toLocaleString()}` : "";
+  const expiresAt = params.quote.expiresAt
+    ? new Date(params.quote.expiresAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    : null;
+
+  const messageHtml = params.message
+    .split("\n")
+    .map((line: string) => `<p style="margin:0 0 12px">${line || "&nbsp;"}</p>`)
+    .join("");
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#E74035,#c0392b);padding:36px 40px 32px">
+      <p style="margin:0 0 8px;color:rgba(255,255,255,0.8);font-size:13px;letter-spacing:1px;text-transform:uppercase">Travel Quote</p>
+      <h1 style="margin:0;color:#fff;font-size:28px;font-weight:700;line-height:1.2">${params.quote.tripName || `Trip to ${destination}`}</h1>
+      ${total ? `<p style="margin:12px 0 0;color:rgba(255,255,255,0.9);font-size:18px;font-weight:600">${total} total</p>` : ""}
+    </div>
+    <!-- Body -->
+    <div style="padding:36px 40px">
+      ${clientFirst ? `<p style="margin:0 0 20px;color:#374151;font-size:16px">Hi ${clientFirst},</p>` : ""}
+      <div style="color:#4b5563;font-size:15px;line-height:1.7">${messageHtml}</div>
+      <!-- CTA -->
+      <div style="margin:32px 0;text-align:center">
+        <a href="${params.quoteUrl}" style="display:inline-block;background:linear-gradient(135deg,#E74035,#c0392b);color:#fff;text-decoration:none;padding:16px 40px;border-radius:12px;font-size:16px;font-weight:700;letter-spacing:0.3px">
+          View Your Quote →
+        </a>
+      </div>
+      ${expiresAt ? `<p style="text-align:center;color:#9ca3af;font-size:13px">This quote expires on ${expiresAt}</p>` : ""}
+    </div>
+    <!-- Footer -->
+    <div style="border-top:1px solid #f3f4f6;padding:24px 40px;background:#fafafa">
+      <p style="margin:0;color:#6b7280;font-size:13px">Sent by <strong>${agentName}</strong> via <a href="https://www.fly2any.com" style="color:#E74035;text-decoration:none">Fly2Any</a></p>
+      <p style="margin:8px 0 0;color:#9ca3af;font-size:12px">Questions? Reply to this email or contact your agent directly.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const result = await resendClient.send({
     to: params.to,
     subject: params.subject,
-    message: params.message,
-    quoteUrl: params.quoteUrl,
+    html,
+    text: `${params.message}\n\nView your quote: ${params.quoteUrl}`,
+    replyTo: params.quote.agent?.user?.email,
+    tags: ["quote-send"],
   });
 
-  // Example AWS SES integration:
-  // const ses = new AWS.SES({ region: 'us-east-1' });
-  // await ses.sendEmail({
-  //   Source: 'quotes@fly2any.com',
-  //   Destination: { ToAddresses: [params.to] },
-  //   Message: {
-  //     Subject: { Data: params.subject },
-  //     Body: { Text: { Data: params.message } },
-  //   },
-  // });
-
-  // For now, simulate success
-  return { success: true };
+  if (!result.success) {
+    throw new Error(result.error || "Email delivery failed");
+  }
+  return result;
 }
 
-// WhatsApp sending function (placeholder - integrate with WhatsApp Business API)
-async function sendWhatsApp(params: {
-  phone: string;
-  message: string;
-  quoteUrl: string;
-}) {
-  // TODO: Integrate with WhatsApp Business API
-  console.log("[SEND_WHATSAPP]", {
-    phone: params.phone,
-    message: params.message,
-    quoteUrl: params.quoteUrl,
-  });
-
-  // Example WhatsApp API integration:
-  // const response = await fetch('https://graph.facebook.com/v17.0/YOUR_PHONE_NUMBER_ID/messages', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify({
-  //     messaging_product: 'whatsapp',
-  //     to: params.phone,
-  //     type: 'text',
-  //     text: { body: params.message },
-  //   }),
-  // });
-
-  // For now, return success (client handles opening WhatsApp)
-  return { success: true, whatsappUrl: `https://wa.me/${params.phone}?text=${encodeURIComponent(params.message)}` };
+async function sendWhatsApp(params: { phone: string; message: string; quoteUrl: string }) {
+  // US market: WhatsApp not used. SMS is the channel. Return URL for client-side handling.
+  return { success: true, whatsappUrl: `https://wa.me/${params.phone}?text=${encodeURIComponent(`${params.message}\n\n${params.quoteUrl}`)}` };
 }

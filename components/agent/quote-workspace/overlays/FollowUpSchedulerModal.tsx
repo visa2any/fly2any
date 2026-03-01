@@ -36,7 +36,13 @@ export default function FollowUpSchedulerModal({ isOpen, onClose, quoteId, clien
     return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
   };
 
-  const handleSave = () => {
+  const getIsoDate = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString();
+  };
+
+  const handleSave = async () => {
     if (!selectedDays) return;
 
     const followUp = {
@@ -49,10 +55,24 @@ export default function FollowUpSchedulerModal({ isOpen, onClose, quoteId, clien
       createdAt: new Date().toISOString(),
     };
 
-    // Store in localStorage for now (production: persist to DB)
+    // Always persist to localStorage (works without a saved quote)
     const existing = JSON.parse(localStorage.getItem("agent-followups") || "[]");
     existing.push(followUp);
     localStorage.setItem("agent-followups", JSON.stringify(existing));
+
+    // Also persist to DB if a quoteId is available
+    if (quoteId) {
+      fetch(`/api/agents/quotes/${quoteId}/follow-up`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          followUpDate: getIsoDate(selectedDays),
+          channel,
+          note,
+          daysFromNow: selectedDays,
+        }),
+      }).catch(() => {}); // Fire-and-forget — localStorage is the source of truth for notifications
+    }
 
     setSaved(true);
     setTimeout(() => {

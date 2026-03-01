@@ -3,9 +3,9 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
-import { 
-  X, Send, Mail, FileText, Loader2, Check, Sparkles, MessageCircle, 
-  Smartphone, Copy, ExternalLink, ChevronRight, Eye, CheckCircle2 
+import {
+  X, Send, Mail, FileText, Loader2, Check, Sparkles,
+  Smartphone, Copy, ExternalLink, ChevronRight, Eye, CheckCircle2
 } from "lucide-react";
 import { useQuoteWorkspace, useQuotePricing } from "../QuoteWorkspaceProvider";
 import { 
@@ -14,9 +14,9 @@ import {
   interpolateTemplate,
   prepareTemplateVariables
 } from "@/lib/quotes/messageTemplates";
-import { sendQuoteEmail, sendQuoteWhatsApp } from "@/lib/quotes/sendQuoteService";
+import { sendQuoteEmail } from "@/lib/quotes/sendQuoteService";
 
-type DeliveryChannel = "email" | "sms" | "whatsapp" | "link";
+type DeliveryChannel = "email" | "sms" | "link";
 type ModalTab = "channels" | "message" | "preview";
 
 export default function SendQuoteModal() {
@@ -125,13 +125,13 @@ export default function SendQuoteModal() {
       return;
     }
 
-    // Validation — client required for email/sms/whatsapp but not for link
+    // Validation — client required for email/sms but not for link
     if (!state.client && channel !== "link") {
       setError("Please select a client first");
       return;
     }
 
-    if ((channel === "sms" || channel === "whatsapp") && !phoneNumber) {
+    if (channel === "sms" && !phoneNumber) {
       setError("Phone number is required for this channel");
       return;
     }
@@ -156,19 +156,12 @@ export default function SendQuoteModal() {
       if (channel === "email") {
         await sendQuoteEmail({
           quoteId,
-          to: state.client.email,
+          to: state.client!.email,
           subject: interpolatedSubject,
           message: interpolatedMessage,
         });
         setSent(true);
       } 
-      else if (channel === "whatsapp") {
-        await sendQuoteWhatsApp({
-          phone: phoneNumber,
-          message: interpolatedMessage,
-        });
-        setSent(true);
-      }
       else if (channel === "sms") {
         // SMS Endpoint
         const res = await fetch(`/api/agents/quotes/${quoteId}/send-sms`, {
@@ -336,8 +329,8 @@ export default function SendQuoteModal() {
                       {activeTab === "channels" && (
                         <div className="p-8 max-w-3xl mx-auto space-y-8">
                           
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {(["email", "whatsapp", "sms", "link"] as const).map((c) => (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {(["email", "sms", "link"] as const).map((c) => (
                               <button
                                 key={c}
                                 onClick={() => setChannel(c)}
@@ -351,7 +344,6 @@ export default function SendQuoteModal() {
                                   channel === c ? "bg-white shadow-sm" : "bg-gray-100"
                                 }`}>
                                   {c === "email" && <Mail className={`w-6 h-6 ${channel === c ? "text-primary-600" : "text-gray-500"}`} />}
-                                  {c === "whatsapp" && <MessageCircle className={`w-6 h-6 ${channel === c ? "text-green-600" : "text-gray-500"}`} />}
                                   {c === "sms" && <Smartphone className={`w-6 h-6 ${channel === c ? "text-blue-600" : "text-gray-500"}`} />}
                                   {c === "link" && <ExternalLink className={`w-6 h-6 ${channel === c ? "text-purple-600" : "text-gray-500"}`} />}
                                 </div>
@@ -378,7 +370,7 @@ export default function SendQuoteModal() {
                              </div>
 
                              {/* Channel Specific Inputs */}
-                             {(channel === "sms" || channel === "whatsapp") && (
+                             {channel === "sms" && (
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-2">Verify Phone Number</label>
                                   <input 

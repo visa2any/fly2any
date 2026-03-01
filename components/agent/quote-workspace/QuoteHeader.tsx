@@ -53,11 +53,25 @@ export default function QuoteHeader() {
   const [expiryDate, setExpiryDate] = useState<string>("");
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [lastViewedAt, setLastViewedAt] = useState<string | null>(null);
+  const [viewCount, setViewCount] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  // Fetch last viewed time when quote is sent/viewed/accepted
+  useEffect(() => {
+    if (!state.id || !['sent', 'viewed', 'accepted', 'declined'].includes(state.status)) return;
+    fetch(`/api/agents/quotes/${state.id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.quote?.lastViewedAt) setLastViewedAt(data.quote.lastViewedAt);
+        if (data?.quote?.viewCount) setViewCount(data.quote.viewCount);
+      })
+      .catch(() => {});
+  }, [state.id, state.status]);
 
   // Load follow-ups as notifications
   useEffect(() => {
@@ -144,6 +158,17 @@ export default function QuoteHeader() {
   const handleSave = () => { setTripName(editValue || "Untitled Quote"); setIsEditing(false); };
   const handleKeyDown = (e: React.KeyboardEvent) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") { setEditValue(state.tripName); setIsEditing(false); } };
 
+  const formatTimeAgo = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
   const statusColors: Record<string, string> = {
     draft: "text-gray-500 bg-gray-100",
     sent: "text-blue-600 bg-blue-50",
@@ -213,6 +238,21 @@ export default function QuoteHeader() {
         <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase ${statusColors[state.status]}`}>
           {state.status}
         </span>
+
+        {/* Client Last Viewed Badge */}
+        {['sent', 'viewed', 'accepted', 'declined'].includes(state.status) && (
+          <span
+            title={`Viewed ${viewCount} time${viewCount !== 1 ? 's' : ''}`}
+            className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+              lastViewedAt
+                ? "bg-violet-50 text-violet-600 border border-violet-200"
+                : "bg-gray-50 text-gray-400 border border-gray-200"
+            }`}
+          >
+            <Eye className="w-2.5 h-2.5" />
+            {lastViewedAt ? formatTimeAgo(lastViewedAt) : "Not viewed"}
+          </span>
+        )}
 
         {/* AI Quote Strength Badge */}
         <QuoteStrengthBadge />
