@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { MAJOR_AIRLINES } from '@/lib/seo/sitemap-helpers';
+import { TOP_DESTINATIONS, TOP_AIRPORTS, TOP_AIRLINES } from '@/lib/seo/programmatic-seo';
 import { WORLD_CUP_TEAMS, WORLD_CUP_STADIUMS } from '@/lib/data/world-cup-2026';
 
 export const dynamic = 'force-static';
@@ -13,63 +13,46 @@ export const revalidate = 86400;
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 const today = new Date().toISOString().split('T')[0];
 
-// High-value destination landing pages
-const destinationSlugs = [
-  'hawaii', 'florida', 'las-vegas', 'mexico', 'india', 'bali', 'brazil',
-  'oslo', 'berlin', 'munich', 'london', 'paris', 'tokyo', 'dubai',
-  'cancun', 'caribbean', 'europe', 'asia', 'south-america', 'australia',
-];
-
-// Deals pages
-const dealRoutes = [
-  'new-york-to-miami', 'los-angeles-to-las-vegas', 'chicago-to-new-york',
-  'new-york-to-london', 'miami-to-cancun', 'san-francisco-to-los-angeles',
-  'boston-to-miami', 'dallas-to-denver', 'atlanta-to-orlando', 'seattle-to-phoenix',
-  'new-york-to-paris', 'los-angeles-to-tokyo', 'miami-to-san-juan',
-];
-
 export async function GET() {
   const urls: string[] = [];
 
-  // Destination landing pages (/flights/to/{dest})
-  destinationSlugs.forEach((dest) => {
+  // /destinations/[slug] — programmatic destination pages
+  TOP_DESTINATIONS.forEach((dest) => {
     urls.push(`  <url>
-    <loc>${SITE_URL}/flights/to/${dest}</loc>
+    <loc>${SITE_URL}/destinations/${dest.slug}</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.92</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
   </url>`);
   });
 
-  // Deals pages
-  dealRoutes.forEach((route) => {
+  // /airports/[slug] — programmatic airport pages
+  TOP_AIRPORTS.forEach((airport) => {
     urls.push(`  <url>
-    <loc>${SITE_URL}/deals/cheap-flights-${route}</loc>
+    <loc>${SITE_URL}/airports/${airport.slug}</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
+    <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>`);
   });
 
-  // Airline pages
-  MAJOR_AIRLINES.forEach((airline) => {
+  // /airlines/[slug] — programmatic airline pages
+  TOP_AIRLINES.forEach((airline) => {
     urls.push(`  <url>
-    <loc>${SITE_URL}/airlines/${airline.code.toLowerCase()}</loc>
+    <loc>${SITE_URL}/airlines/${airline.slug}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.82</priority>
   </url>`);
   });
 
-  // Priority airlines
-  ['delta', 'american', 'united', 'emirates', 'spirit', 'alaska', 'frontier'].forEach((airline) => {
-    urls.push(`  <url>
-    <loc>${SITE_URL}/airlines/${airline}</loc>
+  // /team — E-E-A-T trust page
+  urls.push(`  <url>
+    <loc>${SITE_URL}/team</loc>
     <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.93</priority>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
   </url>`);
-  });
 
   // World Cup 2026 pages
   const wcPages = [

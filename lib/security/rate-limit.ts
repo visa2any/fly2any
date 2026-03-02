@@ -10,8 +10,10 @@ import { getRedisClient, isRedisEnabled } from '@/lib/cache/redis';
 
 const LOGIN_PREFIX = 'ratelimit:login:';
 const AUTH_WINDOW = 300; // 5 minutes
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 900; // 15 minutes
+// In dev, allow more attempts and shorter lockout for easier testing
+const IS_DEV = process.env.NODE_ENV === 'development';
+const MAX_ATTEMPTS = IS_DEV ? 20 : 5;
+const LOCKOUT_DURATION = IS_DEV ? 60 : 900; // 1 min dev / 15 min prod
 
 const GENERAL_PREFIX = 'ratelimit:general:';
 
@@ -96,13 +98,13 @@ export async function checkLoginRateLimit(identifier: string): Promise<RateLimit
 }
 
 /**
- * Record failed login attempt
+ * Record failed login attempt (log only — counter already incremented by checkLoginRateLimit)
  */
 export async function recordFailedLogin(identifier: string, email?: string): Promise<void> {
-  const result = await checkLoginRateLimit(identifier);
-  if (result.locked) {
-    console.error(`🚨 Login blocked for: ${identifier}, Email: ${email || 'unknown'}`);
-  }
+  // checkLoginRateLimit() in authorize() already incremented the counter.
+  // Calling it again here would double-count and cause premature lockout.
+  // Just log the failure.
+  console.warn(`⚠️ Failed login attempt for: ${identifier}${email ? ` (${email})` : ''}`);
 }
 
 /**
@@ -111,10 +113,12 @@ export async function recordFailedLogin(identifier: string, email?: string): Pro
 export async function clearLoginAttempts(identifier: string): Promise<void> {
   const redis = getRedisClient();
   const attemptsKey = `${LOGIN_PREFIX}${identifier}`;
+  const lockKey = `${LOGIN_PREFIX}locked:${identifier}`;
   if (redis && isRedisEnabled()) {
-    await redis.del(attemptsKey);
+    await Promise.all([redis.del(attemptsKey), redis.del(lockKey)]);
   } else {
     memDel(attemptsKey);
+    memDel(lockKey);
   }
 }
 

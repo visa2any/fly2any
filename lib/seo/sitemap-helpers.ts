@@ -20,13 +20,24 @@ export const TOP_US_AIRPORTS = [
   'CMH', 'CVG', 'PIT', 'IND', 'SMF', 'MKE', 'OMA', 'RNO', 'ABQ', 'BUR',
 ];
 
-// Top 50 international airports
+// Top international airports — worldwide coverage (70+)
 export const TOP_INTERNATIONAL_AIRPORTS = [
-  'LHR', 'CDG', 'FRA', 'AMS', 'MAD', 'BCN', 'FCO', 'MUC', 'IST', 'ZRH',
-  'DXB', 'SIN', 'HKG', 'NRT', 'ICN', 'PVG', 'PEK', 'BKK', 'KUL', 'DEL',
-  'SYD', 'MEL', 'YYZ', 'YVR', 'GRU', 'GIG', 'MEX', 'CUN', 'PTY', 'BOG',
-  'LIM', 'SCL', 'EZE', 'JNB', 'CPT', 'CAI', 'TLV', 'DOH', 'AUH', 'BOM',
-  'MNL', 'CGK', 'HAN', 'SGN', 'KIX', 'TPE', 'HND', 'CAN', 'CTU', 'PUS',
+  // Europe
+  'LHR', 'CDG', 'FRA', 'AMS', 'MAD', 'BCN', 'FCO', 'MXP', 'MUC', 'IST',
+  'ZRH', 'VIE', 'LIS', 'DUB', 'CPH', 'ARN', 'OSL', 'HEL', 'WAW', 'PRG',
+  'BUD', 'ATH', 'OPO', 'BRU', 'GVA', 'EDI', 'MAN',
+  // Middle East
+  'DXB', 'DOH', 'AUH', 'TLV', 'AMM', 'KWI', 'BAH', 'RUH', 'JED',
+  // Asia
+  'SIN', 'HKG', 'NRT', 'HND', 'ICN', 'PVG', 'PEK', 'CAN', 'CTU', 'BKK',
+  'KUL', 'DEL', 'BOM', 'MNL', 'CGK', 'HAN', 'SGN', 'KIX', 'TPE', 'PUS',
+  // Oceania
+  'SYD', 'MEL', 'BNE', 'PER', 'AKL',
+  // Americas
+  'YYZ', 'YVR', 'GRU', 'GIG', 'MEX', 'CUN', 'PTY', 'BOG', 'LIM', 'SCL',
+  'EZE', 'GYE', 'UIO', 'MVD', 'ASU',
+  // Africa
+  'JNB', 'CPT', 'NBO', 'CAI', 'CMN', 'ADD', 'DAR', 'LOS', 'ACC',
 ];
 
 // Popular US cities for destination pages

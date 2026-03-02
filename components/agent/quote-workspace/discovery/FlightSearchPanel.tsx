@@ -242,7 +242,7 @@ export default function FlightSearchPanel() {
 
       setSearchResults(false, data.flights || [], "flight", params);
       setVisibleCount(10);
-      setFilterStops(0);
+      setFilterStops(params.directFlights ? 1 : 0);
       setFilterAirline("");
       setSortBy("price");
     } catch (err: any) {
@@ -295,7 +295,7 @@ export default function FlightSearchPanel() {
       apiSource: flight.source || "amadeus",
       apiOfferId: flight.id,
       // Fare details
-      fareType: brandedFare || (cabin === "ECONOMY" ? "Economy" : cabin),
+      fareType: brandedFare || (cabin?.toUpperCase() === "ECONOMY" ? "Economy" : (cabin?.charAt(0).toUpperCase() + cabin?.slice(1).toLowerCase() || "Economy")),
       fareBasis: fareDetails?.fareBasis,
       includedBags: includedBags ? { quantity: includedBags.quantity || 0, weight: includedBags.weight ? `${includedBags.weight}kg` : undefined } : undefined,
       fareRules: {
@@ -1161,6 +1161,7 @@ export default function FlightSearchPanel() {
                       onAdd={(fareIdx) => handleAddFlight(flight, fareIdx)}
                       index={idx}
                       alreadyAdded={isAlreadyAdded}
+                      searchedCabin={params.cabinClass}
                     />
                   );
                 })}
@@ -1215,7 +1216,8 @@ export default function FlightSearchPanel() {
 }
 
 // Flight Result Card - Ultra-Compact with Return Flight Support
-function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flight: any; onAdd: (fareIdx: number) => void; index: number; alreadyAdded?: boolean }) {
+function FlightResultCard({ flight, onAdd, index, alreadyAdded = false, searchedCabin = "economy" }: { flight: any; onAdd: (fareIdx: number) => void; index: number; alreadyAdded?: boolean; searchedCabin?: string }) {
+  const cabinFallback = searchedCabin?.toUpperCase() || "ECONOMY";
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
   const [loadingFares, setLoadingFares] = useState(false);
@@ -1262,9 +1264,9 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flig
       return upselledFares.map((fareOffer: any, idx: number) => {
         const tp = fareOffer.travelerPricings?.[0];
         const fd = tp?.fareDetailsBySegment?.[0];
-        const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
+        const cabin = fd?.cabin || cabinFallback;
+        const fareType = fd?.brandedFareLabel || fd?.brandedFare || cabin || "Economy";
         const price = Number(fareOffer.price?.total || 0);
-        const cabin = fd?.cabin || "ECONOMY";
         const bags = fd?.includedCheckedBags?.quantity
           ? { quantity: fd.includedCheckedBags.quantity, weight: fd.includedCheckedBags.weight || 23 }
           : null;
@@ -1334,7 +1336,7 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flig
           id: idx,
           fareType,
           price,
-          cabin: fd?.cabin || "ECONOMY",
+          cabin: fd?.cabin || cabinFallback,
           bags,
           fareBasis: fd?.fareBasis,
           refundable,
@@ -1356,8 +1358,8 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flig
 
     return pricings.map((tp: any, idx: number) => {
       const fd = tp.fareDetailsBySegment?.[0];
-      const fareType = fd?.brandedFareLabel || fd?.brandedFare || fd?.cabin || "Economy";
-      const cabin = fd?.cabin || "ECONOMY";
+      const cabin = fd?.cabin || cabinFallback;
+      const fareType = fd?.brandedFareLabel || fd?.brandedFare || cabin || "Economy";
 
       // Extract REAL refund/change rules from fareRules (API ONLY - no assumptions)
       const fareRules = tp.fareRules || flight.fareRules;
@@ -1441,7 +1443,7 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flig
         id: idx,
         fareType,
         price: Number(tp.price?.total || tp.price?.amount || 0),
-        cabin: fd?.cabin || "ECONOMY",
+        cabin: fd?.cabin || cabinFallback,
         bags,
         fareBasis: fd?.fareBasis,
         refundable,
@@ -1459,9 +1461,9 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false }: { flig
 
   const selectedFare = fareOptions[selectedFareIdx] || fareOptions[0] || {
     id: 0,
-    fareType: "Economy",
+    fareType: cabinFallback.charAt(0).toUpperCase() + cabinFallback.slice(1).toLowerCase(),
     price: 0,
-    cabin: "ECONOMY",
+    cabin: cabinFallback,
     bags: null,
     fareBasis: "",
     refundable: false,

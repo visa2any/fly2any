@@ -124,17 +124,15 @@ export async function generateMetadata({ params }: { params: RouteParams }): Pro
   });
 }
 
-// Generate static params for most popular routes (pre-render top routes)
+// Generate static params — all worldwide routes from seoEngine
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  // Pre-render top 100 routes at build time
-  const topRoutes = [
-    'jfk-to-lax', 'lax-to-jfk', 'ord-to-mia', 'atl-to-las', 'dfw-to-sfo',
-    'jfk-to-lhr', 'lax-to-nrt', 'ord-to-cdg', 'sfo-to-hkg', 'mia-to-bcn',
-    'ewr-to-fra', 'bos-to-lhr', 'lax-to-sin', 'jfk-to-cdg', 'sfo-to-nrt',
-    'dfw-to-lhr', 'ord-to-nrt', 'iah-to-lhr', 'atl-to-cdg', 'den-to-lhr',
-  ];
-
-  return topRoutes.map(route => ({ route }));
+  const { seoEngine } = await import('@/lib/seo/programmatic-seo')
+  const routes = seoEngine.generateRoutes()
+  // Generate IATA-code slugs (jfk-to-lhr) compatible with parseRouteSlug
+  const params = routes.map(r => ({ route: `${r.origin.toLowerCase()}-to-${r.destination.toLowerCase()}` }))
+  // Also include city-name slugs for search-friendly URLs
+  const cityParams = routes.map(r => ({ route: r.slug }))
+  return [...params, ...cityParams]
 }
 
 // Enable ISR: revalidate every 6 hours
