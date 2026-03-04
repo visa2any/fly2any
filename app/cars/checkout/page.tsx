@@ -503,7 +503,9 @@ function CarCheckoutContent() {
                 ) : car.image?.startsWith('/') ? (
                   <Image src={car.image} alt={car.name} fill className="object-contain p-3" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl">🚗</div>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Car className="w-16 h-16 text-slate-400" />
+                  </div>
                 )}
               </div>
 

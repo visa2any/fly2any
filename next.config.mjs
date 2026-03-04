@@ -18,6 +18,18 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.imagin.studio',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
 
   // SEO Rewrites - Clean .xml URLs for sitemaps
   async rewrites() {
@@ -259,8 +271,6 @@ const nextConfig = {
   // Experimental optimizations for Core Web Vitals
   experimental: {
     optimizePackageImports: [
-      'lucide-react',      // Tree-shake icons (reduces bundle by ~50KB)
-      '@/components',      // Component tree-shaking
       'date-fns',          // Date utility tree-shaking
       'lodash',            // Utility tree-shaking
     ],

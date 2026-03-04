@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Star, Users, Gauge, Fuel, Settings, CheckCircle2, Zap, Shield, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getOptimizedImageProps } from '@/lib/utils/image-optimization';
+
 
 // ===========================
 // TYPE DEFINITIONS
@@ -130,6 +129,9 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
     return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
 
+  // Use the image from the API (now local AI-generated PNGs via car-photos.ts)
+  const imageUrl = car.image || '';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -138,35 +140,23 @@ export function CarCard({ car, days, onSelect }: CarCardProps) {
       className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
     >
       <div className="flex flex-col md:flex-row">
-        {/* PHOTO - Left Side (320px) - OPTIMIZED WITH NEXT.JS IMAGE */}
+        {/* PHOTO - Left Side (320px) - Local AI-generated car images */}
         <div className="md:w-80 h-48 md:h-auto relative bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden">
-          {typeof car.image === 'string' && car.image.startsWith('http') ? (
-            <Image
-              {...getOptimizedImageProps(
-                car.image,
-                car.name,
-                'hotelCard', // 400x300 preset
-                {
-                  priority: false,
-                  loading: 'lazy',
-                }
-              )}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 320px"
-              onLoad={() => setImageLoaded(true)}
-            />
-          ) : typeof car.image === 'string' && car.image.startsWith('/') ? (
-            <Image
-              src={car.image}
+          {imageUrl ? (
+            <img
+              src={imageUrl}
               alt={car.name}
-              fill
-              className="object-contain p-4"
-              sizes="(max-width: 768px) 100vw, 320px"
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-contain p-4"
               onLoad={() => setImageLoaded(true)}
             />
           ) : (
-            <div className="text-8xl">{typeof car.image === 'string' && car.image.length === 1 ? car.image : '🚗'}</div>
+            <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+              <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0H21M3.375 14.25h.008M21 14.25h-5.625m0 0L13.5 9.75m1.875 4.5h1.875M6 14.25H3.375m0 0V9.75L5.625 6h8.25l2.25 3.75" />
+              </svg>
+              <span className="text-xs font-medium">{car.category || 'Car'}</span>
+            </div>
           )}
 
           {/* Category Badge */}

@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
-import { createPortal } from 'react-dom';
-import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles, Armchair, X, Hotel, Car, Map, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check, Globe, Navigation, LogIn, LogOut, BedDouble, Moon, User, Baby, Search, Compass, Clock } from 'lucide-react';
+
+import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { X, Hotel, Car, Map as MapIcon, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check } from 'lucide-react';
+import { Globe, Navigation, LogIn, LogOut, BedDouble, User, Baby, Search, Compass, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
+
 
 import { typography, spacing, colors, dimensions, layout, borderRadius, zIndex } from '@/lib/design-system';
 import PremiumDatePicker from './PremiumDatePicker';
@@ -1509,7 +1511,7 @@ export default function EnhancedSearchBar({
             <div className={`p-1.5 rounded-lg transition-colors duration-300 ${
               serviceType === 'tours' ? 'bg-orange-50' : transparent ? 'bg-white/20' : 'bg-orange-100/80'
             }`}>
-              <Map size={14} className={serviceType === 'tours' ? 'text-orange-600' : transparent ? 'text-white' : 'text-orange-600'} />
+              <MapIcon size={14} className={serviceType === 'tours' ? 'text-orange-600' : transparent ? 'text-white' : 'text-orange-600'} />
             </div>
             <span className="text-[13px] sm:text-sm tracking-tight">{t('tours')}</span>
             <span className="text-[8px] bg-gradient-to-r from-green-500 to-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold leading-none shadow-sm">New</span>
@@ -3269,7 +3271,7 @@ export default function EnhancedSearchBar({
             {/* Tour Destination with Autocomplete (reuses hotel suggestions) */}
             <div className="flex-1 lg:flex-[2] relative" data-tours-destination>
               <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 mb-2">
-                <Map size={13} className="text-orange-600" />
+                <MapIcon size={13} className="text-orange-600" />
                 <span>Destination</span>
               </label>
 
@@ -4725,7 +4727,7 @@ export default function EnhancedSearchBar({
             {/* Tour Destination */}
             <div className="relative">
               <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
-                <Map size={13} className="text-orange-600" />
+                <MapIcon size={13} className="text-orange-600" />
                 <span>Where do you want to explore?</span>
               </label>
               {selectedDestinationDetails && hotelDestination === selectedDestinationDetails.name ? (

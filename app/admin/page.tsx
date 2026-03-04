@@ -27,7 +27,9 @@ import {
   Car,
   Shield,
   Webhook,
-  Bot
+  Bot,
+  Home,
+  Building2,
 } from 'lucide-react';
 
 // ===========================
@@ -225,19 +227,36 @@ export default function AdminDashboard() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [hostPropertyStats, setHostPropertyStats] = useState<any>(null);
 
   const fetchMetrics = async () => {
     try {
       setLoading(true);
 
       // Fetch real stats from the admin stats API
-      const [statsResponse, mlResponse] = await Promise.all([
+      const [statsResponse, mlResponse, hostStatsRes, propStatsRes] = await Promise.all([
         fetch('/api/admin/stats?period=week'),
         fetch('/api/ml/analytics?period=7d'),
+        fetch('/api/admin/hosts?limit=1').catch(() => null),
+        fetch('/api/admin/properties?limit=1').catch(() => null),
       ]);
 
       const statsData = statsResponse.ok ? await statsResponse.json() : null;
       const mlData = mlResponse.ok ? await mlResponse.json() : null;
+      const hostData = hostStatsRes?.ok ? await hostStatsRes.json() : null;
+      const propData = propStatsRes?.ok ? await propStatsRes.json() : null;
+
+      if (hostData?.stats || propData?.stats) {
+        setHostPropertyStats({
+          totalHosts: hostData?.stats?.totalHosts || 0,
+          verifiedHosts: hostData?.stats?.verifiedHosts || 0,
+          superHosts: hostData?.stats?.superHosts || 0,
+          pendingVerification: hostData?.stats?.pendingVerification || 0,
+          totalProperties: propData?.stats?.totalProperties || 0,
+          activeProperties: propData?.stats?.activeProperties || 0,
+          pendingReview: propData?.stats?.pendingReview || 0,
+        });
+      }
 
       const stats = statsData?.stats;
 
@@ -373,6 +392,46 @@ export default function AdminDashboard() {
           />
         </div>
 
+        {/* Host & Property KPIs */}
+        {hostPropertyStats && (
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl border border-indigo-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Home className="w-5 h-5 text-indigo-600" />
+                Host & Property Management
+              </h3>
+              <Link href="/admin/hosts" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1">
+                View All <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {[
+                { label: 'Total Hosts', value: hostPropertyStats.totalHosts, color: 'text-indigo-700', bg: 'bg-white' },
+                { label: 'Verified', value: hostPropertyStats.verifiedHosts, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+                { label: 'SuperHosts', value: hostPropertyStats.superHosts, color: 'text-amber-700', bg: 'bg-amber-50' },
+                { label: 'Pending Verify', value: hostPropertyStats.pendingVerification, color: 'text-orange-700', bg: 'bg-orange-50' },
+                { label: 'Properties', value: hostPropertyStats.totalProperties, color: 'text-blue-700', bg: 'bg-white' },
+                { label: 'Active', value: hostPropertyStats.activeProperties, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+                { label: 'Pending Review', value: hostPropertyStats.pendingReview, color: hostPropertyStats.pendingReview > 0 ? 'text-red-700' : 'text-gray-600', bg: hostPropertyStats.pendingReview > 0 ? 'bg-red-50' : 'bg-white' },
+              ].map(({ label, value, color, bg }) => (
+                <div key={label} className={`${bg} rounded-xl p-3 text-center border border-gray-100`}>
+                  <p className={`text-xl font-bold ${color}`}>{value}</p>
+                  <p className="text-[10px] text-gray-500 font-medium">{label}</p>
+                </div>
+              ))}
+            </div>
+            {hostPropertyStats.pendingReview > 0 && (
+              <div className="mt-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span className="text-sm text-amber-700 font-medium">
+                  {hostPropertyStats.pendingReview} propert{hostPropertyStats.pendingReview === 1 ? 'y' : 'ies'} pending review
+                </span>
+                <Link href="/admin/properties" className="text-sm text-indigo-600 hover:underline ml-auto">Review now →</Link>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ML Cost Savings Banner */}
         <div className="relative overflow-hidden bg-gradient-to-r from-[#E74035] to-[#c73029] rounded-xl shadow-sm border border-red-200 p-5 text-white">
           <div className="flex items-center justify-between">
@@ -463,6 +522,27 @@ export default function AdminDashboard() {
                 label="System Settings"
                 href="/admin/settings"
                 color="gray"
+              />
+
+              <QuickAction
+                icon={<Home className="w-4 h-4" />}
+                label="Manage Hosts"
+                href="/admin/hosts"
+                color="blue"
+              />
+
+              <QuickAction
+                icon={<Building2 className="w-4 h-4" />}
+                label="Review Properties"
+                href="/admin/properties"
+                color="green"
+              />
+
+              <QuickAction
+                icon={<Shield className="w-4 h-4" />}
+                label="Verify Hosts"
+                href="/admin/hosts/verification"
+                color="orange"
               />
 
               <QuickAction

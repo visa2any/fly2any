@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { amadeusAPI } from '@/lib/api/amadeus';
+import { getVehiclePhoto, getRentalCompanyLogo } from '@/lib/data/car-photos';
 // NO MOCK DATA - Real Amadeus API data only
 
 export const dynamic = 'force-dynamic';
@@ -126,8 +127,35 @@ export async function GET(request: NextRequest) {
             seats: offer.vehicle?.seats || offer.vehicle?.passengerQuantity || 5,
             doors: offer.vehicle?.doors || 4,
             fuelType: offer.vehicle?.fuelType || 'PETROL',
-            imageURL: offer.vehicle?.imageURL || getCarImageByCategory(offer.vehicle?.category),
+            imageURL: (() => {
+              const photos = getVehiclePhoto({
+                category: offer.vehicle?.category,
+                type: offer.vehicle?.type,
+                make: offer.vehicle?.make,
+                model: offer.vehicle?.model || offer.vehicle?.description,
+              });
+              return offer.vehicle?.imageURL || photos.photoUrl;
+            })(),
           },
+          // Curated photo URLs for reliable display
+          photoUrl: (() => {
+            const photos = getVehiclePhoto({
+              category: offer.vehicle?.category,
+              type: offer.vehicle?.type,
+              make: offer.vehicle?.make,
+              model: offer.vehicle?.model || offer.vehicle?.description,
+            });
+            return offer.vehicle?.imageURL || photos.photoUrl;
+          })(),
+          thumbnail: (() => {
+            const photos = getVehiclePhoto({
+              category: offer.vehicle?.category,
+              type: offer.vehicle?.type,
+              make: offer.vehicle?.make,
+              model: offer.vehicle?.model || offer.vehicle?.description,
+            });
+            return photos.thumbnail;
+          })(),
           source: 'amadeus',
           provider: {
             code: offer.provider?.code || offer.serviceProvider?.code || 'ZZ',
@@ -366,19 +394,7 @@ function getDepositByCategory(category: string | undefined): string {
   return deposits[category?.toUpperCase() || 'STANDARD'] || '$300';
 }
 
-// Helper: Get car image by category
-function getCarImageByCategory(category: string): string {
-  const images: Record<string, string> = {
-    'ECONOMY': 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80',
-    'COMPACT': 'https://images.unsplash.com/photo-1606611013016-969c19ba27bb?w=800&q=80',
-    'STANDARD': 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&q=80',
-    'SUV': 'https://images.unsplash.com/photo-1568844293986-8c3a92e8ea4c?w=800&q=80',
-    'PREMIUM': 'https://images.unsplash.com/photo-1584345604476-8ec5f82d718c?w=800&q=80',
-    'LUXURY': 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80',
-    'VAN': 'https://images.unsplash.com/photo-1559416523-140ddc3d238c?w=800&q=80',
-  };
-  return images[category?.toUpperCase()] || images['STANDARD'];
-}
+// getCarImageByCategory is now replaced by getVehiclePhoto from @/lib/data/car-photos
 
 // Helper: Calculate price per day
 function calculatePerDay(total: string, pickupDate: string, dropoffDate: string): string {

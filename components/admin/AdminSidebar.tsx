@@ -38,6 +38,8 @@ import {
   Rocket,
   HeartPulse,
   MailPlus,
+  Home,
+  Building2,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -115,6 +117,9 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
     {
       title: 'Business',
       items: [
+        { label: 'Hosts', href: '/admin/hosts', icon: Home, roles: ['super_admin', 'admin'] },
+        { label: 'Properties', href: '/admin/properties', icon: Building2, roles: ['super_admin', 'admin'] },
+        { label: 'Host Verification', href: '/admin/hosts/verification', icon: Shield, roles: ['super_admin', 'admin'] },
         { label: 'Agents', href: '/admin/agents', icon: Briefcase, roles: ['super_admin', 'admin'] },
         { label: 'Affiliates', href: '/admin/affiliates', icon: Award, roles: ['super_admin', 'admin'] },
         { label: 'Payouts', href: '/admin/payouts', icon: DollarSign, roles: ['super_admin', 'admin'] },

@@ -3980,6 +3980,7 @@ model PropertyOwner {
   @@index([userId])
   @@index([status])
   @@index([superHost])
+  @@index([verificationStatus])
   @@map("property_owners")
 }
 

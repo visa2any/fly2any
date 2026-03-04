@@ -293,7 +293,7 @@ export async function GET(request: NextRequest) {
     const cacheKey = generateCacheKey('cars-featured-enhanced', {
       location: locationParam,
       limit,
-      version: '5.0-curated-hq-20251031', // HIGH-QUALITY CURATED IMAGES
+      version: '6.2-us-cars-12-images-20260304', // 12 DEDICATED CAR IMAGES
     });
 
     // Check cache

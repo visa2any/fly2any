@@ -174,6 +174,31 @@ export default async function RootLayout({
         <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Information" />
         <link rel="ai-plugin" href="/.well-known/ai-plugin.json" />
 
+        {/* Early error suppressor - catches webpack HMR errors BEFORE React mounts */}
+        {process.env.NODE_ENV === 'development' && (
+          <script dangerouslySetInnerHTML={{ __html: `
+            window.addEventListener('error', function(e) {
+              if (e && e.message && (
+                e.message.includes('originalFactory') ||
+                e.message.includes('Loading chunk') ||
+                e.message.includes('ChunkLoadError')
+              )) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                console.warn('[Dev] Suppressed webpack HMR error:', e.message.substring(0, 80));
+                return true;
+              }
+            }, true);
+            window.addEventListener('unhandledrejection', function(e) {
+              var msg = e && e.reason && (e.reason.message || String(e.reason)) || '';
+              if (msg.includes('originalFactory') || msg.includes('Loading chunk') || msg.includes('ChunkLoadError')) {
+                e.preventDefault();
+                console.warn('[Dev] Suppressed webpack chunk error:', msg.substring(0, 80));
+              }
+            }, true);
+          `}} />
+        )}
+
         {/* Global Structured Data for SEO */}
         <StructuredData schema={globalSchemas} />
       </head>

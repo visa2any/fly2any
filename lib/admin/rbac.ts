@@ -12,6 +12,9 @@ export enum Role {
 
 export enum Resource {
   USERS = 'users',
+  HOSTS = 'hosts',
+  PROPERTIES = 'properties',
+  PROPERTY_BOOKINGS = 'property_bookings',
   DEALS = 'deals',
   DESTINATIONS = 'destinations',
   GUIDES = 'guides',
@@ -53,6 +56,18 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
       actions: [Action.READ, Action.UPDATE, Action.EXPORT]
     },
     {
+      resource: Resource.HOSTS,
+      actions: [Action.READ, Action.UPDATE, Action.EXPORT, Action.MANAGE]
+    },
+    {
+      resource: Resource.PROPERTIES,
+      actions: [Action.READ, Action.UPDATE, Action.EXPORT, Action.MANAGE]
+    },
+    {
+      resource: Resource.PROPERTY_BOOKINGS,
+      actions: [Action.READ, Action.UPDATE, Action.EXPORT]
+    },
+    {
       resource: Resource.DEALS,
       actions: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE]
     },
@@ -89,6 +104,18 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   [Role.MODERATOR]: [
     {
       resource: Resource.USERS,
+      actions: [Action.READ]
+    },
+    {
+      resource: Resource.HOSTS,
+      actions: [Action.READ]
+    },
+    {
+      resource: Resource.PROPERTIES,
+      actions: [Action.READ, Action.UPDATE]
+    },
+    {
+      resource: Resource.PROPERTY_BOOKINGS,
       actions: [Action.READ]
     },
     {

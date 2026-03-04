@@ -84,7 +84,7 @@ const baseVehicleTypes = [
 const baseRentalCompanies = [
   {
     name: 'Enterprise',
-    logo: '🚗',
+    logoUrl: 'https://logo.clearbit.com/enterprise.com',
     locations: '9,500+',
     rating: 4.5,
     benefits: ['Free pickup', 'Long-term discounts', 'Loyalty rewards'],
@@ -92,7 +92,7 @@ const baseRentalCompanies = [
   },
   {
     name: 'Hertz',
-    logo: '⭐',
+    logoUrl: 'https://logo.clearbit.com/hertz.com',
     locations: '10,200+',
     rating: 4.3,
     benefits: ['Gold Plus Rewards', 'Skip the counter', 'Premium fleet'],
@@ -100,7 +100,7 @@ const baseRentalCompanies = [
   },
   {
     name: 'Budget',
-    logo: '💰',
+    logoUrl: 'https://logo.clearbit.com/budget.com',
     locations: '3,350+',
     rating: 4.2,
     benefits: ['Best price guarantee', 'Fastbreak service', 'Young driver friendly'],
@@ -108,7 +108,7 @@ const baseRentalCompanies = [
   },
   {
     name: 'Avis',
-    logo: '🏆',
+    logoUrl: 'https://logo.clearbit.com/avis.com',
     locations: '5,500+',
     rating: 4.4,
     benefits: ['Preferred service', 'Worldwide coverage', 'Business perks'],
@@ -116,7 +116,7 @@ const baseRentalCompanies = [
   },
   {
     name: 'National',
-    logo: '👑',
+    logoUrl: 'https://logo.clearbit.com/nationalcar.com',
     locations: '2,000+',
     rating: 4.6,
     benefits: ['Emerald Club', 'Choose any car', 'Executive service'],
@@ -124,7 +124,7 @@ const baseRentalCompanies = [
   },
   {
     name: 'Alamo',
-    logo: '🎯',
+    logoUrl: 'https://logo.clearbit.com/alamo.com',
     locations: '1,250+',
     rating: 4.3,
     benefits: ['Family-friendly', 'Insider pricing', 'Free additional drivers'],
@@ -412,7 +412,9 @@ export default function CarsPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 px-2 md:px-0">
             {baseRentalCompanies.map((company, idx) => (
               <div key={idx} className="bg-white rounded-xl p-5 shadow-md hover:shadow-xl transition-all border border-gray-200 hover:border-teal-300 group cursor-pointer text-center">
-                <div className="text-5xl mb-3">{company.logo}</div>
+                <div className="w-16 h-16 mx-auto mb-3 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
+                  <img src={company.logoUrl} alt={company.name} className="w-12 h-12 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                </div>
                 <h3 className="text-base font-bold text-gray-900 mb-1">{company.name}</h3>
                 <p className="text-sm text-gray-600 mb-2">{company.locations} locations</p>
                 <div className="flex items-center justify-center gap-1 mb-3">

@@ -249,7 +249,7 @@ function CarResultsContent() {
           fuelType: formatFuelType(item.vehicle?.fuelType || item.fuelType || 'Gasoline'),
           pricePerDay: parseFloat(item.price?.perDay || item.pricePerDay || '0'),
           totalPrice: parseFloat(item.price?.total || item.totalPrice || '0'),
-          image: item.vehicle?.imageURL || item.image || '🚗',
+          image: item.photoUrl || item.vehicle?.imageURL || item.image || '',
           features: item.features || (item.vehicle?.airConditioning ? ['AC', 'Bluetooth'] : ['Bluetooth']),
           rating: item.rating || 4.5,
           reviewCount: item.reviewCount || 100,
@@ -413,11 +413,11 @@ function CarResultsContent() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-primary-50/30 to-gray-50 flex items-center justify-center">
         <div className="text-center">
           <motion.div
-            animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-8xl mb-6"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="mb-6"
           >
-            🚗
+            <Car className="w-20 h-20 text-primary-600" />
           </motion.div>
           <h2 className="text-3xl font-bold text-gray-900 mb-3">{t.searching}</h2>
           <div className="flex items-center justify-center gap-2">
@@ -774,7 +774,7 @@ export default function CarResultsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <span className="text-8xl animate-bounce">🚗</span>
+        <Car className="w-20 h-20 text-primary-600 animate-pulse" />
       </div>
     }>
       <CarResultsContent />

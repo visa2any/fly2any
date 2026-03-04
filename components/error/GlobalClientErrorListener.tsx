@@ -14,10 +14,24 @@ import { reportClientError, ErrorCategory, ErrorSeverity } from '@/lib/monitorin
  */
 export function GlobalClientErrorListener() {
   useEffect(() => {
+    // Known dev-only errors to suppress entirely (no server reporting needed)
+    const SUPPRESSED_PATTERNS = [
+      'originalFactory is undefined',
+      'originalFactory',
+      'Loading chunk',
+      'ChunkLoadError',
+      'NEXT_REDIRECT',
+      'NEXT_NOT_FOUND',
+      'tawk.to',
+      'embed.tawk',
+      'twk-chunk',
+    ];
+
     // Handle uncaught errors
     const handleError = (event: ErrorEvent) => {
       const msg = event.error?.message || event.message || '';
-      if (msg === 'NEXT_REDIRECT' || msg === 'NEXT_NOT_FOUND') {
+      // Suppress known non-actionable errors
+      if (SUPPRESSED_PATTERNS.some(p => msg.includes(p))) {
         event.preventDefault();
         return;
       }

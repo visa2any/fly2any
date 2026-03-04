@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { handleApiError, ErrorCategory, ErrorSeverity } from '@/lib/monitoring/global-error-handler';
+import { notifyNewHost, notifyNewProperty, notifyPropertyPendingReview } from '@/lib/notifications/admin-notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,11 +79,23 @@ export async function POST(request: NextRequest) {
       .replace(/^-|-$/g, '')
       + '-' + Date.now().toString(36);
 
+    // Check if this will be a NEW host
+    const existingOwner = await prisma.propertyOwner.findUnique({
+      where: { userId: session.user.id },
+    });
+    const isNewHost = !existingOwner;
+
     const owner = await prisma.propertyOwner.upsert({
       where: { userId: session.user.id },
       update: {},
       create: { userId: session.user.id, businessType: 'individual' },
     });
+
+    // If host wants to publish, route through review
+    let propertyStatus = body.status || 'draft';
+    if (propertyStatus === 'active') {
+      propertyStatus = 'pending_review';
+    }
 
     const property = await prisma.property.create({
       data: {
@@ -137,7 +150,7 @@ export async function POST(request: NextRequest) {
         totalBeds: body.totalBeds || 1,
         ecoFeatures: body.ecoFeatures || [],
         ecoCertifications: body.ecoCertifications || [],
-        status: body.status || 'draft',
+        status: propertyStatus,
         buildingType: body.buildingType || null,
         totalFloors: body.totalFloors ?? null,
         propertyFloor: body.propertyFloor ?? null,
@@ -170,6 +183,39 @@ export async function POST(request: NextRequest) {
         images: true,
       },
     });
+
+    // ─── Fire-and-forget admin notifications ───
+    if (isNewHost) {
+      notifyNewHost({
+        hostId: owner.id,
+        userId: session.user.id,
+        hostName: session.user.name || undefined,
+        email: session.user.email || undefined,
+        businessName: owner.businessName || undefined,
+      }).catch(() => {});
+    }
+
+    notifyNewProperty({
+      propertyId: property.id,
+      propertyName: property.name,
+      hostId: owner.id,
+      hostName: session.user.name || owner.businessName || undefined,
+      city: body.city,
+      country: body.country,
+      propertyType: body.propertyType,
+    }).catch(() => {});
+
+    if (propertyStatus === 'pending_review') {
+      notifyPropertyPendingReview({
+        propertyId: property.id,
+        propertyName: property.name,
+        hostId: owner.id,
+        hostName: session.user.name || owner.businessName || undefined,
+        city: body.city,
+        country: body.country,
+        propertyType: body.propertyType,
+      }).catch(() => {});
+    }
 
     return NextResponse.json({ success: true, data: property }, { status: 201 });
   }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });

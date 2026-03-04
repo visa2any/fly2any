@@ -281,8 +281,16 @@ export function CarRentalsSectionEnhanced({ lang = 'en' }: CarRentalsSectionEnha
                       }
                     }}
                   />
-                ) : car.image ? (
-                  <span className="text-6xl">{car.image}</span>
+                ) : car.image && typeof car.image === 'string' && (car.image.startsWith('http') || car.image.startsWith('/')) ? (
+                  <img
+                    src={car.image}
+                    alt={`${car.type} - ${car.model}`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
                 ) : (
                   <Car className="w-16 h-16 text-gray-400" />
                 )}

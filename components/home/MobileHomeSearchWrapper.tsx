@@ -12,7 +12,23 @@ import ErrorBoundary from '@/components/common/ErrorBoundary';
 // Lazy-load EnhancedSearchBar to reduce initial bundle by ~285KB
 // Shows skeleton immediately, hydrates full component after load
 const EnhancedSearchBar = dynamic(
-  () => import('@/components/flights/EnhancedSearchBar'),
+  () => import('@/components/flights/EnhancedSearchBar').catch((err) => {
+    console.warn('[SearchBar] Chunk load failed, showing fallback:', err?.message?.substring(0, 60));
+    // Return a fallback component that shows the skeleton and a retry button
+    return {
+      default: (props: any) => (
+        <div className="p-6 text-center rounded-xl border bg-white border-neutral-200">
+          <p className="text-sm font-medium text-neutral-700 mb-2">Search bar is loading...</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-xs font-bold px-4 py-2 rounded-lg bg-primary-100 text-primary-700 hover:bg-primary-200"
+          >
+            Reload Page
+          </button>
+        </div>
+      ),
+    };
+  }),
   {
     loading: () => <SearchFormSkeleton glassmorphism animate />,
     ssr: false, // Client-only - prevents hydration mismatch
@@ -426,20 +442,34 @@ export function MobileHomeSearchWrapper({
     return (
       <div className={glassmorphism ? 'mx-4 md:mx-6' : ''}>
         <div>
-          <EnhancedSearchBar
-            origin={origin}
-            destination={destination}
-            departureDate={departureDate}
-            returnDate={returnDate}
-            passengers={passengers}
-            cabinClass={cabinClass}
-            lang={lang}
-            defaultService={defaultService}
-            hideTabs={hideTabs}
-            journeyMode={journeyMode}
-            transparent={glassmorphism}
-            onServiceTypeChange={onServiceTypeChange}
-          />
+          <ErrorBoundary
+            fallback={
+              <div className={`p-6 text-center rounded-xl border ${glassmorphism ? 'bg-black/20 border-white/10 text-white' : 'bg-red-50 border-red-100 text-neutral-800'}`}>
+                <p className="text-sm font-medium mb-2">Something went wrong loading the search form.</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg ${glassmorphism ? 'bg-white/20 hover:bg-white/30' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                >
+                  Reload Page
+                </button>
+              </div>
+            }
+          >
+            <EnhancedSearchBar
+              origin={origin}
+              destination={destination}
+              departureDate={departureDate}
+              returnDate={returnDate}
+              passengers={passengers}
+              cabinClass={cabinClass}
+              lang={lang}
+              defaultService={defaultService}
+              hideTabs={hideTabs}
+              journeyMode={journeyMode}
+              transparent={glassmorphism}
+              onServiceTypeChange={onServiceTypeChange}
+            />
+          </ErrorBoundary>
         </div>
       </div>
     );

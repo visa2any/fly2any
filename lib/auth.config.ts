@@ -10,18 +10,15 @@
  * SECURITY: Validates environment on import
  */
 import type { NextAuthConfig } from 'next-auth';
-import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
-import { validateAdminGoogleAuth, isAdminAuthContext } from './auth-admin';
 
 // CRITICAL: Security validation on module load
 import { validateSecurityEnvironment } from './security/startup-validation';
 validateSecurityEnvironment();
 
 // Security modules
-import { shouldAllowOAuthAutoLink } from './auth/oauth-linking';
-import { isSessionRevoked, areUserSessionsRevoked } from './auth/session';
+import { isSessionRevoked } from './auth/session';
 import { checkLoginRateLimit, recordFailedLogin, clearLoginAttempts } from './security/rate-limit';
 
 // Lazy import bcryptjs to avoid bundling in edge runtime
@@ -42,19 +39,6 @@ console.log('-------------------------');
 
 export const authConfig = {
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-      // Enable automatic account linking for seamless user experience
-      allowDangerousEmailAccountLinking: true,
-      authorization: {
-        params: {
-          prompt: 'consent',
-          access_type: 'offline',
-          response_type: 'code',
-        },
-      },
-    }),
     Credentials({
       name: 'credentials',
       credentials: {
@@ -133,54 +117,8 @@ export const authConfig = {
     newUser: '/account',
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === 'google') {
-        if (!prisma) {
-          console.error('Database not configured');
-          return false;
-        }
-
-        try {
-          const existingUser = await prisma!.user.findUnique({
-            where: { email: user.email! },
-            include: { accounts: true },
-          });
-
-          if (existingUser) {
-            // Check if Google account is already linked
-            const hasGoogleAccount = existingUser.accounts?.some(
-              (acc: { provider: string }) => acc.provider === 'google'
-            );
-
-            if (!hasGoogleAccount) {
-              // Auto-linking enabled via allowDangerousEmailAccountLinking: true
-              console.log(`ℹ️  Linking Google account to existing user: ${user.email}`);
-            }
-            
-            // Update user.id to match existing user for proper session
-            user.id = existingUser.id;
-          } else {
-            // Create new user with preferences
-            const newUser = await prisma!.user.create({
-              data: {
-                email: user.email!,
-                name: user.name,
-                image: user.image,
-                emailVerified: new Date(),
-                preferences: {
-                  create: {},
-                },
-              },
-            });
-            user.id = newUser.id;
-          }
-        } catch (error) {
-          console.error('Error in Google signIn:', error);
-          return false;
-        }
-      }
-
-      // Track last login (once per sign-in, not every session check)
+    async signIn({ user }) {
+      // Track last login
       if (prisma && user?.id) {
         try {
           await prisma.user.updateMany({
@@ -191,16 +129,11 @@ export const authConfig = {
           console.error('Error updating lastLoginAt:', e);
         }
       }
-
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
-      }
-      // Only mark adminAuth for Google sign-ins from admin context
-      if (account?.provider === 'google' && account?.scope?.includes('admin')) {
-        token.adminAuth = true;
       }
       // Check session revocation on every token refresh
       if (token.jti) {
@@ -214,16 +147,6 @@ export const authConfig = {
       return token;
     },
     async redirect({ url, baseUrl }) {
-      // Check if this is an admin-only auth request that failed
-      if (url.includes('/auth/admin-signin') && url.includes('error=')) {
-        return `${baseUrl}/auth/admin-signin`;
-      }
-
-      // POPUP MODE: Redirect to popup callback page for seamless auth
-      if (url.includes('popup=true') || url.includes('/auth/popup-callback')) {
-        return `${baseUrl}/auth/popup-callback`;
-      }
-
       // Allow any valid URL for redirects (including /admin with callbackUrl)
       // If url starts with baseUrl, allow it
       if (url.startsWith(baseUrl)) return url;

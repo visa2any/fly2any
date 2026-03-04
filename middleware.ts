@@ -175,6 +175,12 @@ export default authEdge((req) => {
 
   // Redirect to signin if accessing protected routes while not logged in
   if ((isAccountPage || isAgentPage || isAdminPage || isHostPage) && !isLoggedIn) {
+    // Admin pages use dedicated admin sign-in page
+    if (isAdminPage) {
+      const signInUrl = new URL('/auth/admin-signin', nextUrl.origin);
+      signInUrl.searchParams.set('callbackUrl', currentPath);
+      return NextResponse.redirect(signInUrl);
+    }
     const currentLocale = getLocaleFromPathname(currentPath) || DEFAULT_LOCALE;
     const signInPath = addLocalePrefix('/auth/signin', currentLocale.locale);
     const signInUrl = new URL(signInPath, nextUrl.origin);

@@ -21,92 +21,188 @@ export interface VehiclePhotoMap {
  * These take highest priority in matching
  */
 export const exactCarModelMappings: VehiclePhotoMap[] = [
-  // Toyota Corolla - Various years
+  // Toyota Corolla - AI-Generated local image
   {
     category: 'ECONOMY',
     manufacturer: 'Toyota',
     model: 'Toyota Corolla',
-    photoUrl: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-corolla.png',
+    thumbnail: '/images/cars/toyota-corolla.png',
     priority: 100,
   },
 
-  // Honda Civic - Modern compact sedan
+  // Honda Civic - AI-Generated local image
   {
     category: 'COMPACT',
     manufacturer: 'Honda',
     model: 'Honda Civic',
-    photoUrl: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/honda-civic.png',
+    thumbnail: '/images/cars/honda-civic.png',
     priority: 100,
   },
 
-  // Toyota Camry - Mid-size sedan
+  // Toyota Camry - AI-Generated local image
   {
     category: 'STANDARD',
     manufacturer: 'Toyota',
     model: 'Toyota Camry',
-    photoUrl: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-camry.png',
+    thumbnail: '/images/cars/toyota-camry.png',
     priority: 100,
   },
 
-  // Nissan Altima - Mid-size sedan
+  // Nissan Altima - AI-Generated local image
   {
     category: 'INTERMEDIATE',
     manufacturer: 'Nissan',
     model: 'Nissan Altima',
-    photoUrl: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/nissan-altima.png',
+    thumbnail: '/images/cars/nissan-altima.png',
     priority: 100,
   },
 
-  // Toyota RAV4 - Compact SUV
+  // Toyota RAV4 - AI-Generated local image
   {
     category: 'SUV',
     manufacturer: 'Toyota',
     model: 'Toyota RAV4',
-    photoUrl: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-rav4.png',
+    thumbnail: '/images/cars/toyota-rav4.png',
     priority: 100,
   },
 
-  // BMW 5 Series - Luxury sedan
+  // BMW 5 Series - AI-Generated local image
   {
     category: 'LUXURY',
     manufacturer: 'BMW',
     model: 'BMW 5 Series',
-    photoUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/bmw-5-series.png',
+    thumbnail: '/images/cars/bmw-5-series.png',
     priority: 100,
   },
 
-  // Honda Odyssey - Minivan
+  // Honda Odyssey - AI-Generated local image
   {
     category: 'MINIVAN',
     manufacturer: 'Honda',
     model: 'Honda Odyssey',
-    photoUrl: 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/honda-odyssey.png',
+    thumbnail: '/images/cars/honda-odyssey.png',
     priority: 100,
   },
 
-  // Ford Mustang Convertible - Sports car
+  // Ford Mustang Convertible - AI-Generated local image
   {
     category: 'CONVERTIBLE',
     manufacturer: 'Ford',
     model: 'Ford Mustang Convertible',
-    photoUrl: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d43c1?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d43c1?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/ford-mustang.png',
+    thumbnail: '/images/cars/ford-mustang.png',
     priority: 100,
   },
   {
     category: 'CONVERTIBLE',
     manufacturer: 'Ford',
     model: 'Mustang Convertible',
-    photoUrl: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d43c1?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d43c1?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/ford-mustang.png',
+    thumbnail: '/images/cars/ford-mustang.png',
     priority: 100,
+  },
+
+  // Chevrolet Equinox - AI-Generated local image
+  {
+    category: 'SUV',
+    manufacturer: 'Chevrolet',
+    model: 'Chevrolet Equinox',
+    photoUrl: '/images/cars/chevrolet-equinox.png',
+    thumbnail: '/images/cars/chevrolet-equinox.png',
+    priority: 100,
+  },
+  {
+    category: 'SUV',
+    manufacturer: 'Chevrolet',
+    model: 'Chevy Equinox',
+    photoUrl: '/images/cars/chevrolet-equinox.png',
+    thumbnail: '/images/cars/chevrolet-equinox.png',
+    priority: 100,
+  },
+
+  // Jeep Wrangler - AI-Generated local image
+  {
+    category: 'SUV',
+    manufacturer: 'Jeep',
+    model: 'Jeep Wrangler',
+    photoUrl: '/images/cars/jeep-wrangler.png',
+    thumbnail: '/images/cars/jeep-wrangler.png',
+    priority: 100,
+  },
+
+  // Hyundai Sonata - AI-Generated local image
+  {
+    category: 'INTERMEDIATE',
+    manufacturer: 'Hyundai',
+    model: 'Hyundai Sonata',
+    photoUrl: '/images/cars/hyundai-sonata.png',
+    thumbnail: '/images/cars/hyundai-sonata.png',
+    priority: 100,
+  },
+
+  // Kia Sportage - AI-Generated local image
+  {
+    category: 'SUV',
+    manufacturer: 'Kia',
+    model: 'Kia Sportage',
+    photoUrl: '/images/cars/kia-sportage.png',
+    thumbnail: '/images/cars/kia-sportage.png',
+    priority: 100,
+  },
+
+  // Ford Explorer - Uses Ford Mustang until dedicated image generated
+  {
+    category: 'SUV',
+    manufacturer: 'Ford',
+    model: 'Ford Explorer',
+    photoUrl: '/images/cars/chevrolet-equinox.png',
+    thumbnail: '/images/cars/chevrolet-equinox.png',
+    priority: 90,
+  },
+
+  // Dodge Charger - Uses BMW 5 Series until dedicated image generated
+  {
+    category: 'FULLSIZE',
+    manufacturer: 'Dodge',
+    model: 'Dodge Charger',
+    photoUrl: '/images/cars/bmw-5-series.png',
+    thumbnail: '/images/cars/bmw-5-series.png',
+    priority: 90,
+  },
+
+  // Ford F-150 - Uses Jeep Wrangler until dedicated image generated
+  {
+    category: 'TRUCK',
+    manufacturer: 'Ford',
+    model: 'Ford F-150',
+    photoUrl: '/images/cars/jeep-wrangler.png',
+    thumbnail: '/images/cars/jeep-wrangler.png',
+    priority: 90,
+  },
+  {
+    category: 'TRUCK',
+    manufacturer: 'Ford',
+    model: 'F-150',
+    photoUrl: '/images/cars/jeep-wrangler.png',
+    thumbnail: '/images/cars/jeep-wrangler.png',
+    priority: 90,
+  },
+
+  // Tesla Model 3 - Uses Honda Civic until dedicated image generated
+  {
+    category: 'ELECTRIC',
+    manufacturer: 'Tesla',
+    model: 'Tesla Model 3',
+    photoUrl: '/images/cars/hyundai-sonata.png',
+    thumbnail: '/images/cars/hyundai-sonata.png',
+    priority: 90,
   },
 ];
 
@@ -115,130 +211,130 @@ export const exactCarModelMappings: VehiclePhotoMap[] = [
  * Used when exact make/model not found
  */
 export const carPhotoMappings: VehiclePhotoMap[] = [
-  // Economy Cars - Small, fuel-efficient sedans
+  // Economy Cars - Uses Toyota Corolla image
   {
     category: 'ECONOMY',
     type: 'COMPACT',
-    photoUrl: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-corolla.png',
+    thumbnail: '/images/cars/toyota-corolla.png',
     priority: 50,
   },
   {
     category: 'ECONOMY',
     type: 'SEDAN',
-    photoUrl: 'https://images.unsplash.com/photo-1552519507-e0b8e4b74fbb?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1552519507-e0b8e4b74fbb?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-corolla.png',
+    thumbnail: '/images/cars/toyota-corolla.png',
     priority: 50,
   },
 
-  // Compact Cars (Honda Civic, Toyota Corolla style)
+  // Compact Cars - Uses Honda Civic image
   {
     category: 'COMPACT',
-    photoUrl: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1590362891991-f776e747a588?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/honda-civic.png',
+    thumbnail: '/images/cars/honda-civic.png',
     priority: 50,
   },
 
-  // Intermediate / Mid-Size (Nissan Altima, Toyota Camry style)
+  // Intermediate / Mid-Size - Uses Nissan Altima image
   {
     category: 'INTERMEDIATE',
-    photoUrl: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/nissan-altima.png',
+    thumbnail: '/images/cars/nissan-altima.png',
     priority: 50,
   },
 
-  // Mid-Size / Standard (Family sedans)
+  // Mid-Size / Standard - Uses Toyota Camry image
   {
     category: 'MIDSIZE',
-    photoUrl: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-camry.png',
+    thumbnail: '/images/cars/toyota-camry.png',
     priority: 50,
   },
   {
     category: 'STANDARD',
-    photoUrl: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-camry.png',
+    thumbnail: '/images/cars/toyota-camry.png',
     priority: 50,
   },
 
-  // SUVs (Toyota RAV4, Honda CR-V style)
+  // SUVs - Uses Toyota RAV4 image
   {
     category: 'SUV',
     type: 'COMPACT',
-    photoUrl: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-rav4.png',
+    thumbnail: '/images/cars/toyota-rav4.png',
     priority: 50,
   },
   {
     category: 'SUV',
     type: 'STANDARD',
-    photoUrl: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-rav4.png',
+    thumbnail: '/images/cars/toyota-rav4.png',
     priority: 50,
   },
   {
     category: 'SUV',
     type: 'FULLSIZE',
-    photoUrl: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/toyota-rav4.png',
+    thumbnail: '/images/cars/toyota-rav4.png',
     priority: 50,
   },
 
-  // Luxury / Premium (BMW, Mercedes, Audi style)
+  // Luxury / Premium - Uses BMW 5 Series image
   {
     category: 'LUXURY',
-    photoUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/bmw-5-series.png',
+    thumbnail: '/images/cars/bmw-5-series.png',
     priority: 50,
   },
   {
     category: 'PREMIUM',
-    photoUrl: 'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1563720360172-67b8f3dce741?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/bmw-5-series.png',
+    thumbnail: '/images/cars/bmw-5-series.png',
     priority: 50,
   },
 
-  // Vans / Minivans (Honda Odyssey, Toyota Sienna style)
+  // Vans / Minivans - Uses Honda Odyssey image
   {
     category: 'VAN',
-    photoUrl: 'https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1527786356703-4b100091cd2c?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/honda-odyssey.png',
+    thumbnail: '/images/cars/honda-odyssey.png',
     priority: 50,
   },
   {
     category: 'MINIVAN',
-    photoUrl: 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/honda-odyssey.png',
+    thumbnail: '/images/cars/honda-odyssey.png',
     priority: 50,
   },
 
-  // Convertibles / Sports (Ford Mustang, Chevy Camaro style)
+  // Convertibles / Sports - Uses Ford Mustang image
   {
     category: 'CONVERTIBLE',
-    photoUrl: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d43c1?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1584345604476-8ec5f82d43c1?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/ford-mustang.png',
+    thumbnail: '/images/cars/ford-mustang.png',
     priority: 50,
   },
   {
     category: 'SPORTS',
-    photoUrl: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/ford-mustang.png',
+    thumbnail: '/images/cars/ford-mustang.png',
     priority: 50,
   },
 
-  // Trucks / Pickups (F-150, Silverado style)
+  // Trucks / Pickups - Uses Jeep Wrangler
   {
     category: 'TRUCK',
-    photoUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/jeep-wrangler.png',
+    thumbnail: '/images/cars/jeep-wrangler.png',
     priority: 50,
   },
 
-  // Electric Vehicles (Tesla, EV style)
+  // Electric Vehicles - Uses Honda Civic (modern look)
   {
     category: 'ELECTRIC',
-    photoUrl: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800&h=600&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=400&h=300&fit=crop',
+    photoUrl: '/images/cars/honda-civic.png',
+    thumbnail: '/images/cars/honda-civic.png',
     priority: 50,
   },
 ];
@@ -247,8 +343,8 @@ export const carPhotoMappings: VehiclePhotoMap[] = [
  * Default fallback photo for unmatched vehicles
  */
 export const defaultCarPhoto = {
-  photoUrl: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&h=600&fit=crop&crop=entropy&auto=format,compress',
-  thumbnail: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=400&h=300&fit=crop&crop=entropy',
+  photoUrl: '/images/cars/toyota-corolla.png',
+  thumbnail: '/images/cars/toyota-corolla.png',
 };
 
 /**
