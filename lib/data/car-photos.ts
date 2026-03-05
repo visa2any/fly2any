@@ -251,74 +251,74 @@ export const exactCarModelMappings: VehiclePhotoMap[] = [
     priority: 100,
   },
 
-  // Renault Clio - Uses VW Golf until dedicated image generated
+  // Renault Clio - AI-Generated local image
   {
     category: 'ECONOMY',
     manufacturer: 'Renault',
     model: 'Renault Clio',
-    photoUrl: '/images/cars/volkswagen-golf.png',
-    thumbnail: '/images/cars/volkswagen-golf.png',
-    priority: 90,
+    photoUrl: '/images/cars/renault-clio.png',
+    thumbnail: '/images/cars/renault-clio.png',
+    priority: 100,
   },
 
-  // Peugeot 208 - Uses VW Golf until dedicated image generated
+  // Peugeot 208 - AI-Generated local image
   {
     category: 'COMPACT',
     manufacturer: 'Peugeot',
     model: 'Peugeot 208',
-    photoUrl: '/images/cars/volkswagen-golf.png',
-    thumbnail: '/images/cars/volkswagen-golf.png',
-    priority: 90,
+    photoUrl: '/images/cars/peugeot-208.png',
+    thumbnail: '/images/cars/peugeot-208.png',
+    priority: 100,
   },
 
-  // Mercedes C-Class - Uses BMW 5 Series until dedicated image generated
+  // Mercedes C-Class - AI-Generated local image
   {
     category: 'LUXURY',
     manufacturer: 'Mercedes',
     model: 'Mercedes C-Class',
-    photoUrl: '/images/cars/bmw-5-series.png',
-    thumbnail: '/images/cars/bmw-5-series.png',
-    priority: 90,
+    photoUrl: '/images/cars/mercedes-c-class.png',
+    thumbnail: '/images/cars/mercedes-c-class.png',
+    priority: 100,
   },
   {
     category: 'PREMIUM',
     manufacturer: 'Mercedes-Benz',
     model: 'Mercedes-Benz C-Class',
-    photoUrl: '/images/cars/bmw-5-series.png',
-    thumbnail: '/images/cars/bmw-5-series.png',
-    priority: 90,
+    photoUrl: '/images/cars/mercedes-c-class.png',
+    thumbnail: '/images/cars/mercedes-c-class.png',
+    priority: 100,
   },
 
-  // Audi A3 - Uses VW Golf until dedicated image generated
+  // Audi A3 - AI-Generated local image
   {
     category: 'COMPACT',
     manufacturer: 'Audi',
     model: 'Audi A3',
-    photoUrl: '/images/cars/volkswagen-golf.png',
-    thumbnail: '/images/cars/volkswagen-golf.png',
-    priority: 90,
+    photoUrl: '/images/cars/audi-a3.png',
+    thumbnail: '/images/cars/audi-a3.png',
+    priority: 100,
   },
 
   // === LATIN AMERICA ===
 
-  // Chevrolet Onix - Uses Honda Civic as similar compact
+  // Chevrolet Onix - AI-Generated local image
   {
     category: 'ECONOMY',
     manufacturer: 'Chevrolet',
     model: 'Chevrolet Onix',
-    photoUrl: '/images/cars/honda-civic.png',
-    thumbnail: '/images/cars/honda-civic.png',
-    priority: 90,
+    photoUrl: '/images/cars/chevrolet-onix.png',
+    thumbnail: '/images/cars/chevrolet-onix.png',
+    priority: 100,
   },
 
-  // Fiat Argo - Uses Fiat 500 until dedicated image generated
+  // Fiat Argo - AI-Generated local image
   {
     category: 'ECONOMY',
     manufacturer: 'Fiat',
     model: 'Fiat Argo',
-    photoUrl: '/images/cars/fiat-500.png',
-    thumbnail: '/images/cars/fiat-500.png',
-    priority: 90,
+    photoUrl: '/images/cars/fiat-argo.png',
+    thumbnail: '/images/cars/fiat-argo.png',
+    priority: 100,
   },
 
   // === ASIA / MIDDLE EAST ===
