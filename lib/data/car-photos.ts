@@ -157,51 +157,179 @@ export const exactCarModelMappings: VehiclePhotoMap[] = [
     priority: 100,
   },
 
-  // Ford Explorer - Uses Ford Mustang until dedicated image generated
+  // Ford Explorer - AI-Generated local image
   {
     category: 'SUV',
     manufacturer: 'Ford',
     model: 'Ford Explorer',
-    photoUrl: '/images/cars/chevrolet-equinox.png',
-    thumbnail: '/images/cars/chevrolet-equinox.png',
-    priority: 90,
+    photoUrl: '/images/cars/ford-explorer.png',
+    thumbnail: '/images/cars/ford-explorer.png',
+    priority: 100,
   },
 
-  // Dodge Charger - Uses BMW 5 Series until dedicated image generated
+  // Dodge Charger - AI-Generated local image
   {
     category: 'FULLSIZE',
     manufacturer: 'Dodge',
     model: 'Dodge Charger',
-    photoUrl: '/images/cars/bmw-5-series.png',
-    thumbnail: '/images/cars/bmw-5-series.png',
-    priority: 90,
+    photoUrl: '/images/cars/dodge-charger.png',
+    thumbnail: '/images/cars/dodge-charger.png',
+    priority: 100,
   },
 
-  // Ford F-150 - Uses Jeep Wrangler until dedicated image generated
+  // Ford F-150 - AI-Generated local image
   {
     category: 'TRUCK',
     manufacturer: 'Ford',
     model: 'Ford F-150',
-    photoUrl: '/images/cars/jeep-wrangler.png',
-    thumbnail: '/images/cars/jeep-wrangler.png',
-    priority: 90,
+    photoUrl: '/images/cars/ford-f150.png',
+    thumbnail: '/images/cars/ford-f150.png',
+    priority: 100,
   },
   {
     category: 'TRUCK',
     manufacturer: 'Ford',
     model: 'F-150',
-    photoUrl: '/images/cars/jeep-wrangler.png',
-    thumbnail: '/images/cars/jeep-wrangler.png',
-    priority: 90,
+    photoUrl: '/images/cars/ford-f150.png',
+    thumbnail: '/images/cars/ford-f150.png',
+    priority: 100,
   },
 
-  // Tesla Model 3 - Uses Honda Civic until dedicated image generated
+  // Tesla Model 3 - AI-Generated local image
   {
     category: 'ELECTRIC',
     manufacturer: 'Tesla',
     model: 'Tesla Model 3',
-    photoUrl: '/images/cars/hyundai-sonata.png',
-    thumbnail: '/images/cars/hyundai-sonata.png',
+    photoUrl: '/images/cars/tesla-model-3.png',
+    thumbnail: '/images/cars/tesla-model-3.png',
+    priority: 100,
+  },
+
+  // === EUROPEAN CARS ===
+
+  // Volkswagen Golf - AI-Generated local image
+  {
+    category: 'COMPACT',
+    manufacturer: 'Volkswagen',
+    model: 'Volkswagen Golf',
+    photoUrl: '/images/cars/volkswagen-golf.png',
+    thumbnail: '/images/cars/volkswagen-golf.png',
+    priority: 100,
+  },
+  {
+    category: 'COMPACT',
+    manufacturer: 'VW',
+    model: 'VW Golf',
+    photoUrl: '/images/cars/volkswagen-golf.png',
+    thumbnail: '/images/cars/volkswagen-golf.png',
+    priority: 100,
+  },
+  {
+    category: 'COMPACT',
+    manufacturer: 'Volkswagen',
+    model: 'Golf',
+    photoUrl: '/images/cars/volkswagen-golf.png',
+    thumbnail: '/images/cars/volkswagen-golf.png',
+    priority: 100,
+  },
+
+  // Fiat 500 - AI-Generated local image
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Fiat',
+    model: 'Fiat 500',
+    photoUrl: '/images/cars/fiat-500.png',
+    thumbnail: '/images/cars/fiat-500.png',
+    priority: 100,
+  },
+  {
+    category: 'MINI',
+    manufacturer: 'Fiat',
+    model: 'Fiat 500',
+    photoUrl: '/images/cars/fiat-500.png',
+    thumbnail: '/images/cars/fiat-500.png',
+    priority: 100,
+  },
+
+  // Renault Clio - Uses VW Golf until dedicated image generated
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Renault',
+    model: 'Renault Clio',
+    photoUrl: '/images/cars/volkswagen-golf.png',
+    thumbnail: '/images/cars/volkswagen-golf.png',
+    priority: 90,
+  },
+
+  // Peugeot 208 - Uses VW Golf until dedicated image generated
+  {
+    category: 'COMPACT',
+    manufacturer: 'Peugeot',
+    model: 'Peugeot 208',
+    photoUrl: '/images/cars/volkswagen-golf.png',
+    thumbnail: '/images/cars/volkswagen-golf.png',
+    priority: 90,
+  },
+
+  // Mercedes C-Class - Uses BMW 5 Series until dedicated image generated
+  {
+    category: 'LUXURY',
+    manufacturer: 'Mercedes',
+    model: 'Mercedes C-Class',
+    photoUrl: '/images/cars/bmw-5-series.png',
+    thumbnail: '/images/cars/bmw-5-series.png',
+    priority: 90,
+  },
+  {
+    category: 'PREMIUM',
+    manufacturer: 'Mercedes-Benz',
+    model: 'Mercedes-Benz C-Class',
+    photoUrl: '/images/cars/bmw-5-series.png',
+    thumbnail: '/images/cars/bmw-5-series.png',
+    priority: 90,
+  },
+
+  // Audi A3 - Uses VW Golf until dedicated image generated
+  {
+    category: 'COMPACT',
+    manufacturer: 'Audi',
+    model: 'Audi A3',
+    photoUrl: '/images/cars/volkswagen-golf.png',
+    thumbnail: '/images/cars/volkswagen-golf.png',
+    priority: 90,
+  },
+
+  // === LATIN AMERICA ===
+
+  // Chevrolet Onix - Uses Honda Civic as similar compact
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Chevrolet',
+    model: 'Chevrolet Onix',
+    photoUrl: '/images/cars/honda-civic.png',
+    thumbnail: '/images/cars/honda-civic.png',
+    priority: 90,
+  },
+
+  // Fiat Argo - Uses Fiat 500 until dedicated image generated
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Fiat',
+    model: 'Fiat Argo',
+    photoUrl: '/images/cars/fiat-500.png',
+    thumbnail: '/images/cars/fiat-500.png',
+    priority: 90,
+  },
+
+  // === ASIA / MIDDLE EAST ===
+
+  // Toyota Yaris - Uses Toyota Corolla as similar compact
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Toyota',
+    model: 'Toyota Yaris',
+    photoUrl: '/images/cars/toyota-corolla.png',
+    thumbnail: '/images/cars/toyota-corolla.png',
     priority: 90,
   },
 ];
@@ -322,19 +450,25 @@ export const carPhotoMappings: VehiclePhotoMap[] = [
     priority: 50,
   },
 
-  // Trucks / Pickups - Uses Jeep Wrangler
+  // Trucks / Pickups - Uses Ford F-150
   {
     category: 'TRUCK',
-    photoUrl: '/images/cars/jeep-wrangler.png',
-    thumbnail: '/images/cars/jeep-wrangler.png',
+    photoUrl: '/images/cars/ford-f150.png',
+    thumbnail: '/images/cars/ford-f150.png',
     priority: 50,
   },
 
-  // Electric Vehicles - Uses Honda Civic (modern look)
+  // Electric Vehicles - Uses Tesla Model 3
   {
     category: 'ELECTRIC',
-    photoUrl: '/images/cars/honda-civic.png',
-    thumbnail: '/images/cars/honda-civic.png',
+    photoUrl: '/images/cars/tesla-model-3.png',
+    thumbnail: '/images/cars/tesla-model-3.png',
+    priority: 50,
+  },
+  {
+    category: 'HYBRID',
+    photoUrl: '/images/cars/tesla-model-3.png',
+    thumbnail: '/images/cars/tesla-model-3.png',
     priority: 50,
   },
 ];
