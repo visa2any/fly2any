@@ -53,11 +53,18 @@ function normalizeUrl(url: string, platform: Platform): string {
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared image helpers
 // ─────────────────────────────────────────────────────────────────────────────
-const IMG_BLACKLIST = ['icon', 'logo', 'avatar', 'sprite', '1x1', 'pixel', 'tracking', 'badge', 'flag', 'emoji', 'svg+xml', 'profile_pic', 'user_pic', 'gravatar'];
+const IMG_BLACKLIST = ['icon', 'logo', 'avatar', 'sprite', '1x1', 'pixel', 'tracking', 'badge', 'flag', 'emoji', 'svg+xml', 'profile_pic', 'user_pic', 'gravatar', '/Portrait', '/User-', '/User/', 'user_portrait', 'host_photo', 'host_image', 'profile_picture', 'facebook.com', 'fbcdn.net', 'googleusercontent.com/a/', 'platform-lookaside', 'graph.facebook'];
 
 function isValidPropertyImage(url: string): boolean {
   const u = url.toLowerCase();
-  return u.startsWith('http') && !IMG_BLACKLIST.some(b => u.includes(b));
+  if (!u.startsWith('http')) return false;
+  if (IMG_BLACKLIST.some(b => u.includes(b.toLowerCase()))) return false;
+  // Airbnb host photos: muscache.com/im/pictures/user/ or /Portrait/
+  if (u.includes('muscache.com') && (u.includes('/user/') || u.includes('/user-') || u.includes('/portrait'))) return false;
+  // Filter tiny images (likely icons/avatars) by dimension hints in URL
+  const sizeMatch = u.match(/(\d+)x(\d+)/);
+  if (sizeMatch && (parseInt(sizeMatch[1]) < 100 || parseInt(sizeMatch[2]) < 100)) return false;
+  return true;
 }
 
 function dedupeImages(images: string[]): string[] {

@@ -528,8 +528,13 @@ export default function CreatePropertyPage() {
   const handleImportSuccess = (importedData: any) => {
 
     // Convert raw image URL strings to photo objects the form expects
+    const HOST_IMG_BLACKLIST = ['/user/', '/user-', '/portrait', 'profile_pic', 'user_pic', 'gravatar', 'avatar', 'facebook.com', 'fbcdn.net', 'platform-lookaside', 'graph.facebook', 'googleusercontent.com/a/'];
     const importedImages = (importedData.images || [])
-      .filter((img: any) => typeof img === 'string' ? img.startsWith('http') : img?.url)
+      .filter((img: any) => {
+        const url = (typeof img === 'string' ? img : img?.url || '').toLowerCase();
+        if (!url.startsWith('http')) return false;
+        return !HOST_IMG_BLACKLIST.some(b => url.includes(b));
+      })
       .map((img: any, idx: number) => ({
         id: `imported-${Date.now()}-${idx}`,
         url: typeof img === 'string' ? img : img.url,

@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { MaxWidthContainer } from '@/components/layout/MaxWidthContainer';
 import {
   ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, X, Check,
-  DollarSign, Flame, CalendarDays, RotateCcw, Lock, Sun
+  DollarSign, Flame, CalendarDays, RotateCcw, Lock, Sun, StickyNote, Home
 } from 'lucide-react';
 import {
   format, subMonths, addMonths, eachDayOfInterval, isWithinInterval,
-  isSameDay, startOfMonth, endOfMonth
+  isSameDay, startOfMonth, endOfMonth, isWeekend, isFriday, isSaturday
 } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { ICalSyncModal } from './components/ICalSyncModal';
@@ -17,13 +17,22 @@ import { SeasonalPricingTemplates } from '@/components/host/SeasonalPricingTempl
 interface PropertyOption { id: string; name: string; currency: string; basePricePerNight?: number; }
 interface AvailabilityEntry {
   id: string; startDate: string; endDate: string;
-  available: boolean; customPrice: number | null; notes: string | null;
+  available: boolean; customPrice: number | null; notes: string | null; minStay?: number | null;
 }
+interface BookingEntry {
+  id: string; startDate: string; endDate: string; status: string;
+  user?: { name?: string | null; email?: string | null } | null;
+  property?: { name?: string | null } | null;
+}
+
+// Currency symbol helper
+const currencySymbol = (c: string) => ({ USD: '$', EUR: '€', GBP: '£', BRL: 'R$', JPY: '¥' }[c] || c + ' ');
 
 export default function CalendarPage() {
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [availability, setAvailability] = useState<AvailabilityEntry[]>([]);
+  const [bookings, setBookings] = useState<BookingEntry[]>([]);
   const [demandMap, setDemandMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -39,6 +48,7 @@ export default function CalendarPage() {
   const [editPrice, setEditPrice] = useState<string>('');
   const [editAvailable, setEditAvailable] = useState<boolean>(true);
   const [editNotes, setEditNotes] = useState<string>('');
+  const [editMinStay, setEditMinStay] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [showSeasonalPricing, setShowSeasonalPricing] = useState(false);
@@ -67,23 +77,29 @@ export default function CalendarPage() {
     load();
   }, []);
 
-  // Load availability + demand
+  // Load availability + demand + bookings
   useEffect(() => {
     if (!selectedProperty) return;
     async function load() {
       try {
-        const [availRes, demandRes] = await Promise.all([
+        const [availRes, demandRes, bookingsRes] = await Promise.all([
           fetch(`/api/properties/${selectedProperty}/availability`),
-          fetch(`/api/properties/${selectedProperty}/demand`)
+          fetch(`/api/properties/${selectedProperty}/demand`),
+          fetch('/api/properties/bookings'),
         ]);
         if (availRes.ok) setAvailability((await availRes.json()).data || []);
         if (demandRes.ok) setDemandMap((await demandRes.json()).data || {});
+        if (bookingsRes.ok) {
+          const allBookings = (await bookingsRes.json()).data || [];
+          // Filter to selected property's bookings only
+          setBookings(allBookings.filter((b: any) => b.propertyId === selectedProperty || b.property?.id === selectedProperty));
+        }
       } catch (e) { console.error('Calendar load failed', e); }
     }
     load();
   }, [selectedProperty]);
 
-  // Keyboard: Esc = clear, ←→ = navigate months
+  // Keyboard: Esc = clear, ←→ = navigate
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { setSelectedDates([]); return; }
@@ -97,39 +113,66 @@ export default function CalendarPage() {
 
   const getDayStatus = useCallback((date: Date) => {
     for (const entry of availability) {
-      const s = new Date(entry.startDate); s.setHours(0,0,0,0);
-      const e = new Date(entry.endDate); e.setHours(23,59,59,999);
-      if (date >= s && date <= e) return { available: entry.available, price: entry.customPrice };
+      const s = new Date(entry.startDate); s.setHours(0, 0, 0, 0);
+      const e = new Date(entry.endDate); e.setHours(23, 59, 59, 999);
+      if (date >= s && date <= e) {
+        return { available: entry.available, price: entry.customPrice, notes: entry.notes, minStay: entry.minStay };
+      }
     }
     return null;
   }, [availability]);
+
+  // Check if date has a booking
+  const getBookingForDate = useCallback((date: Date): BookingEntry | null => {
+    for (const b of bookings) {
+      const s = new Date(b.startDate); s.setHours(0, 0, 0, 0);
+      const e = new Date(b.endDate); e.setHours(23, 59, 59, 999);
+      if (date >= s && date <= e && (b.status === 'confirmed' || b.status === 'completed')) return b;
+    }
+    return null;
+  }, [bookings]);
+
+  // Check if date is first day of a booking
+  const isBookingStart = useCallback((date: Date): BookingEntry | null => {
+    for (const b of bookings) {
+      const s = new Date(b.startDate); s.setHours(0, 0, 0, 0);
+      if (isSameDay(date, s) && (b.status === 'confirmed' || b.status === 'completed')) return b;
+    }
+    return null;
+  }, [bookings]);
 
   const getDemandScore = (date: Date) => demandMap[format(date, 'yyyy-MM-dd')] || 'normal';
 
   const currentProperty = properties.find(p => p.id === selectedProperty);
   const basePrice = currentProperty?.basePricePerNight || 0;
+  const sym = currencySymbol(currentProperty?.currency || 'USD');
 
   // Month revenue stats
   const stats = useMemo(() => {
     const days = eachDayOfInterval({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) });
-    let blocked = 0, revenue = 0;
+    let blocked = 0, booked = 0, revenue = 0;
     days.forEach(day => {
       const s = getDayStatus(day);
-      if (s && !s.available) blocked++;
+      const bk = getBookingForDate(day);
+      if (bk) { booked++; revenue += s?.price ?? basePrice; }
+      else if (s && !s.available) blocked++;
       else revenue += s?.price ?? basePrice;
     });
     const total = days.length;
-    const avail = total - blocked;
+    const occupiedDays = blocked + booked;
+    const avail = total - blocked - booked;
     return {
-      occupancyRate: total ? Math.round((blocked / total) * 100) : 0,
+      occupancyRate: total ? Math.round((occupiedDays / total) * 100) : 0,
       projectedRevenue: Math.round(revenue),
-      avgNightly: avail > 0 ? Math.round(revenue / avail) : 0,
+      avgNightly: (avail + booked) > 0 ? Math.round(revenue / (avail + booked)) : 0,
       availableDays: avail,
+      bookedDays: booked,
     };
-  }, [currentDate, getDayStatus, basePrice]);
+  }, [currentDate, getDayStatus, getBookingForDate, basePrice]);
 
   // Drag handlers
   const handleMouseDown = (date: Date) => {
+    if (getBookingForDate(date)) return; // Can't modify booked dates
     setIsDragging(true);
     setDragStart(date);
     setDragEnd(date);
@@ -145,13 +188,15 @@ export default function CalendarPage() {
     setIsDragging(false);
     const start = dragStart < dragEnd ? dragStart : dragEnd;
     const end = dragStart > dragEnd ? dragStart : dragEnd;
-    const dates = eachDayOfInterval({ start, end });
+    const dates = eachDayOfInterval({ start, end }).filter(d => !getBookingForDate(d));
+    if (dates.length === 0) return;
     setSelectedDates(dates);
     const s = getDayStatus(start);
     setEditAvailable(s ? s.available : true);
     setEditPrice(s?.price ? String(s.price) : '');
-    setEditNotes('');
-  }, [isDragging, dragStart, dragEnd, getDayStatus]);
+    setEditNotes(s?.notes || '');
+    setEditMinStay(s?.minStay ? String(s.minStay) : '');
+  }, [isDragging, dragStart, dragEnd, getDayStatus, getBookingForDate]);
 
   useEffect(() => {
     window.addEventListener('mouseup', handleMouseUp);
@@ -173,6 +218,7 @@ export default function CalendarPage() {
         available: editAvailable,
         price: editPrice ? parseFloat(editPrice) : null,
         notes: editNotes || null,
+        minStay: editMinStay ? parseInt(editMinStay) : null,
       };
       const res = await fetch(`/api/properties/${selectedProperty}/availability`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -182,21 +228,21 @@ export default function CalendarPage() {
 
       const newEntry: AvailabilityEntry = {
         id: 'temp-' + Date.now(), startDate: payload.startDate, endDate: payload.endDate,
-        available: payload.available, customPrice: payload.price, notes: payload.notes
+        available: payload.available, customPrice: payload.price, notes: payload.notes,
+        minStay: payload.minStay,
       };
       const filtered = availability.filter(a => {
         const rs = new Date(payload.startDate), re = new Date(payload.endDate);
-        const as = new Date(a.startDate), ae = new Date(a.endDate);
-        return !(re >= as && rs <= ae);
+        const as2 = new Date(a.startDate), ae = new Date(a.endDate);
+        return !(re >= as2 && rs <= ae);
       });
       setAvailability([...filtered, newEntry]);
 
-      // Undo setup
       setLastAction({ data: prevAvail, label: `${selectedDates.length} days` });
       if (undoRef.current) clearTimeout(undoRef.current);
       undoRef.current = setTimeout(() => setLastAction(null), 8000);
 
-      const label = !editAvailable ? 'Blocked' : editPrice ? `Priced at $${editPrice}` : 'Opened';
+      const label = !editAvailable ? 'Blocked' : editPrice ? `Priced at ${sym}${editPrice}` : 'Opened';
       toast.success(`${label} · ${selectedDates.length} days`, {
         style: { borderRadius: '12px', background: '#0A0A0A', color: '#fff', fontSize: '13px' }
       });
@@ -224,7 +270,7 @@ export default function CalendarPage() {
     const m = monthDate.getMonth();
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const firstDow = new Date(y, m, 1).getDay();
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
 
     return (
       <div className="flex flex-col flex-1 min-h-0">
@@ -247,8 +293,8 @@ export default function CalendarPage() {
 
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-1 shrink-0">
-          {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
-            <div key={d} className="text-center text-neutral-300 text-[9px] font-bold uppercase tracking-tight">{d}</div>
+          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d, i) => (
+            <div key={d} className={`text-center text-[9px] font-bold uppercase tracking-tight ${i === 5 || i === 6 ? 'text-amber-400' : 'text-neutral-300'}`}>{d}</div>
           ))}
         </div>
 
@@ -259,9 +305,13 @@ export default function CalendarPage() {
             const day = i + 1;
             const date = new Date(y, m, day);
             const status = getDayStatus(date);
+            const booking = getBookingForDate(date);
+            const bookingStartInfo = isBookingStart(date);
             const isToday = isSameDay(date, new Date());
             const demand = getDemandScore(date);
             const isPast = date < today;
+            const isWkend = isFriday(date) || isSaturday(date);
+            const hasNotes = !!status?.notes;
 
             let isInDrag = false;
             if (isDragging && dragStart && dragEnd) {
@@ -271,17 +321,26 @@ export default function CalendarPage() {
             }
             const isSelected = selectedDates.some(d => isSameDay(d, date)) || isInDrag;
 
+            // Determine effective price for this date
+            const effectivePrice = status?.price ?? basePrice;
+
             // Styling logic
             let bg = 'bg-white', text = 'text-[#0A0A0A]', border = 'border-neutral-100', priceText = 'text-neutral-400';
-            if (status && !status.available) {
-              // Striped pattern for blocked dates
+
+            if (booking) {
+              // Booked dates
+              bg = 'bg-emerald-50'; border = 'border-emerald-200'; text = 'text-emerald-800'; priceText = 'text-emerald-500';
+            } else if (status && !status.available) {
               bg = '[background:repeating-linear-gradient(45deg,#fafafa,#fafafa_4px,#f4f4f4_4px,#f4f4f4_8px)]';
               text = 'text-neutral-300'; border = 'border-neutral-100'; priceText = 'text-neutral-200';
             } else if (!isPast) {
+              if (isWkend && demand !== 'peak') {
+                bg = 'bg-sky-50/50'; border = 'border-sky-100';
+              }
               if (demand === 'peak') { bg = 'bg-rose-50'; border = 'border-rose-100'; text = 'text-rose-700'; priceText = 'text-rose-400'; }
               else if (demand === 'high') { bg = 'bg-amber-50'; border = 'border-amber-100'; text = 'text-amber-700'; priceText = 'text-amber-400'; }
             }
-            if (isPast && !(status && !status.available)) { text = 'text-neutral-300'; }
+            if (isPast && !booking && !(status && !status.available)) { text = 'text-neutral-300'; priceText = 'text-neutral-200'; }
             if (isSelected) { bg = 'bg-primary-500'; border = 'border-primary-500'; text = 'text-white'; priceText = 'text-primary-200'; }
 
             return (
@@ -291,15 +350,46 @@ export default function CalendarPage() {
                 onMouseEnter={() => !isPast && handleMouseEnter(date)}
                 onTouchStart={(e) => { if (!isPast) { e.preventDefault(); handleMouseDown(date); } }}
                 className={`rounded-xl border flex flex-col items-center justify-center relative h-full ${bg} ${border} ${text} ${
-                  isPast ? 'cursor-default opacity-40' : 'cursor-pointer hover:shadow-md hover:scale-[1.05] hover:z-20 active:scale-[0.98]'
-                } ${isSelected ? 'scale-[1.05] shadow-md z-20' : ''} ${isToday && !isSelected ? 'ring-2 ring-primary-500 ring-offset-1' : ''} transition-all duration-100`}
+                  isPast || booking ? 'cursor-default' : 'cursor-pointer hover:shadow-md hover:scale-[1.05] hover:z-20 active:scale-[0.98]'
+                } ${isPast && !booking ? 'opacity-40' : ''} ${isSelected ? 'scale-[1.05] shadow-md z-20' : ''} ${isToday && !isSelected ? 'ring-2 ring-primary-500 ring-offset-1' : ''} transition-all duration-100`}
               >
-                <span className={`text-xs leading-none ${isSelected ? 'font-black' : 'font-bold'}`}>{day}</span>
-                {status?.price && status.available && !isPast && (
-                  <span className={`text-[9px] font-black mt-0.5 ${priceText}`}>${status.price}</span>
+                {/* Day number */}
+                <span className={`text-xs leading-none ${isSelected || booking ? 'font-black' : 'font-bold'}`}>{day}</span>
+
+                {/* Price — always show on available non-past dates */}
+                {!isPast && (status?.available !== false) && !booking && effectivePrice > 0 && (
+                  <span className={`text-[8px] font-black mt-0.5 leading-none ${priceText}`}>
+                    {sym}{status?.price ? status.price : effectivePrice}
+                  </span>
                 )}
-                {!status?.price && demand === 'peak' && !isPast && status?.available !== false && (
-                  <Flame className="w-2.5 h-2.5 text-rose-400 mt-0.5 opacity-50" />
+
+                {/* Booked indicator with guest name */}
+                {booking && (
+                  <span className="text-[7px] font-bold mt-0.5 leading-none text-emerald-600 truncate max-w-full px-0.5">
+                    {bookingStartInfo ? (bookingStartInfo.user?.name?.split(' ')[0] || 'Guest') : '·'}
+                  </span>
+                )}
+
+                {/* Blocked price (show what it would be) */}
+                {!isPast && status && !status.available && !booking && effectivePrice > 0 && (
+                  <span className={`text-[7px] font-bold mt-0.5 leading-none line-through ${priceText}`}>
+                    {sym}{effectivePrice}
+                  </span>
+                )}
+
+                {/* Demand flame on peak dates without custom price */}
+                {!status?.price && demand === 'peak' && !isPast && status?.available !== false && !booking && (
+                  <Flame className="w-2 h-2 text-rose-400 absolute top-0.5 right-0.5 opacity-50" />
+                )}
+
+                {/* Notes indicator */}
+                {hasNotes && !isSelected && (
+                  <div className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-violet-400" title={status?.notes || ''} />
+                )}
+
+                {/* Min stay indicator */}
+                {status?.minStay && status.minStay > 1 && !isSelected && !booking && (
+                  <span className="absolute bottom-0.5 text-[6px] font-bold text-neutral-300">{status.minStay}n</span>
                 )}
               </div>
             );
@@ -332,6 +422,13 @@ export default function CalendarPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Today button */}
+            <button
+              onClick={() => setCurrentDate(new Date())}
+              className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white text-neutral-500 border border-neutral-200 hover:border-neutral-300 transition-all"
+            >
+              Today
+            </button>
             <button
               onClick={() => setViewMonths(v => v === 1 ? 2 : 1)}
               className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${
@@ -385,23 +482,23 @@ export default function CalendarPage() {
                   <p className="text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-1">Occupancy</p>
                   <span className="text-xl font-black text-[#0A0A0A]">{stats.occupancyRate}%</span>
                   <div className="mt-1.5 h-1 bg-neutral-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary-500 rounded-full transition-all duration-700"
-                      style={{ width: `${stats.occupancyRate}%` }}
-                    />
+                    <div className="h-full bg-primary-500 rounded-full transition-all duration-700" style={{ width: `${stats.occupancyRate}%` }} />
                   </div>
                 </div>
                 <div className="bg-white rounded-2xl p-3.5 border border-neutral-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-1">Proj. Revenue</p>
-                  <span className="text-xl font-black text-emerald-600">${stats.projectedRevenue.toLocaleString()}</span>
+                  <span className="text-xl font-black text-emerald-600">{sym}{stats.projectedRevenue.toLocaleString()}</span>
                 </div>
                 <div className="bg-white rounded-2xl p-3.5 border border-neutral-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-1">Avg / Night</p>
-                  <span className="text-xl font-black text-[#0A0A0A]">${stats.avgNightly}</span>
+                  <span className="text-xl font-black text-[#0A0A0A]">{sym}{stats.avgNightly}</span>
                 </div>
                 <div className="bg-white rounded-2xl p-3.5 border border-neutral-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-1">Open Days</p>
                   <span className="text-xl font-black text-[#0A0A0A]">{stats.availableDays}</span>
+                  {stats.bookedDays > 0 && (
+                    <span className="text-[9px] font-bold text-emerald-500 ml-1">+{stats.bookedDays} booked</span>
+                  )}
                 </div>
               </div>
 
@@ -416,11 +513,13 @@ export default function CalendarPage() {
                     <div className="absolute right-0.5 top-0.5 w-2.5 h-2.5 bg-white rounded-full shadow" />
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-neutral-400">
-                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-rose-300 inline-block" />Peak</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-300 inline-block" />High</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 bg-[repeating-linear-gradient(45deg,#e5e5e5,#e5e5e5_2px,#fafafa_2px,#fafafa_4px)] inline-block" />Blocked</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-primary-500 inline-block" />Selected</span>
+                <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-neutral-400">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />Booked</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-300 inline-block" />Peak</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-300 inline-block" />High</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-sky-100 rounded-full inline-block border border-sky-200" />Wkend</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[repeating-linear-gradient(45deg,#e5e5e5,#e5e5e5_2px,#fafafa_2px,#fafafa_4px)] inline-block" />Blocked</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary-500 inline-block" />Selected</span>
                 </div>
               </div>
 
@@ -498,22 +597,23 @@ export default function CalendarPage() {
                   {editAvailable && (
                     <div>
                       <p className="text-[10px] font-black text-[#0A0A0A] uppercase tracking-widest mb-2">Quick Presets</p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-4 gap-2">
                         {[
                           { label: 'Base', mult: 1, cls: 'bg-neutral-50 border-neutral-200 text-neutral-600 hover:border-neutral-300' },
-                          { label: 'Weekend', mult: 1.2, cls: 'bg-amber-50 border-amber-200 text-amber-700 hover:border-amber-300' },
+                          { label: 'Weekend', mult: 1.2, cls: 'bg-sky-50 border-sky-200 text-sky-700 hover:border-sky-300' },
+                          { label: 'High', mult: 1.3, cls: 'bg-amber-50 border-amber-200 text-amber-700 hover:border-amber-300' },
                           { label: 'Peak', mult: 1.5, cls: 'bg-rose-50 border-rose-200 text-rose-700 hover:border-rose-300' },
                         ].map(({ label, mult, cls }) => (
                           <button
                             key={label}
                             onClick={() => applyPreset(mult)}
                             disabled={!basePrice}
-                            className={`py-2 px-2 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-40 ${cls}`}
+                            className={`py-2 px-1 rounded-xl border text-[10px] font-black uppercase tracking-wide transition-all disabled:opacity-40 ${cls}`}
                           >
                             {label}
                             {basePrice > 0 && (
-                              <span className="block text-[9px] font-bold mt-0.5 opacity-70">
-                                ${Math.round(basePrice * mult)}
+                              <span className="block text-[8px] font-bold mt-0.5 opacity-70">
+                                {sym}{Math.round(basePrice * mult)}
                               </span>
                             )}
                           </button>
@@ -542,7 +642,7 @@ export default function CalendarPage() {
                           type="number"
                           value={editPrice}
                           onChange={e => setEditPrice(e.target.value)}
-                          placeholder={basePrice ? `Base: $${basePrice}` : 'Set custom price...'}
+                          placeholder={basePrice ? `Base: ${sym}${basePrice}` : 'Set custom price...'}
                           className="w-full bg-white border border-neutral-200 rounded-xl py-3 pl-10 pr-16 text-[#0A0A0A] font-bold text-base focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all"
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-neutral-400 font-bold">
@@ -555,6 +655,38 @@ export default function CalendarPage() {
                           {parseFloat(editPrice) >= basePrice ? 'above' : 'below'} base price
                         </p>
                       )}
+                    </div>
+                  )}
+
+                  {/* Minimum Stay */}
+                  {editAvailable && (
+                    <div>
+                      <p className="text-[10px] font-black text-[#0A0A0A] uppercase tracking-widest mb-2">Minimum Stay</p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={editMinStay}
+                          onChange={e => setEditMinStay(e.target.value)}
+                          placeholder="Default"
+                          min="1"
+                          max="30"
+                          className="flex-1 bg-white border border-neutral-200 rounded-xl py-2.5 px-3 text-[#0A0A0A] font-bold text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all"
+                        />
+                        <span className="text-xs text-neutral-400 font-bold">nights</span>
+                      </div>
+                      <div className="flex gap-1.5 mt-2">
+                        {[1, 2, 3, 5, 7].map(n => (
+                          <button
+                            key={n}
+                            onClick={() => setEditMinStay(String(n))}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                              editMinStay === String(n) ? 'bg-[#0A0A0A] text-white border-[#0A0A0A]' : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            {n}n
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
 
@@ -573,14 +705,15 @@ export default function CalendarPage() {
                   </div>
 
                   {/* Revenue Projection */}
-                  {editAvailable && editPrice && parseFloat(editPrice) > 0 && (
+                  {editAvailable && (
                     <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
                       <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 mb-1">Selection Revenue</p>
                       <p className="text-2xl font-black text-emerald-700">
-                        ${(parseFloat(editPrice) * selectedDates.length).toLocaleString()}
+                        {sym}{((editPrice ? parseFloat(editPrice) : basePrice) * selectedDates.length).toLocaleString()}
                       </p>
                       <p className="text-[10px] text-emerald-600 font-medium mt-0.5">
-                        {selectedDates.length} nights × ${editPrice}
+                        {selectedDates.length} nights × {sym}{editPrice || basePrice}
+                        {!editPrice && basePrice > 0 && <span className="opacity-60"> (base)</span>}
                       </p>
                     </div>
                   )}
@@ -631,12 +764,10 @@ export default function CalendarPage() {
                 body: JSON.stringify({ startDate: startDate.toISOString(), endDate: endDate.toISOString(), available: true, customPrice }),
               });
               if (res.ok) {
-                toast.success(`Seasonal pricing applied: $${customPrice}/night`);
-                // Refresh availability data
-                const availRes = await fetch(`/api/properties/${currentProperty.id}/availability?month=${format(currentMonth, 'yyyy-MM')}`);
+                toast.success(`Seasonal pricing applied: ${sym}${customPrice}/night`);
+                const availRes = await fetch(`/api/properties/${currentProperty.id}/availability`);
                 if (availRes.ok) {
-                  const json = await availRes.json();
-                  setAvailability(json.data || []);
+                  setAvailability((await availRes.json()).data || []);
                 }
               } else {
                 toast.error('Failed to apply pricing');
