@@ -9,7 +9,7 @@ import {
   Search, Plus, Filter, MoreHorizontal, MapPin, BedDouble, Users,
   CheckCircle2, AlertCircle, PauseCircle, Clock, FileEdit, Trash2,
   ExternalLink, ArrowUpDown, Building2, ImageIcon, Eye, Star, TrendingUp,
-  CalendarCheck2, ChevronRight
+  CalendarCheck2, ChevronRight, Copy, Pause, Play, CheckSquare, Square, X
 } from 'lucide-react';
 
 // Match the shape returned by /api/properties/dashboard
@@ -53,6 +53,12 @@ export default function PropertiesPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Bulk operations state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOperating, setBulkOperating] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [cloningId, setCloningId] = useState<string | null>(null);
+
   const fetchProperties = async () => {
     setLoading(true);
     setError(null);
@@ -77,7 +83,7 @@ export default function PropertiesPage() {
 
   useEffect(() => { fetchProperties(); }, []);
 
-  // Filter properties logic — uses flat fields matching the API response
+  // Filter properties logic
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (property.city || '').toLowerCase().includes(searchQuery.toLowerCase());
@@ -85,18 +91,127 @@ export default function PropertiesPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // ─── Selection helpers ───
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredProperties.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredProperties.map((p) => p.id)));
+    }
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const isAllSelected = filteredProperties.length > 0 && selectedIds.size === filteredProperties.length;
+  const bulkModeActive = selectedIds.size > 0;
+
+  // ─── Single delete ───
   const handleDelete = async (id: string) => {
     setDeletingId(id);
     try {
       const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete');
       setProperties(prev => prev.filter(p => p.id !== id));
+      setSelectedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
       toast.success('Property deleted successfully');
     } catch (e: any) {
       toast.error('Failed to delete: ' + e.message);
     } finally {
       setDeletingId(null);
       setConfirmDeleteId(null);
+    }
+  };
+
+  // ─── Clone property ───
+  const handleClone = async (id: string) => {
+    setCloningId(id);
+    try {
+      const res = await fetch('/api/properties/clone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ propertyId: id }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Clone failed');
+      }
+      toast.success('Property cloned as draft');
+      await fetchProperties();
+    } catch (e: any) {
+      toast.error('Failed to clone: ' + e.message);
+    } finally {
+      setCloningId(null);
+    }
+  };
+
+  // ─── Bulk status update ───
+  const handleBulkStatus = async (status: string) => {
+    setBulkOperating(true);
+    const ids = Array.from(selectedIds);
+    try {
+      const results = await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/properties/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status }),
+          }).then((r) => ({ id, ok: r.ok }))
+        )
+      );
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length === 0) {
+        toast.success(`${ids.length} properties updated to "${status}"`);
+        setProperties((prev) =>
+          prev.map((p) => (selectedIds.has(p.id) ? { ...p, status } : p))
+        );
+      } else {
+        toast.error(`${failed.length} of ${ids.length} updates failed`);
+        await fetchProperties();
+      }
+      clearSelection();
+    } catch (e: any) {
+      toast.error('Bulk operation failed: ' + e.message);
+    } finally {
+      setBulkOperating(false);
+    }
+  };
+
+  // ─── Bulk delete ───
+  const handleBulkDelete = async () => {
+    setBulkOperating(true);
+    const ids = Array.from(selectedIds);
+    try {
+      const results = await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/properties/${id}`, { method: 'DELETE' }).then((r) => ({
+            id,
+            ok: r.ok,
+          }))
+        )
+      );
+      const succeeded = results.filter((r) => r.ok).map((r) => r.id);
+      const failed = results.filter((r) => !r.ok);
+      setProperties((prev) => prev.filter((p) => !succeeded.includes(p.id)));
+      if (failed.length === 0) {
+        toast.success(`${ids.length} properties deleted`);
+      } else {
+        toast.error(`${failed.length} of ${ids.length} deletes failed`);
+      }
+      clearSelection();
+    } catch (e: any) {
+      toast.error('Bulk delete failed: ' + e.message);
+    } finally {
+      setBulkOperating(false);
+      setConfirmBulkDelete(false);
     }
   };
 
@@ -127,8 +242,7 @@ export default function PropertiesPage() {
           </div>
         </header>
 
-
-        {/* Filters & Search */}
+        {/* Filters, Search & Select All */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
           <div className="relative flex-1 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 group-focus-within:text-primary-500 transition-colors" />
@@ -140,20 +254,41 @@ export default function PropertiesPage() {
               className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-soft focus:shadow-soft text-[#0A0A0A] placeholder-neutral-400 focus:outline-none focus:border-primary-300 transition-all font-medium"
             />
           </div>
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar p-1.5 bg-neutral-100/50 rounded-2xl border border-neutral-100">
-            {['all', 'active', 'draft', 'paused'].map((status) => (
+          <div className="flex items-center gap-3">
+            {/* Select All checkbox */}
+            {filteredProperties.length > 0 && (
               <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-5 py-2.5 rounded-xl text-xs font-black capitalize transition-all whitespace-nowrap ${
-                  statusFilter === status
-                    ? 'bg-[#0A0A0A] text-white shadow-soft'
-                    : 'text-neutral-500 hover:text-[#0A0A0A] hover:bg-white/60'
+                onClick={toggleSelectAll}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all border ${
+                  isAllSelected
+                    ? 'bg-[#E74035] text-white border-[#E74035]'
+                    : 'bg-white text-neutral-500 border-neutral-200 hover:border-neutral-300 hover:text-[#0A0A0A]'
                 }`}
+                title="Select all"
               >
-                {status}
+                {isAllSelected ? (
+                  <CheckSquare className="w-4 h-4" />
+                ) : (
+                  <Square className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">Select All</span>
               </button>
-            ))}
+            )}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar p-1.5 bg-neutral-100/50 rounded-2xl border border-neutral-100">
+              {['all', 'active', 'draft', 'paused'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-black capitalize transition-all whitespace-nowrap ${
+                    statusFilter === status
+                      ? 'bg-[#0A0A0A] text-white shadow-soft'
+                      : 'text-neutral-500 hover:text-[#0A0A0A] hover:bg-white/60'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -177,8 +312,32 @@ export default function PropertiesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredProperties.map((property) => {
               const statusCfg = STATUS_CONFIG[property.status] || STATUS_CONFIG.draft;
+              const isSelected = selectedIds.has(property.id);
               return (
-                <div key={property.id} className="group relative bg-white rounded-[2.5rem] shadow-soft hover:shadow-soft-lg hover:-translate-y-2 transition-all duration-500 flex flex-col overflow-hidden border border-neutral-100">
+                <div
+                  key={property.id}
+                  className={`group relative bg-white rounded-[2.5rem] shadow-soft hover:shadow-soft-lg hover:-translate-y-2 transition-all duration-500 flex flex-col overflow-hidden border ${
+                    isSelected ? 'border-[#E74035] ring-2 ring-[#E74035]/20' : 'border-neutral-100'
+                  }`}
+                >
+                  {/* Selection checkbox */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleSelect(property.id); }}
+                    className={`absolute top-6 right-6 z-10 w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                      isSelected
+                        ? 'bg-[#E74035] text-white shadow-lg'
+                        : bulkModeActive
+                          ? 'bg-white/90 text-neutral-400 backdrop-blur-sm border border-neutral-200 hover:border-[#E74035] hover:text-[#E74035]'
+                          : 'bg-white/90 text-neutral-400 backdrop-blur-sm border border-neutral-200 opacity-0 group-hover:opacity-100 hover:border-[#E74035] hover:text-[#E74035]'
+                    }`}
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="w-4 h-4" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+
                   {/* Top: Image & Status */}
                   <div className="relative h-64 w-full overflow-hidden bg-neutral-100/50">
                     {property.coverImageUrl ? (
@@ -193,14 +352,13 @@ export default function PropertiesPage() {
                         <Building2 className="w-12 h-12 opacity-20" />
                       </div>
                     )}
-                    
+
                     {/* Glassmorphism Status Badge */}
                     <div className="absolute top-6 left-6 flex flex-col gap-2">
                        <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-[10px] font-black backdrop-blur-xl bg-white/95 shadow-soft border border-neutral-100 uppercase tracking-widest ${statusCfg.color}`}>
                         <statusCfg.icon className="w-3.5 h-3.5" />
                         {statusCfg.label}
                       </span>
-                      
                     </div>
 
                     {/* Price Overlay */}
@@ -266,6 +424,19 @@ export default function PropertiesPage() {
                           <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Added <span className="text-neutral-600 ml-1">{property.publishedAt ? new Date(property.publishedAt).toLocaleDateString() : 'Draft'}</span></p>
                        </div>
                        <div className="flex items-center gap-2">
+                          {/* Clone button */}
+                          <button
+                            onClick={() => handleClone(property.id)}
+                            disabled={cloningId === property.id}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-neutral-50 text-neutral-400 hover:text-[#0A0A0A] hover:bg-neutral-100 transition-all border border-neutral-100 disabled:opacity-40"
+                            title="Clone property"
+                          >
+                            {cloningId === property.id ? (
+                              <div className="w-4 h-4 border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" />
+                            ) : (
+                              <Copy className="w-4 h-4" />
+                            )}
+                          </button>
                           {property.status === 'active' && (
                             <Link
                               href={`/properties/${property.slug || property.id}`}
@@ -282,9 +453,9 @@ export default function PropertiesPage() {
                             Edit
                             <FileEdit className="w-3.5 h-3.5" />
                           </Link>
-                          <button 
-                            onClick={() => setConfirmDeleteId(property.id)} 
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-transparent text-neutral-300 hover:text-white hover:bg-rose-500 transition-all group/btn" 
+                          <button
+                            onClick={() => setConfirmDeleteId(property.id)}
+                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-transparent text-neutral-300 hover:text-white hover:bg-rose-500 transition-all group/btn"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -325,7 +496,63 @@ export default function PropertiesPage() {
         )}
       </MaxWidthContainer>
 
-      {/* Delete Confirmation Modal */}
+      {/* ─── Bulk Action Bar (fixed bottom) ─── */}
+      {bulkModeActive && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="flex items-center gap-3 bg-[#0A0A0A] text-white px-6 py-3.5 rounded-2xl shadow-2xl border border-white/10">
+            {/* Count badge */}
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-xl text-xs font-black">
+              <CheckSquare className="w-3.5 h-3.5" />
+              {selectedIds.size} selected
+            </span>
+
+            <div className="w-px h-6 bg-white/20" />
+
+            {/* Publish All */}
+            <button
+              onClick={() => handleBulkStatus('active')}
+              disabled={bulkOperating}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#27C56B] text-white hover:bg-emerald-500 transition-colors disabled:opacity-40"
+            >
+              <Play className="w-3.5 h-3.5" />
+              Publish All
+            </button>
+
+            {/* Pause All */}
+            <button
+              onClick={() => handleBulkStatus('paused')}
+              disabled={bulkOperating}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-sky-500 text-white hover:bg-sky-400 transition-colors disabled:opacity-40"
+            >
+              <Pause className="w-3.5 h-3.5" />
+              Pause All
+            </button>
+
+            {/* Delete All */}
+            <button
+              onClick={() => setConfirmBulkDelete(true)}
+              disabled={bulkOperating}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#E5484D] text-white hover:bg-red-500 transition-colors disabled:opacity-40"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete All
+            </button>
+
+            <div className="w-px h-6 bg-white/20" />
+
+            {/* Clear Selection */}
+            <button
+              onClick={clearSelection}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal (single) */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in zoom-in-95">
@@ -347,6 +574,38 @@ export default function PropertiesPage() {
                 className="flex-1 px-5 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
               >
                 {deletingId === confirmDeleteId ? 'Deleting...' : 'Delete Forever'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {confirmBulkDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 animate-in fade-in zoom-in-95">
+            <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5">
+              <Trash2 className="w-7 h-7 text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-[#0A0A0A] text-center mb-2">
+              Delete {selectedIds.size} Properties?
+            </h3>
+            <p className="text-neutral-500 text-sm text-center mb-8">
+              This will permanently delete {selectedIds.size} properties and all their associated data. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmBulkDelete(false)}
+                className="flex-1 px-5 py-3 rounded-xl bg-neutral-100 text-neutral-700 font-bold text-sm hover:bg-neutral-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkOperating}
+                className="flex-1 px-5 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {bulkOperating ? 'Deleting...' : `Delete ${selectedIds.size} Properties`}
               </button>
             </div>
           </div>

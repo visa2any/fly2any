@@ -14,12 +14,12 @@ export function HostPromoTab() {
   const [dismissed, setDismissed] = useState(false);
 
   const isInternalRoute =
-    pathname.startsWith('/host') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/agent') ||
-    pathname.startsWith('/auth') ||
-    pathname.startsWith('/account') ||
-    pathname.startsWith('/list-your-property');
+    pathname?.startsWith('/host') ||
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/agent') ||
+    pathname?.startsWith('/auth') ||
+    pathname?.startsWith('/account') ||
+    pathname?.startsWith('/list-your-property');
 
   useEffect(() => {
     if (isInternalRoute) return;
@@ -45,7 +45,7 @@ export function HostPromoTab() {
     <a
       href="/list-your-property"
       aria-label="List Your Property"
-      className="fixed left-0 top-1/2 -translate-y-1/2 z-40 group flex flex-col items-center"
+      className="hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 z-40 group flex-col items-center"
       style={{ willChange: 'transform' }}
     >
       <div

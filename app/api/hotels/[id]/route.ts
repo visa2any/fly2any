@@ -5,6 +5,10 @@ import { liteAPI } from '@/lib/api/liteapi';
 import { amadeus } from '@/lib/api/amadeus';
 import { getCached, setCache, generateCacheKey } from '@/lib/cache';
 import { isDemoHotelId } from '@/lib/utils/demo-hotels';
+import { prisma } from '@/lib/prisma';
+import { mapPropertyToHotel } from '@/lib/mappers/property-mapper';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Check if hotel ID is from LiteAPI (starts with 'lp' prefix)
@@ -62,6 +66,82 @@ export async function GET(
         },
         { status: 404 }
       );
+    }
+
+    // Check if this is a native Fly2Any property (valid UUID)
+    if (UUID_REGEX.test(accommodationId)) {
+      console.log(`🏨 [DATABASE] Fetching native property details for ${accommodationId}`);
+
+      // Try cache first
+      const cacheKey = generateCacheKey('hotels:native:details', { id: accommodationId });
+      const cached = await getCached<any>(cacheKey);
+      
+      if (cached) {
+        console.log(`✅ Returning cached database property details for ${accommodationId}`);
+        return NextResponse.json(cached, {
+          headers: {
+            'X-Cache-Status': 'HIT',
+            'X-API-Source': 'DATABASE',
+            'Cache-Control': 'public, max-age=1800',
+          }
+        });
+      }
+
+      try {
+        const property = await prisma.property.findUnique({
+          where: { 
+            id: accommodationId,
+            status: 'active' // Only show active properties
+          },
+          include: {
+            images: { orderBy: { sortOrder: 'asc' } },
+            rooms: true,
+            owner: true,
+            policies: true,
+          }
+        });
+
+        if (!property) {
+          return NextResponse.json(
+            { error: 'Property not found or is not active' },
+            { status: 404 }
+          );
+        }
+
+        // Get query params for rates calculation (fallback logic matches LiteAPI)
+        const searchParams = request.nextUrl.searchParams;
+        const checkIn = searchParams.get('checkIn');
+        const checkOut = searchParams.get('checkOut');
+
+        // Map Prisma property to standard Hotel format
+        const mappedHotel = mapPropertyToHotel(property, checkIn, checkOut);
+
+        const response = {
+          data: mappedHotel,
+          meta: {
+            lastUpdated: new Date().toISOString(),
+            source: 'Fly2Any',
+            photoCount: property.images.length,
+          },
+        };
+
+        // Cache for 30 minutes
+        await setCache(cacheKey, response, 1800);
+
+        return NextResponse.json(response, {
+          headers: {
+            'X-Cache-Status': 'MISS',
+            'X-API-Source': 'DATABASE',
+            'Cache-Control': 'public, max-age=1800',
+          }
+        });
+      } catch (dbError) {
+        console.error('❌ Database property details error:', dbError);
+        return NextResponse.json(
+          { error: 'Failed to fetch property details from database' },
+          { status: 500 }
+        );
+      }
     }
 
     // Check if this is an Amadeus hotel

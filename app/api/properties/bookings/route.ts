@@ -24,15 +24,17 @@ export async function GET(request: NextRequest) {
         property: { ownerId: owner.id },
       },
       include: {
-        property: { select: { id: true, name: true, coverImageUrl: true } },
+        property: { select: { id: true, name: true, coverImageUrl: true, city: true, country: true } },
         user: { select: { id: true, name: true, email: true, image: true } },
+        room: { select: { id: true, name: true, roomType: true } },
       },
       orderBy: { startDate: 'desc' },
     });
 
     return NextResponse.json({ success: true, data: bookings });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('Bookings error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

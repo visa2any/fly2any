@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { Loader2, MessageSquare, Search, Send, User, Sparkles, Info, X, Clock } from 'lucide-react';
+import { Loader2, MessageSquare, Search, Send, User, Sparkles, Info, X, Clock, FileText } from 'lucide-react';
+import { MessageTemplates } from '@/components/host/MessageTemplates';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
@@ -41,6 +42,7 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSidebar, setShowSidebar] = useState(true);
   const [showContextDrawer, setShowContextDrawer] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -344,16 +346,44 @@ export default function MessagesPage() {
                       </div>
                     </div>
 
+                    {/* Message Templates Panel */}
+                    {showTemplates && (
+                      <div className="border-t border-neutral-100 bg-neutral-50/50">
+                        <MessageTemplates
+                          onSelect={(body) => {
+                            const guestName = activeConversation?.guest?.name || 'Guest';
+                            const propertyName = activeConversation?.property?.name || 'your property';
+                            const filled = body.replace(/\{\{guest_name\}\}/g, guestName).replace(/\{\{property_name\}\}/g, propertyName);
+                            setNewMessage(filled);
+                            setShowTemplates(false);
+                          }}
+                        />
+                      </div>
+                    )}
+
                     <form onSubmit={handleSendMessage} className="p-6 border-t border-neutral-100 bg-white">
                         <div className="relative flex items-center gap-3">
-                            <input 
+                            <button
+                              type="button"
+                              onClick={() => setShowTemplates(!showTemplates)}
+                              className={cn(
+                                'p-3 rounded-2xl border transition-all',
+                                showTemplates
+                                  ? 'bg-primary-50 border-primary-200 text-primary-600'
+                                  : 'bg-white border-neutral-200 text-neutral-400 hover:text-neutral-600 hover:border-neutral-300'
+                              )}
+                              title="Message Templates"
+                            >
+                              <FileText className="w-5 h-5" />
+                            </button>
+                            <input
                                 value={newMessage}
                                 onChange={e => setNewMessage(e.target.value)}
-                                type="text" 
-                                placeholder="Type a message..." 
-                                className="flex-1 bg-white border border-neutral-200 shadow-sm hover:shadow-soft rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-[#0A0A0A] font-medium placeholder-neutral-400" 
+                                type="text"
+                                placeholder="Type a message..."
+                                className="flex-1 bg-white border border-neutral-200 shadow-sm hover:shadow-soft rounded-2xl px-5 py-4 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-all text-[#0A0A0A] font-medium placeholder-neutral-400"
                             />
-                            <button 
+                            <button
                                 type="submit"
                                 disabled={!newMessage.trim()}
                                 className="p-4 bg-primary-500 text-white rounded-2xl hover:bg-primary-600 disabled:opacity-50 transition-all shadow-md active:scale-95 hover:shadow-[0_8px_16px_rgba(231,64,53,0.25)]"

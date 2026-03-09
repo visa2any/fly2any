@@ -6,7 +6,7 @@ import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 import {
   LayoutDashboard, Building2, Calendar, ClipboardList, Settings,
-  LogOut, MessageSquare, Shield, Wallet, TrendingUp, ChevronRight
+  LogOut, MessageSquare, Shield, Wallet, TrendingUp, ChevronRight, Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ const MENU_ITEMS = [
   { label: 'Bookings',    icon: ClipboardList,    href: '/host/bookings' },
   { label: 'Calendar',    icon: Calendar,         href: '/host/calendar' },
   { label: 'Messages',    icon: MessageSquare,    href: '/host/messages' },
+  { label: 'Reviews',     icon: Star,             href: '/host/reviews' },
   { label: 'Payouts',     icon: Wallet,           href: '/host/payouts' },
   { label: 'Finances',    icon: TrendingUp,       href: '/host/finances' },
   { label: 'Trust',       icon: Shield,           href: '/host/verification' },

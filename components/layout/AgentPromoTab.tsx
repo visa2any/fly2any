@@ -15,11 +15,11 @@ export function AgentPromoTab() {
 
   // Hide on internal portal routes
   const isInternalRoute =
-    pathname.startsWith('/agent') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/host') ||
-    pathname.startsWith('/auth') ||
-    pathname.startsWith('/account');
+    pathname?.startsWith('/agent') ||
+    pathname?.startsWith('/admin') ||
+    pathname?.startsWith('/host') ||
+    pathname?.startsWith('/auth') ||
+    pathname?.startsWith('/account');
 
   useEffect(() => {
     if (isInternalRoute) return;
@@ -46,7 +46,7 @@ export function AgentPromoTab() {
     <a
       href="/agent"
       aria-label="Travel Agent Portal"
-      className="fixed right-0 top-1/2 -translate-y-1/2 z-40 group flex flex-col items-center"
+      className="hidden md:flex fixed right-0 top-1/2 -translate-y-1/2 z-40 group flex-col items-center"
       style={{ willChange: 'transform' }}
     >
       {/* Tab body */}

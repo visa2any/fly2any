@@ -4721,6 +4721,112 @@ export default function EnhancedSearchBar({
           </>
           )}
 
+          {/* CARS MOBILE FIELDS */}
+          {serviceType === 'cars' && (
+          <>
+            {/* Pickup Location */}
+            <div className="relative mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                <MapPin size={13} className="text-emerald-600" />
+                <span>Pickup Location</span>
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                <input
+                  type="text"
+                  value={carPickupLocation}
+                  onChange={(e) => setCarPickupLocation(e.target.value)}
+                  placeholder="City, airport, or address"
+                  className={`w-full pl-9 pr-3 py-3 border-2 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                    transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Dropoff Location (if different) */}
+            {!sameDropoffLocation && (
+              <div className="relative mb-2">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <MapPin size={13} className="text-emerald-600" />
+                  <span>Dropoff Location</span>
+                </label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                  <input
+                    type="text"
+                    value={carDropoffLocation}
+                    onChange={(e) => setCarDropoffLocation(e.target.value)}
+                    placeholder="City, airport, or address"
+                    className={`w-full pl-9 pr-3 py-3 border-2 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm font-semibold text-neutral-800 ${
+                      transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Same location toggle */}
+            <div className="flex items-center mb-3 mt-1">
+              <label className="flex items-center gap-2 cursor-pointer touch-manipulation">
+                <input
+                  type="checkbox"
+                  checked={sameDropoffLocation}
+                  onChange={(e) => setSameDropoffLocation(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
+                />
+                <span className={`text-xs font-medium ${transparent ? 'text-white/80' : 'text-neutral-600'}`}>
+                  Return to same location
+                </span>
+              </label>
+            </div>
+
+            {/* Date Row */}
+            <div className="flex gap-2 mb-2">
+              <div className="flex-1">
+                <label className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600 mb-1.5">
+                  <Calendar size={13} className="text-emerald-600" />
+                  <span>Dates</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowCarDateRangePicker(true)}
+                  className={`w-full px-3 py-3 border-2 rounded-xl hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm font-semibold text-neutral-800 flex items-center gap-2 ${
+                    transparent ? 'bg-gray-800/80 backdrop-blur-sm border-gray-600/50 text-white placeholder:text-white/50' : 'bg-white border-neutral-200'
+                  }`}
+                >
+                  <CalendarDays size={16} className="text-emerald-500 flex-shrink-0" />
+                  <span className={`truncate ${(!carPickupDate && !carDropoffDate) ? 'text-neutral-400' : ''}`}>
+                    {carPickupDate ? format(new Date(carPickupDate + 'T00:00:00'), 'MMM d') : 'Select'}
+                    {' - '}
+                    {carDropoffDate ? format(new Date(carDropoffDate + 'T00:00:00'), 'MMM d') : 'Select'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="w-full mt-2 py-3.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-[15px] rounded-xl shadow-lg shadow-emerald-500/30 transition-all duration-200 touch-manipulation active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <span>🚗 Search Cars</span>
+              )}
+            </button>
+          </>
+          )}
+
           {/* TOURS MOBILE FIELDS */}
           {serviceType === 'tours' && (
           <>

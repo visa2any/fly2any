@@ -12,6 +12,7 @@ import {
 } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { ICalSyncModal } from './components/ICalSyncModal';
+import { SeasonalPricingTemplates } from '@/components/host/SeasonalPricingTemplates';
 
 interface PropertyOption { id: string; name: string; currency: string; basePricePerNight?: number; }
 interface AvailabilityEntry {
@@ -40,6 +41,7 @@ export default function CalendarPage() {
   const [editNotes, setEditNotes] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [showSeasonalPricing, setShowSeasonalPricing] = useState(false);
 
   // Undo
   const [lastAction, setLastAction] = useState<{ data: AvailabilityEntry[]; label: string } | null>(null);
@@ -339,6 +341,12 @@ export default function CalendarPage() {
               {viewMonths === 1 ? '2-Month' : '1-Month'}
             </button>
             <button
+              onClick={() => setShowSeasonalPricing(true)}
+              className="px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[10px] uppercase tracking-widest border border-amber-400 hover:from-amber-600 hover:to-orange-600 transition-all shadow-sm"
+            >
+              Seasonal Pricing
+            </button>
+            <button
               onClick={() => setIsSyncModalOpen(true)}
               className="px-3 py-2 rounded-xl bg-white text-[#0A0A0A] font-black text-[10px] uppercase tracking-widest border border-neutral-200 hover:border-neutral-300 transition-all"
             >
@@ -607,6 +615,37 @@ export default function CalendarPage() {
           propertyName={currentProperty.name}
           onClose={() => setIsSyncModalOpen(false)}
           onSyncComplete={() => setIsSyncModalOpen(false)}
+        />
+      )}
+
+      {showSeasonalPricing && currentProperty && (
+        <SeasonalPricingTemplates
+          basePrice={currentProperty.basePricePerNight || 100}
+          currency={currentProperty.currency || 'USD'}
+          onApply={async (startDate, endDate, priceMultiplier) => {
+            const customPrice = Math.round((currentProperty.basePricePerNight || 100) * priceMultiplier);
+            try {
+              const res = await fetch(`/api/properties/${currentProperty.id}/availability`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ startDate: startDate.toISOString(), endDate: endDate.toISOString(), available: true, customPrice }),
+              });
+              if (res.ok) {
+                toast.success(`Seasonal pricing applied: $${customPrice}/night`);
+                // Refresh availability data
+                const availRes = await fetch(`/api/properties/${currentProperty.id}/availability?month=${format(currentMonth, 'yyyy-MM')}`);
+                if (availRes.ok) {
+                  const json = await availRes.json();
+                  setAvailability(json.data || []);
+                }
+              } else {
+                toast.error('Failed to apply pricing');
+              }
+            } catch {
+              toast.error('Network error');
+            }
+          }}
+          onClose={() => setShowSeasonalPricing(false)}
         />
       )}
     </div>

@@ -88,6 +88,9 @@ export default function CreatePropertyPage() {
       address: '',
       city: '',
       country: '',
+      state: '',
+      neighborhood: '',
+      postalCode: '',
       latitude: 0,
       longitude: 0,
     },
@@ -164,6 +167,9 @@ export default function CreatePropertyPage() {
           addressLine1: data.location.address || '',
           city: data.location.city || '',
           country: data.location.country || '',
+          state: data.location.state || null,
+          neighborhood: data.location.neighborhood || null,
+          postalCode: data.location.postalCode || null,
           latitude: data.location.latitude || 0,
           longitude: data.location.longitude || 0,
           
@@ -533,6 +539,11 @@ export default function CreatePropertyPage() {
         tags: [],
       }));
 
+    // Build the full address from available parts
+    const fullAddress = importedData.address?.full_address
+      || [importedData.address?.neighborhood, importedData.address?.city, importedData.address?.state, importedData.address?.country].filter(Boolean).join(', ')
+      || '';
+
     setFormData(prev => ({
       ...prev,
       title: importedData.name || prev.title,
@@ -540,9 +551,12 @@ export default function CreatePropertyPage() {
       type: (importedData.propertyType as PropertyType) || prev.type,
       location: {
         ...prev.location,
-        address: importedData.address?.full_address || `${importedData.address?.city || ''}, ${importedData.address?.country || ''}`.replace(/^, /, '').trim() || prev.location.address,
+        address: fullAddress || prev.location.address,
         city: importedData.address?.city || prev.location.city,
         country: importedData.address?.country || prev.location.country,
+        state: importedData.address?.state || prev.location.state,
+        neighborhood: importedData.address?.neighborhood || prev.location.neighborhood,
+        postalCode: importedData.address?.postalCode || prev.location.postalCode,
         latitude: importedData.location?.latitude || prev.location.latitude,
         longitude: importedData.location?.longitude || prev.location.longitude,
       },
@@ -554,7 +568,6 @@ export default function CreatePropertyPage() {
          beds: importedData.specs?.beds || prev.specs.beds,
       },
       amenities: [...new Set([...prev.amenities, ...(importedData.amenities || [])])],
-      // Use properly converted image objects
       images: [...prev.images, ...importedImages],
       pricing: {
           ...prev.pricing,
@@ -568,7 +581,20 @@ export default function CreatePropertyPage() {
           checkOutTime: importedData.checkOut || prev.policies.checkOutTime,
       }
     }));
-    toast.success("Property data imported! Please review.");
+
+    // Log import summary for host transparency
+    const summary = [
+      importedData.name ? 'title' : null,
+      importedData.description ? 'description' : null,
+      importedImages.length > 0 ? `${importedImages.length} photos` : null,
+      importedData.price?.amount ? `price ($${importedData.price.amount})` : null,
+      importedData.specs?.maxGuests ? 'specs' : null,
+      importedData.amenities?.length ? `${importedData.amenities.length} amenities` : null,
+      importedData.address?.city ? 'location' : null,
+      importedData.houseRules?.length ? 'house rules' : null,
+    ].filter(Boolean);
+
+    toast.success(`Imported: ${summary.join(', ')}. Please review all fields.`, { duration: 5000 });
   };
 
 

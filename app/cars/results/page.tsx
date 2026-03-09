@@ -8,7 +8,7 @@ import { ResultsPageSchema } from '@/components/seo/GEOEnhancer';
 import { ScrollProgress } from '@/components/flights/ScrollProgress';
 import ScrollToTop from '@/components/flights/ScrollToTop';
 import { MobileHomeSearchWrapper } from '@/components/home/MobileHomeSearchWrapper';
-import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Car, TrendingUp, Clock, Users, X } from 'lucide-react';
+import { ChevronRight, AlertCircle, RefreshCcw, Sparkles, Car, TrendingUp, Clock, Users, X, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAirportDisplayName, getAirportCity } from '@/lib/data/airports-all';
 
@@ -180,6 +180,7 @@ function CarResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('best');
   const [displayCount, setDisplayCount] = useState(20);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<CarFiltersType>({
     priceRange: [0, 500],
     categories: [],
@@ -497,12 +498,12 @@ function CarResultsContent() {
       />
 
       {/* Main Content Area */}
-      <div style={{ maxWidth: '1600px', margin: '0 auto', padding: '16px 24px' }}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
 
-          {/* Left Sidebar - Filters */}
-          <aside className="lg:col-span-2">
-            <div className="lg:sticky lg:top-20">
+          {/* Left Sidebar - Filters (Desktop) */}
+          <aside className="hidden lg:block lg:col-span-3 xl:col-span-2">
+            <div className="sticky top-20">
               <div className="bg-slate-50/95 backdrop-blur-xl rounded-2xl shadow-md border border-slate-200/60 overflow-hidden">
                 <CarFilters
                   filters={filters}
@@ -514,19 +515,73 @@ function CarResultsContent() {
             </div>
           </aside>
 
-          {/* Main Content - Car Results */}
-          <main className="lg:col-span-8">
-            {/* Sort Tabs - WORLD-CLASS HORIZONTAL PILLS */}
-            <div className="flex items-center justify-between mb-4 px-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-700 mr-0.5">Sort:</span>
+          {/* Mobile Filters Modal */}
+          <AnimatePresence>
+            {isMobileFiltersOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
+                />
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="fixed inset-y-0 left-0 w-[85vw] max-w-sm bg-slate-50 shadow-2xl z-50 overflow-y-auto lg:hidden"
+                >
+                  <div className="p-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-slate-50/95 backdrop-blur-md z-10">
+                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Filter className="w-5 h-5 text-primary-600" />
+                      Filters
+                    </h2>
+                    <button
+                      onClick={() => setIsMobileFiltersOpen(false)}
+                      className="p-2 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="p-4">
+                    <CarFilters
+                      filters={filters}
+                      onFiltersChange={setFilters}
+                      cars={cars}
+                      lang={lang}
+                    />
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
 
-                {/* Horizontal Pills Container */}
-                <div className="flex items-center gap-1.5 flex-nowrap">
+          {/* Main Content - Car Results */}
+          <main className="lg:col-span-9 xl:col-span-8">
+            {/* Mobile Filter Button & Sort Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-1">
+              
+              <div className="flex items-center gap-2 lg:hidden w-full">
+                <button
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-700 shadow-sm active:scale-95 transition-transform"
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <span className="text-xs font-semibold text-slate-700 mr-0.5 shrink-0 hidden sm:inline-block">Sort:</span>
+
+                {/* Horizontal Pills Container - Scrollable on mobile */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide snap-x -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   {/* Best Value Pill */}
                   <button
                     onClick={() => setSortBy('best')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'best'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -538,7 +593,7 @@ function CarResultsContent() {
                   {/* Lowest Price Pill */}
                   <button
                     onClick={() => setSortBy('cheapest')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'cheapest'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -550,7 +605,7 @@ function CarResultsContent() {
                   {/* Highest Rating Pill */}
                   <button
                     onClick={() => setSortBy('rating')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'rating'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -562,7 +617,7 @@ function CarResultsContent() {
                   {/* By Category Pill */}
                   <button
                     onClick={() => setSortBy('category')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'category'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -574,7 +629,7 @@ function CarResultsContent() {
                   {/* Most Popular Pill */}
                   <button
                     onClick={() => setSortBy('popular')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'popular'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -586,7 +641,7 @@ function CarResultsContent() {
                   {/* Best Deals Pill */}
                   <button
                     onClick={() => setSortBy('deals')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'deals'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -598,7 +653,7 @@ function CarResultsContent() {
                   {/* By Company Pill */}
                   <button
                     onClick={() => setSortBy('company')}
-                    className={`px-3 py-1.5 rounded-lg font-semibold text-xs transition-all duration-300 ${
+                    className={`shrink-0 snap-start px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                       sortBy === 'company'
                         ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md hover:shadow-lg'
                         : 'bg-white/90 backdrop-blur-sm text-slate-700 border-2 border-slate-200 hover:border-primary-300 hover:bg-primary-50/50'
@@ -610,8 +665,8 @@ function CarResultsContent() {
               </div>
 
               {/* Results Count */}
-              <span className="text-sm font-semibold text-slate-600 flex items-center gap-1.5">
-                <span className="inline-flex items-center justify-center w-7 h-7 bg-primary-100 text-primary-700 rounded-full text-xs font-bold">
+              <span className="text-xs sm:text-sm font-semibold text-slate-500 flex items-center gap-1.5 shrink-0 ml-auto hidden sm:flex">
+                <span className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 bg-slate-100 text-slate-700 rounded-full font-bold">
                   {sortedCars.length}
                 </span>
                 {sortedCars.length === 1 ? 'car' : 'cars'}
