@@ -34,6 +34,7 @@ import SimpleDatePicker from "@/components/common/PremiumDatePicker";
 import PremiumDateRangePicker from "@/components/common/PremiumDateRangePicker";
 import type { FlightItem, FlightSearchParams } from "../types/quote-workspace.types";
 import { useUnifiedSearchContext, SearchScopeSelector } from "../unified-search/index";
+import { useCompare } from "./CompareContext";
 
 // Cabin class options with premium styling
 const CABIN_CLASSES = [
@@ -1222,6 +1223,7 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false, searched
   const [selectedFareIdx, setSelectedFareIdx] = useState(0);
   const [loadingFares, setLoadingFares] = useState(false);
   const [upselledFares, setUpselledFares] = useState<any[]>([]);
+  const { add: addToCompare, remove: removeFromCompare, isSelected: isInCompare } = useCompare();
 
   // Calculate total passengers from flight data
   const totalPassengers = flight.travelerPricings?.length || 1;
@@ -1623,20 +1625,60 @@ function FlightResultCard({ flight, onAdd, index, alreadyAdded = false, searched
             Total • {totalPassengers} pax
           </p>
           <p className="text-[9px] text-gray-500 mt-0.5">${Math.round(price / totalPassengers)}/person</p>
-          {alreadyAdded ? (
-            <div className="mt-1.5 w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-lg" title="Already in itinerary">
-              <Check className="w-4 h-4" />
-            </div>
-          ) : (
+          <div className="flex items-center gap-1 mt-1.5">
+            {alreadyAdded ? (
+              <div className="w-8 h-8 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-lg" title="Already in itinerary">
+                <Check className="w-4 h-4" />
+              </div>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onAdd(selectedFareIdx)}
+                className="w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-60 group-hover:opacity-100 transition-opacity"
+              >
+                <Plus className="w-4 h-4" />
+              </motion.button>
+            )}
+            {/* Compare toggle */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => onAdd(selectedFareIdx)}
-              className="mt-1.5 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg shadow-md opacity-60 group-hover:opacity-100 transition-opacity"
+              onClick={() => {
+                const flightId = flight.id || `flight-${index}`;
+                if (isInCompare(flightId)) {
+                  removeFromCompare(flightId);
+                } else {
+                  addToCompare({
+                    id: flightId,
+                    type: "flight",
+                    title: `${outAirlineInfo?.name || outAirlineCode} ${outNum}`,
+                    subtitle: `${outDep.iataCode || "?"} → ${outArr.iataCode || "?"}${isRoundtrip ? " (Round-trip)" : ""}`,
+                    price: Math.round(price),
+                    details: {
+                      airline: outAirlineInfo?.name || outAirlineCode,
+                      route: `${outDep.iataCode || "?"} → ${outArr.iataCode || "?"}`,
+                      departure: formatTime(outDep.at),
+                      duration: parseDuration(outbound.duration),
+                      stops: outSegs.length - 1,
+                      cabin: selectedFare?.cabin || cabinFallback,
+                      refundable: selectedFare?.refundable,
+                      bags: selectedFare?.bags ? `${selectedFare.bags.quantity}× ${selectedFare.bags.weight}kg` : "None",
+                    },
+                    raw: flight,
+                  });
+                }
+              }}
+              className={`w-6 h-6 flex items-center justify-center rounded-md text-[9px] font-bold transition-all opacity-0 group-hover:opacity-100 ${
+                isInCompare(flight.id || `flight-${index}`)
+                  ? "bg-amber-100 text-amber-700 border border-amber-300 opacity-100"
+                  : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+              }`}
+              title={isInCompare(flight.id || `flight-${index}`) ? "Remove from compare" : "Add to compare"}
             >
-              <Plus className="w-4 h-4" />
+              VS
             </motion.button>
-          )}
+          </div>
         </div>
       </div>
 

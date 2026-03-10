@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { TrendingUp, ChevronDown, Users, Target, DollarSign, Minus, Plus } from "lucide-react";
+import { TrendingUp, ChevronDown, Users, Target, DollarSign, Minus, Plus, Paperclip } from "lucide-react";
 import { useQuoteWorkspace, useQuotePricing, useQuoteItems } from "../QuoteWorkspaceProvider";
 import AgentTrustPreview from "../AgentTrustPreview";
 import SmartQuoteAssistant from "../SmartQuoteAssistant";
 import QuoteDifferentiationScore from "../QuoteDifferentiationScore";
+import DocumentAttachments from "../overlays/DocumentAttachments";
+import QuoteAnalyticsMini from "./QuoteAnalyticsMini";
 import { usePredictiveBundling, SuggestionsPanel } from "../predictive-bundling";
 import type { Currency, ProductType } from "../types/quote-workspace.types";
 
@@ -45,7 +47,7 @@ const CURRENCIES: { code: Currency; label: string; flag: string }[] = [
 ];
 
 export default function PricingZone() {
-  const { state, setMarkup, setCurrency } = useQuoteWorkspace();
+  const { state, setMarkup, setCurrency, addDocument, removeDocument } = useQuoteWorkspace();
   const pricing = useQuotePricing();
   const items = useQuoteItems();
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -241,6 +243,28 @@ export default function PricingZone() {
         onToggle={bundling.toggle}
       />
 
+      {/* Document Attachments */}
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-50">
+          <Paperclip className="w-3.5 h-3.5 text-gray-400" />
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            Attachments
+          </span>
+          {state.documents.length > 0 && (
+            <span className="ml-auto text-[10px] font-bold text-gray-400">
+              {state.documents.length}
+            </span>
+          )}
+        </div>
+        <div className="px-3 py-2">
+          <DocumentAttachments
+            documents={state.documents}
+            onAdd={addDocument}
+            onRemove={removeDocument}
+          />
+        </div>
+      </div>
+
       {/* Smart Quote Assistant */}
       <SmartQuoteAssistant />
 
@@ -249,6 +273,9 @@ export default function PricingZone() {
 
       {/* Agent Trust Preview */}
       <AgentTrustPreview />
+
+      {/* Quick Analytics */}
+      <QuoteAnalyticsMini />
     </div>
   );
 }

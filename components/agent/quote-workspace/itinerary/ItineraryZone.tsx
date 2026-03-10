@@ -9,6 +9,7 @@ import ItineraryTimeline from "./ItineraryTimeline";
 import Client360View from "./Client360View";
 import ReservationsView from "./ReservationsView";
 import AllQuotesView from "./AllQuotesView";
+import OptionTierSelector from "./OptionTierSelector";
 
 type TabType = 'quote' | 'all-quotes' | 'client' | 'reservations';
 
@@ -63,6 +64,11 @@ export default function ItineraryZone() {
           );
         })}
       </div>
+
+      {/* Multi-Option Tier Selector — only in Current Quote tab */}
+      {activeTab === 'quote' && !isEmpty && (
+        <OptionTierSelector />
+      )}
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto min-h-0">

@@ -13,6 +13,9 @@ import PremiumDatePicker from "@/components/common/PremiumDatePicker";
 import { TabResultIndicator, useUnifiedSearchSafe } from "../unified-search/index";
 import { usePredictiveBundling } from "../predictive-bundling/usePredictiveBundling";
 import { SuggestionsPanel } from "../predictive-bundling/BundleSuggestionCard";
+import { CompareProvider } from "./CompareContext";
+import CompareBar from "./CompareBar";
+import CompareModal from "./CompareModal";
 import type { ProductType } from "../types/quote-workspace.types";
 
 // Map ProductType to SearchScope key
@@ -58,6 +61,7 @@ export default function DiscoveryZone() {
   } = usePredictiveBundling();
 
   return (
+    <CompareProvider>
     <div className="flex flex-col h-full">
       {/* Header: Product Tabs */}
       <div className="flex-shrink-0 px-2 py-1.5 border-b border-gray-100 bg-white">
@@ -128,7 +132,12 @@ export default function DiscoveryZone() {
           {activeTab === "custom" && <CustomItemPanel />}
         </motion.div>
       </div>
+
+      {/* Compare System */}
+      <CompareBar />
+      <CompareModal />
     </div>
+    </CompareProvider>
   );
 }
 

@@ -24,7 +24,7 @@ export default function QuoteWorkspaceLayout({
   footer,
   overlays,
 }: QuoteWorkspaceLayoutProps) {
-  const { state, setDiscoveryPanelWidth, dispatch } = useQuoteWorkspace();
+  const { state, setDiscoveryPanelWidth, dispatch, undo, redo } = useQuoteWorkspace();
   const { toggleViewMode } = useViewMode();
   const panelWidth = state.ui.discoveryPanelWidth;
 
@@ -36,7 +36,6 @@ export default function QuoteWorkspaceLayout({
   const { showShortcutHint } = useAgentShortcuts({
     onTogglePreview: toggleViewMode,
     onSave: () => {
-      // Trigger save
       dispatch({ type: "SET_SAVING", payload: true });
       setTimeout(() => {
         dispatch({ type: "SET_SAVING", payload: false });
@@ -50,6 +49,8 @@ export default function QuoteWorkspaceLayout({
       searchInput?.focus();
     },
     onCommandPalette: () => setCommandPaletteOpen(true),
+    onUndo: undo,
+    onRedo: redo,
   });
 
   // Listen for command palette open event

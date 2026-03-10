@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, Check, Edit2, Eye, Settings, X, Plus, Bell, ChevronDown, Share2, Download, Printer, HelpCircle, MoreHorizontal, Sparkles, Clock, CalendarDays, LogOut, User, Calendar } from "lucide-react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, X, Plus, Bell, ChevronDown, Share2, Download, Printer, HelpCircle, MoreHorizontal, Sparkles, Clock, CalendarDays, LogOut, User, Calendar, Undo2, Redo2, AlertTriangle } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
@@ -42,7 +42,7 @@ function QuoteStrengthBadge() {
 }
 
 export default function QuoteHeader() {
-  const { state, setTripName, openSendModal, saveQuote } = useQuoteWorkspace();
+  const { state, setTripName, openSendModal, saveQuote, canUndo, canRedo, undo, redo, setExpiryDate, staleItems } = useQuoteWorkspace();
   const { viewMode, toggleViewMode } = useViewMode();
   const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
@@ -50,7 +50,6 @@ export default function QuoteHeader() {
   const [showMore, setShowMore] = useState(false);
   const [isGeneratingNarrative, setIsGeneratingNarrative] = useState(false);
   const [showExpiryPicker, setShowExpiryPicker] = useState(false);
-  const [expiryDate, setExpiryDate] = useState<string>("");
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [lastViewedAt, setLastViewedAt] = useState<string | null>(null);
@@ -91,17 +90,11 @@ export default function QuoteHeader() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Load persisted expiry from localStorage
-  useEffect(() => {
-    if (state.id) {
-      const saved = localStorage.getItem(`quote-expiry-${state.id}`);
-      if (saved) setExpiryDate(saved);
-    }
-  }, [state.id]);
+  // Expiry now comes from state (server-persisted via autosave)
+  const expiryDate = state.expiryDate || "";
 
   const handleSaveExpiry = (date: string) => {
-    setExpiryDate(date);
-    if (state.id) localStorage.setItem(`quote-expiry-${state.id}`, date);
+    setExpiryDate(date || null);
     setShowExpiryPicker(false);
     toast.success("Expiry date set");
   };
@@ -257,8 +250,41 @@ export default function QuoteHeader() {
         {/* AI Quote Strength Badge */}
         <QuoteStrengthBadge />
 
+        {/* Price Staleness Warning */}
+        {staleItems.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold"
+            title={`${staleItems.length} item${staleItems.length > 1 ? 's have' : ' has'} prices older than 2 hours`}
+          >
+            <AlertTriangle className="w-2.5 h-2.5" />
+            {staleItems.length} stale price{staleItems.length > 1 ? 's' : ''}
+          </motion.div>
+        )}
+
         {/* Toolbar Actions */}
         <div className="hidden lg:flex items-center gap-1 ml-3 pl-3 border-l border-gray-200">
+          {/* Undo / Redo */}
+          <div className="flex items-center gap-0.5 mr-1 pr-1 border-r border-gray-200">
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo2 className="w-4 h-4 stroke-[1.5]" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo2 className="w-4 h-4 stroke-[1.5]" />
+            </button>
+          </div>
+
           {/* AI Narrative Generator */}
           <button
             onClick={handleGenerateNarrative}
@@ -328,7 +354,7 @@ export default function QuoteHeader() {
                     })}
                   </div>
                   {expiryDate && (
-                    <button onClick={() => { setExpiryDate(""); if (state.id) localStorage.removeItem(`quote-expiry-${state.id}`); setShowExpiryPicker(false); }}
+                    <button onClick={() => { setExpiryDate(null); setShowExpiryPicker(false); }}
                       className="mt-2 w-full text-[10px] text-red-500 hover:text-red-700 text-center">
                       Clear expiry
                     </button>

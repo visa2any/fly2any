@@ -8,6 +8,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Calendar, MessageCircle, CheckCircle2, Sparkles, Clock } from "lucide-react";
 import { useQuoteWorkspace, useQuoteItems, useQuotePricing } from "../QuoteWorkspaceProvider";
 import ConflictWarningBanner from "./ConflictWarningBanner";
+import PriceStalenessBar from "./PriceStalenessBar";
 import SortableItineraryCard from "./SortableItineraryCard";
 import TimelineDayAnchor from "./TimelineDayAnchor";
 import FreeTimeBlock, { determineFreeTimeType } from "./FreeTimeBlock";
@@ -278,10 +279,8 @@ export default function ItineraryTimeline() {
   };
   const tripDuration = safeParseDays();
 
-  // Quote expiry from localStorage
-  const expiryDate = typeof window !== "undefined" && state.id
-    ? localStorage.getItem(`quote-expiry-${state.id}`) || ""
-    : "";
+  // Quote expiry from state (server-persisted)
+  const expiryDate = state.expiryDate || "";
   const expiryDaysLeft = expiryDate
     ? Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000)
     : null;
@@ -329,6 +328,9 @@ export default function ItineraryTimeline() {
 
       {/* Timeline Content - PADDED CONTAINER */}
       <div className={`px-6 py-4 ${viewMode === "agent" ? "space-y-2" : "space-y-4"}`}>
+
+      {/* Price Staleness Warning - Agent View Only */}
+      {viewMode === "agent" && <PriceStalenessBar />}
 
       {/* Conflict Warnings - Agent View Only */}
       {viewMode === "agent" && (

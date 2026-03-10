@@ -67,6 +67,8 @@ interface UseAgentShortcutsOptions {
   onSearch?: () => void;
   onCommandPalette?: () => void;
   onTogglePreview?: () => void;
+  onUndo?: () => void;
+  onRedo?: () => void;
   onDuplicateDay?: (date: string) => void;
   enabled?: boolean;
 }
@@ -140,6 +142,20 @@ export function useAgentShortcuts(options: UseAgentShortcutsOptions = {}) {
     if (ctrl && !shift && key === "k") {
       e.preventDefault();
       options.onSearch?.();
+      return;
+    }
+
+    // Undo (Ctrl+Z)
+    if (ctrl && !shift && key === "z") {
+      e.preventDefault();
+      options.onUndo?.();
+      return;
+    }
+
+    // Redo (Ctrl+Shift+Z)
+    if (ctrl && shift && key === "z") {
+      e.preventDefault();
+      options.onRedo?.();
       return;
     }
 

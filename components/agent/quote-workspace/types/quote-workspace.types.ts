@@ -270,6 +270,18 @@ export interface WorkspaceUI {
   };
 }
 
+// Quote option tier for multi-option quotes (Good/Better/Best)
+export type QuoteOptionTier = 'standard' | 'recommended' | 'premium';
+
+export interface QuoteOption {
+  id: string;
+  tier: QuoteOptionTier;
+  label: string; // "Good", "Better", "Best" or custom
+  items: QuoteItem[];
+  pricing: QuotePricing;
+  isActive: boolean; // Currently being edited
+}
+
 // Main workspace state
 export interface QuoteWorkspaceState {
   // Identity
@@ -282,9 +294,14 @@ export interface QuoteWorkspaceState {
   startDate: string;
   endDate: string;
   travelers: Travelers;
+  expiryDate: string | null; // ISO date — server-persisted
 
   // Products
   items: QuoteItem[];
+
+  // Multi-option quotes
+  options: QuoteOption[];
+  activeOptionId: string | null; // null = single-option mode
 
   // Pricing
   pricing: QuotePricing;
@@ -300,11 +317,45 @@ export interface QuoteWorkspaceState {
   agentEmail?: string;
   agentPhone?: string;
 
+  // Attachments
+  documents: QuoteDocument[];
+
   // UI
   ui: WorkspaceUI;
 
   // History for undo/redo
+  history: HistoryEntry[];
   historyIndex: number;
+
+  // Version tracking for optimistic locking
+  version?: number;
+}
+
+// History entry for undo/redo
+export interface HistoryEntry {
+  items: QuoteItem[];
+  pricing: QuotePricing;
+  timestamp: number;
+  label: string; // Human-readable description: "Added flight", "Removed hotel", etc.
+}
+
+// Quote document attachment
+export interface QuoteDocument {
+  id: string;
+  name: string;
+  type: string; // MIME type
+  size: number; // bytes
+  url?: string;
+  preview?: string; // Base64 data URI for images
+  addedAt: string; // ISO timestamp
+}
+
+// Price staleness tracking
+export interface PriceStaleness {
+  itemId: string;
+  fetchedAt: number; // Unix timestamp when price was fetched
+  isStale: boolean; // True if older than STALE_THRESHOLD
+  lastCheckedAt?: number; // When price was last re-validated
 }
 
 // Action types
@@ -331,7 +382,21 @@ export type WorkspaceAction =
   | { type: 'LOAD_QUOTE'; payload: Partial<QuoteWorkspaceState> }
   | { type: 'RESET_WORKSPACE' }
   | { type: 'SET_SAVING'; payload: boolean }
-  | { type: 'SET_LAST_SAVED'; payload: string };
+  | { type: 'SET_LAST_SAVED'; payload: string }
+  // Undo/Redo
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'PUSH_HISTORY'; payload: { label: string } }
+  // Expiry date (server-persisted)
+  | { type: 'SET_EXPIRY_DATE'; payload: string | null }
+  // Multi-option quotes
+  | { type: 'ADD_OPTION'; payload: { tier: QuoteOptionTier; label: string } }
+  | { type: 'REMOVE_OPTION'; payload: string }
+  | { type: 'SET_ACTIVE_OPTION'; payload: string | null }
+  | { type: 'DUPLICATE_TO_OPTION'; payload: { sourceOptionId: string | null; targetTier: QuoteOptionTier; targetLabel: string } }
+  // Document attachments
+  | { type: 'ADD_DOCUMENT'; payload: QuoteDocument }
+  | { type: 'REMOVE_DOCUMENT'; payload: string };
 
 // Search params for each product type
 export interface FlightSearchParams {

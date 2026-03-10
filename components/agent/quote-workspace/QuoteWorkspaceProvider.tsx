@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef, ReactNode } from "react";
+import { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import toast from "react-hot-toast";
 import { produce } from "immer";
 import { useDebouncedCallback } from "use-debounce";
@@ -15,14 +15,23 @@ import type {
   WorkspaceAction,
   QuoteItem,
   QuoteClient,
+  QuoteDocument,
   Currency,
   ProductType,
   Travelers,
   QuotePricing,
+  HistoryEntry,
+  QuoteOption,
+  QuoteOptionTier,
 } from "./types/quote-workspace.types";
 
 // Generate unique ID
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// History constants
+const MAX_HISTORY_SIZE = 50;
+// Price staleness threshold: 2 hours
+const PRICE_STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000;
 
 // FX rates relative to USD — seeded with recent static values, refreshed live on mount
 let FX_RATES: Record<string, number> = {
@@ -30,6 +39,23 @@ let FX_RATES: Record<string, number> = {
   JPY: 149.5, CHF: 0.88, INR: 83.1, NZD: 1.63, SGD: 1.34, HKD: 7.82, AED: 3.67,
   THB: 35.1, ILS: 3.71, COP: 3900, CLP: 870, ARS: 350, DKK: 6.88, NOK: 10.55,
   SEK: 10.42, PLN: 3.97, CZK: 22.6, ZAR: 18.7, TRY: 30.5,
+};
+
+// Initial pricing
+const initialPricing: QuotePricing = {
+  basePrice: 0,
+  productMarkup: 0,
+  subtotal: 0,
+  markupPercent: 15,
+  markupAmount: 0,
+  agentMarkup: 0,
+  taxes: 0,
+  fees: 0,
+  discount: 0,
+  total: 0,
+  perPerson: 0,
+  currency: "USD",
+  conversionRate: 1,
 };
 
 // Initial state
@@ -40,24 +66,14 @@ const initialState: QuoteWorkspaceState = {
   destination: "",
   startDate: "",
   endDate: "",
+  expiryDate: null,
   travelers: { adults: 1, children: 0, infants: 0, total: 1 },
   items: [],
-  pricing: {
-    basePrice: 0,
-    productMarkup: 0,
-    subtotal: 0,
-    markupPercent: 15,
-    markupAmount: 0,
-    agentMarkup: 0,
-    taxes: 0,
-    fees: 0,
-    discount: 0,
-    total: 0,
-    perPerson: 0,
-    currency: "USD",
-    conversionRate: 1,
-  },
+  options: [],
+  activeOptionId: null,
+  pricing: { ...initialPricing },
   client: null,
+  documents: [],
   ui: {
     activeTab: "flight",
     searchQuery: "",
@@ -75,7 +91,8 @@ const initialState: QuoteWorkspaceState = {
     searchFormCollapsed: false,
     searchCache: {},
   },
-  historyIndex: 0,
+  history: [],
+  historyIndex: -1,
 };
 
 // Helper: Transform QuotePricingService output to state.pricing format
@@ -95,6 +112,45 @@ function toStatePricing(breakdown: PriceBreakdown, conversionRate = 1): QuotePri
     currency: breakdown.currency as Currency,
     conversionRate,
   };
+}
+
+// Helper: create a pricing context from draft state
+function buildPricingContext(draft: QuoteWorkspaceState): PricingContext {
+  return {
+    travelers: draft.travelers.total,
+    currency: draft.pricing.currency,
+    agentMarkupPercent: draft.pricing.markupPercent,
+    taxes: draft.pricing.taxes,
+    fees: draft.pricing.fees,
+    discount: draft.pricing.discount,
+  };
+}
+
+// Helper: push a history snapshot (call BEFORE mutating items/pricing)
+function pushHistory(draft: QuoteWorkspaceState, label: string) {
+  // Truncate any future entries if we're not at the end
+  if (draft.historyIndex < draft.history.length - 1) {
+    draft.history = draft.history.slice(0, draft.historyIndex + 1);
+  }
+  // Push current state snapshot
+  draft.history.push({
+    items: JSON.parse(JSON.stringify(draft.items)),
+    pricing: { ...draft.pricing },
+    timestamp: Date.now(),
+    label,
+  });
+  // Trim history if too large
+  if (draft.history.length > MAX_HISTORY_SIZE) {
+    draft.history = draft.history.slice(draft.history.length - MAX_HISTORY_SIZE);
+  }
+  draft.historyIndex = draft.history.length - 1;
+}
+
+// Helper: recalculate pricing from items
+function recalcPricing(draft: QuoteWorkspaceState) {
+  const ctx = buildPricingContext(draft);
+  const breakdown = calculateQuotePricing(draft.items, ctx);
+  draft.pricing = toStatePricing(breakdown, draft.pricing.conversionRate ?? 1);
 }
 
 // Reducer with Immer for immutable updates
@@ -117,64 +173,29 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
       case "SET_TRAVELERS":
         Object.assign(draft.travelers, action.payload);
         draft.travelers.total = draft.travelers.adults + draft.travelers.children + draft.travelers.infants;
-        // Recalc pricing using unified service
-        const pricingContext1: PricingContext = {
-          travelers: draft.travelers.total,
-          currency: draft.pricing.currency,
-          agentMarkupPercent: draft.pricing.markupPercent,
-          taxes: draft.pricing.taxes,
-          fees: draft.pricing.fees,
-          discount: draft.pricing.discount,
-        };
-        const breakdown1 = calculateQuotePricing(draft.items, pricingContext1);
-        draft.pricing = toStatePricing(breakdown1, draft.pricing.conversionRate ?? 1);
+        recalcPricing(draft);
         break;
 
       case "ADD_ITEM":
+        pushHistory(draft, `Added ${action.payload.type}`);
         const newItem = { ...action.payload, id: action.payload.id || generateId(), sortOrder: draft.items.length };
         draft.items.push(newItem);
-        // Recalc pricing using unified service
-        const pricingContext2: PricingContext = {
-          travelers: draft.travelers.total,
-          currency: draft.pricing.currency,
-          agentMarkupPercent: draft.pricing.markupPercent,
-          taxes: draft.pricing.taxes,
-          fees: draft.pricing.fees,
-          discount: draft.pricing.discount,
-        };
-        const breakdown2 = calculateQuotePricing(draft.items, pricingContext2);
-        draft.pricing = toStatePricing(breakdown2, draft.pricing.conversionRate ?? 1);
+        recalcPricing(draft);
         break;
 
       case "UPDATE_ITEM":
         const updateIdx = draft.items.findIndex((i) => i.id === action.payload.id);
         if (updateIdx !== -1) {
+          pushHistory(draft, `Updated ${draft.items[updateIdx].type}`);
           Object.assign(draft.items[updateIdx], action.payload.updates);
-          const pricingContext3: PricingContext = {
-            travelers: draft.travelers.total,
-            currency: draft.pricing.currency,
-            agentMarkupPercent: draft.pricing.markupPercent,
-            taxes: draft.pricing.taxes,
-            fees: draft.pricing.fees,
-            discount: draft.pricing.discount,
-          };
-          const breakdown3 = calculateQuotePricing(draft.items, pricingContext3);
-          draft.pricing = toStatePricing(breakdown3, draft.pricing.conversionRate ?? 1);
+          recalcPricing(draft);
         }
         break;
 
       case "REMOVE_ITEM":
+        pushHistory(draft, `Removed item`);
         draft.items = draft.items.filter((i) => i.id !== action.payload);
-        const pricingContext4: PricingContext = {
-          travelers: draft.travelers.total,
-          currency: draft.pricing.currency,
-          agentMarkupPercent: draft.pricing.markupPercent,
-          taxes: draft.pricing.taxes,
-          fees: draft.pricing.fees,
-          discount: draft.pricing.discount,
-        };
-        const breakdown4 = calculateQuotePricing(draft.items, pricingContext4);
-        draft.pricing = toStatePricing(breakdown4, draft.pricing.conversionRate ?? 1);
+        recalcPricing(draft);
         break;
 
       case "REORDER_ITEMS":
@@ -193,16 +214,7 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
 
       case "SET_MARKUP":
         draft.pricing.markupPercent = action.payload;
-        const pricingContext5: PricingContext = {
-          travelers: draft.travelers.total,
-          currency: draft.pricing.currency,
-          agentMarkupPercent: action.payload,
-          taxes: draft.pricing.taxes,
-          fees: draft.pricing.fees,
-          discount: draft.pricing.discount,
-        };
-        const breakdown5 = calculateQuotePricing(draft.items, pricingContext5);
-        draft.pricing = toStatePricing(breakdown5, draft.pricing.conversionRate ?? 1);
+        recalcPricing(draft);
         break;
 
       case "SET_CURRENCY":
@@ -212,30 +224,12 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
 
       case "SET_TAXES":
         draft.pricing.taxes = action.payload;
-        const pricingContext6: PricingContext = {
-          travelers: draft.travelers.total,
-          currency: draft.pricing.currency,
-          agentMarkupPercent: draft.pricing.markupPercent,
-          taxes: action.payload,
-          fees: draft.pricing.fees,
-          discount: draft.pricing.discount,
-        };
-        const breakdown6 = calculateQuotePricing(draft.items, pricingContext6);
-        draft.pricing = toStatePricing(breakdown6, draft.pricing.conversionRate ?? 1);
+        recalcPricing(draft);
         break;
 
       case "SET_DISCOUNT":
         draft.pricing.discount = action.payload;
-        const pricingContext7: PricingContext = {
-          travelers: draft.travelers.total,
-          currency: draft.pricing.currency,
-          agentMarkupPercent: draft.pricing.markupPercent,
-          taxes: draft.pricing.taxes,
-          fees: draft.pricing.fees,
-          discount: action.payload,
-        };
-        const breakdown7 = calculateQuotePricing(draft.items, pricingContext7);
-        draft.pricing = toStatePricing(breakdown7, draft.pricing.conversionRate ?? 1);
+        recalcPricing(draft);
         break;
 
       case "SET_CLIENT":
@@ -259,22 +253,41 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
       case "SET_SEARCH_RESULTS":
         draft.ui.searchLoading = action.payload.loading;
         draft.ui.searchResults = action.payload.results;
-        // Cache results for current tab
+        // Cache results for current tab (memory + sessionStorage)
         if (!action.payload.loading && action.payload.results && action.payload.tab) {
-          draft.ui.searchCache[action.payload.tab] = {
+          const cacheEntry = {
             params: action.payload.params || {},
             results: action.payload.results,
             timestamp: Date.now(),
           };
+          draft.ui.searchCache[action.payload.tab] = cacheEntry;
+          // Persist to sessionStorage (non-blocking)
+          try {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem(
+                `fly2any_search_cache_${action.payload.tab}`,
+                JSON.stringify(cacheEntry)
+              );
+            }
+          } catch { /* quota exceeded — ignore */ }
         }
         break;
 
-      case "RESTORE_CACHED_SEARCH":
-        const cached = draft.ui.searchCache[action.payload];
+      case "RESTORE_CACHED_SEARCH": {
+        let cached = draft.ui.searchCache[action.payload];
+        // Try sessionStorage fallback if not in memory
+        if (!cached && typeof window !== "undefined") {
+          try {
+            const stored = sessionStorage.getItem(`fly2any_search_cache_${action.payload}`);
+            if (stored) cached = JSON.parse(stored);
+          } catch { /* corrupt data — ignore */ }
+        }
         if (cached && Date.now() - cached.timestamp < 15 * 60 * 1000) { // 15min TTL
           draft.ui.searchResults = cached.results;
+          draft.ui.searchCache[action.payload] = cached;
         }
         break;
+      }
 
       case "EXPAND_ITEM":
         draft.ui.expandedItemId = action.payload;
@@ -319,6 +332,21 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
         if (p.agentMarkupPercent !== undefined) {
           draft.pricing.markupPercent = p.agentMarkupPercent;
         }
+        // Load expiry date from DB
+        if (p.expiresAt) {
+          draft.expiryDate = new Date(p.expiresAt).toISOString().split('T')[0];
+        }
+        // Load version for optimistic locking
+        if (p.version) {
+          draft.version = p.version;
+        }
+        // Load options if present
+        if (p.options && Array.isArray(p.options) && p.options.length > 0) {
+          draft.options = p.options;
+          if (!draft.activeOptionId && draft.options.length > 0) {
+            draft.activeOptionId = draft.options[0].id;
+          }
+        }
         break;
       }
 
@@ -332,6 +360,156 @@ function workspaceReducer(state: QuoteWorkspaceState, action: WorkspaceAction): 
       case "SET_LAST_SAVED":
         draft.ui.lastSavedAt = action.payload;
         break;
+
+      // ═══ UNDO / REDO ═══
+      case "UNDO": {
+        if (draft.historyIndex < 0 || draft.history.length === 0) break;
+        // If at latest, save current state first so we can redo back to it
+        if (draft.historyIndex === draft.history.length - 1) {
+          draft.history.push({
+            items: JSON.parse(JSON.stringify(draft.items)),
+            pricing: { ...draft.pricing },
+            timestamp: Date.now(),
+            label: "Current state",
+          });
+        }
+        const entry = draft.history[draft.historyIndex];
+        if (entry) {
+          draft.items = JSON.parse(JSON.stringify(entry.items));
+          draft.pricing = { ...entry.pricing };
+          draft.historyIndex = Math.max(0, draft.historyIndex - 1);
+        }
+        break;
+      }
+
+      case "REDO": {
+        if (draft.historyIndex >= draft.history.length - 1) break;
+        draft.historyIndex += 1;
+        const entry = draft.history[draft.historyIndex + 1] || draft.history[draft.historyIndex];
+        if (entry) {
+          draft.items = JSON.parse(JSON.stringify(entry.items));
+          draft.pricing = { ...entry.pricing };
+        }
+        break;
+      }
+
+      case "PUSH_HISTORY":
+        pushHistory(draft, action.payload.label);
+        break;
+
+      // ═══ EXPIRY DATE (server-persisted) ═══
+      case "SET_EXPIRY_DATE":
+        draft.expiryDate = action.payload;
+        break;
+
+      // ═══ MULTI-OPTION QUOTES ═══
+      case "ADD_OPTION": {
+        const optionId = generateId();
+        const newOption: QuoteOption = {
+          id: optionId,
+          tier: action.payload.tier,
+          label: action.payload.label,
+          items: [],
+          pricing: { ...initialPricing },
+          isActive: false,
+        };
+        // If first option, move current items into it
+        if (draft.options.length === 0 && draft.items.length > 0) {
+          const defaultOption: QuoteOption = {
+            id: generateId(),
+            tier: 'standard',
+            label: 'Option A',
+            items: JSON.parse(JSON.stringify(draft.items)),
+            pricing: { ...draft.pricing },
+            isActive: false,
+          };
+          draft.options.push(defaultOption);
+        }
+        draft.options.push(newOption);
+        draft.activeOptionId = optionId;
+        // Switch items/pricing to new option
+        draft.items = newOption.items;
+        draft.pricing = { ...newOption.pricing };
+        break;
+      }
+
+      case "REMOVE_OPTION": {
+        const idx = draft.options.findIndex(o => o.id === action.payload);
+        if (idx !== -1) {
+          draft.options.splice(idx, 1);
+          // If removing active option, switch to first or exit multi-option mode
+          if (draft.activeOptionId === action.payload) {
+            if (draft.options.length > 0) {
+              const first = draft.options[0];
+              draft.activeOptionId = first.id;
+              draft.items = JSON.parse(JSON.stringify(first.items));
+              draft.pricing = { ...first.pricing };
+            } else {
+              draft.activeOptionId = null;
+            }
+          }
+        }
+        break;
+      }
+
+      case "SET_ACTIVE_OPTION": {
+        // Save current items to current option before switching
+        if (draft.activeOptionId) {
+          const currentOpt = draft.options.find(o => o.id === draft.activeOptionId);
+          if (currentOpt) {
+            currentOpt.items = JSON.parse(JSON.stringify(draft.items));
+            currentOpt.pricing = { ...draft.pricing };
+            currentOpt.isActive = false;
+          }
+        }
+        if (action.payload === null) {
+          // Exit multi-option mode — merge first option back
+          if (draft.options.length > 0) {
+            const first = draft.options[0];
+            draft.items = JSON.parse(JSON.stringify(first.items));
+            draft.pricing = { ...first.pricing };
+          }
+          draft.activeOptionId = null;
+        } else {
+          const target = draft.options.find(o => o.id === action.payload);
+          if (target) {
+            draft.activeOptionId = action.payload;
+            draft.items = JSON.parse(JSON.stringify(target.items));
+            draft.pricing = { ...target.pricing };
+            target.isActive = true;
+          }
+        }
+        break;
+      }
+
+      case "DUPLICATE_TO_OPTION": {
+        const sourceItems = action.payload.sourceOptionId
+          ? draft.options.find(o => o.id === action.payload.sourceOptionId)?.items || []
+          : draft.items;
+        const sourcePricing = action.payload.sourceOptionId
+          ? draft.options.find(o => o.id === action.payload.sourceOptionId)?.pricing || { ...initialPricing }
+          : draft.pricing;
+        const dupId = generateId();
+        const dupOption: QuoteOption = {
+          id: dupId,
+          tier: action.payload.targetTier,
+          label: action.payload.targetLabel,
+          items: JSON.parse(JSON.stringify(sourceItems)),
+          pricing: { ...sourcePricing },
+          isActive: false,
+        };
+        draft.options.push(dupOption);
+        break;
+      }
+
+      // ═══ DOCUMENT ATTACHMENTS ═══
+      case "ADD_DOCUMENT":
+        draft.documents.push(action.payload);
+        break;
+
+      case "REMOVE_DOCUMENT":
+        draft.documents = draft.documents.filter(d => d.id !== action.payload);
+        break;
     }
   });
 }
@@ -341,7 +519,15 @@ interface QuoteWorkspaceContextType {
   state: QuoteWorkspaceState;
   dispatch: React.Dispatch<WorkspaceAction>;
   conflicts: Map<string, TimeConflict>;
-  isSaving: boolean; // Expose saving state for race condition prevention
+  isSaving: boolean;
+  // Undo/Redo
+  canUndo: boolean;
+  canRedo: boolean;
+  undo: () => void;
+  redo: () => void;
+  // Price staleness
+  staleItems: string[]; // IDs of items with stale prices
+  recheckPrice: (itemId: string) => Promise<void>;
   // Convenience actions
   setTripName: (name: string) => void;
   setDestination: (dest: string) => void;
@@ -369,6 +555,16 @@ interface QuoteWorkspaceContextType {
   toggleSidebar: () => void;
   setDiscoveryPanelWidth: (width: number) => void;
   setSearchFormCollapsed: (collapsed: boolean) => void;
+  setExpiryDate: (date: string | null) => void;
+  // Multi-option quotes
+  addOption: (tier: QuoteOptionTier, label: string) => void;
+  removeOption: (optionId: string) => void;
+  setActiveOption: (optionId: string | null) => void;
+  duplicateToOption: (sourceOptionId: string | null, tier: QuoteOptionTier, label: string) => void;
+  // Document attachments
+  addDocument: (doc: QuoteDocument) => void;
+  removeDocument: (id: string) => void;
+  // Save/Load
   saveQuote: () => Promise<{ success: boolean; quote?: any; error?: string }>;
   loadQuote: (id: string) => Promise<void>;
 }
@@ -449,6 +645,66 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
   const toggleSidebar = useCallback(() => dispatch({ type: "SET_UI", payload: { sidebarExpanded: !state.ui.sidebarExpanded } }), [state.ui.sidebarExpanded]);
   const setDiscoveryPanelWidth = useCallback((width: number) => dispatch({ type: "SET_UI", payload: { discoveryPanelWidth: Math.max(320, Math.min(540, width)) } }), []);
   const setSearchFormCollapsed = useCallback((collapsed: boolean) => dispatch({ type: "SET_UI", payload: { searchFormCollapsed: collapsed } }), []);
+  const setExpiryDate = useCallback((date: string | null) => dispatch({ type: "SET_EXPIRY_DATE", payload: date }), []);
+
+  // Undo/Redo
+  const canUndo = state.historyIndex >= 0 && state.history.length > 0;
+  const canRedo = state.historyIndex < state.history.length - 1;
+  const undo = useCallback(() => dispatch({ type: "UNDO" }), []);
+  const redo = useCallback(() => dispatch({ type: "REDO" }), []);
+
+  // Price staleness detection
+  const staleItems = useMemo(() => {
+    const now = Date.now();
+    return state.items
+      .filter(item => {
+        const createdAt = new Date(item.createdAt).getTime();
+        return now - createdAt > PRICE_STALE_THRESHOLD_MS;
+      })
+      .map(item => item.id);
+  }, [state.items]);
+
+  // Price recheck (calls price-check API)
+  const recheckPrice = useCallback(async (itemId: string) => {
+    const item = state.items.find(i => i.id === itemId);
+    if (!item || !state.id) return;
+    try {
+      const res = await fetch(`/api/agents/quotes/${state.id}/price-check`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId, itemType: item.type, details: item.details }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.newPrice !== undefined && data.newPrice !== item.price) {
+          dispatch({ type: "UPDATE_ITEM", payload: { id: itemId, updates: { price: data.newPrice, createdAt: new Date().toISOString() } as any } });
+          toast.success(`Price updated: ${item.type} — was $${item.price}, now $${data.newPrice}`);
+        } else {
+          // Update createdAt to mark as fresh
+          dispatch({ type: "UPDATE_ITEM", payload: { id: itemId, updates: { createdAt: new Date().toISOString() } as any } });
+          toast.success("Price confirmed — still valid");
+        }
+      }
+    } catch {
+      toast.error("Could not verify price");
+    }
+  }, [state.items, state.id]);
+
+  // Multi-option quote actions
+  const addOption = useCallback((tier: QuoteOptionTier, label: string) =>
+    dispatch({ type: "ADD_OPTION", payload: { tier, label } }), []);
+  const removeOption = useCallback((optionId: string) =>
+    dispatch({ type: "REMOVE_OPTION", payload: optionId }), []);
+  const setActiveOption = useCallback((optionId: string | null) =>
+    dispatch({ type: "SET_ACTIVE_OPTION", payload: optionId }), []);
+  const duplicateToOption = useCallback((sourceOptionId: string | null, tier: QuoteOptionTier, label: string) =>
+    dispatch({ type: "DUPLICATE_TO_OPTION", payload: { sourceOptionId, targetTier: tier, targetLabel: label } }), []);
+
+  // Document attachments
+  const addDocument = useCallback((doc: QuoteDocument) =>
+    dispatch({ type: "ADD_DOCUMENT", payload: doc }), []);
+  const removeDocument = useCallback((id: string) =>
+    dispatch({ type: "REMOVE_DOCUMENT", payload: id }), []);
 
   // Get current environment
   const getEnvironment = (): 'production' | 'staging' | 'development' => {
@@ -506,8 +762,12 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
         discount: state.pricing.discount,
         taxes: state.pricing.taxes,
         fees: state.pricing.fees,
-        // Include version for PATCH optimistic-locking (optional — backend falls back to current)
-        ...((state as any).version ? { version: (state as any).version } : {}),
+        // Include expiryDate for server-side persistence
+        ...(state.expiryDate ? { expiresAt: new Date(state.expiryDate).toISOString() } : {}),
+        // Include multi-option data if present
+        ...(state.options.length > 0 ? { options: state.options } : {}),
+        // Include version for PATCH optimistic-locking
+        ...(state.version ? { version: state.version } : {}),
       };
 
       const payloadSize = JSON.stringify(payload).length;
@@ -720,8 +980,30 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
     }
   }, []);
 
-  // Debounced autosave
-  const debouncedSave = useDebouncedCallback(saveQuote, 2000);
+  // ═══ AUTOSAVE WITH RETRY QUEUE ═══
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
+
+  const saveWithRetry = useCallback(async () => {
+    const result = await saveQuote();
+    if (result.success) {
+      retryCountRef.current = 0;
+      return;
+    }
+    // Exponential backoff retry
+    if (retryCountRef.current < maxRetries) {
+      retryCountRef.current += 1;
+      const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 16000);
+      setTimeout(() => {
+        saveWithRetry();
+      }, delay);
+    } else {
+      retryCountRef.current = 0;
+      toast.error("Auto-save failed after retries. Please save manually.", { duration: 6000 });
+    }
+  }, [saveQuote]);
+
+  const debouncedSave = useDebouncedCallback(saveWithRetry, 2000);
 
   // Autosave on state changes - only for editable (draft) quotes
   useEffect(() => {
@@ -730,7 +1012,7 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
     if (hasContent && isEditable) {
       debouncedSave();
     }
-  }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, state.status, debouncedSave]);
+  }, [state.items, state.tripName, state.destination, state.startDate, state.endDate, state.travelers, state.pricing.markupPercent, state.client, state.status, state.expiryDate, debouncedSave]);
 
   // Load initial quote if ID provided
   useEffect(() => {
@@ -739,9 +1021,21 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
     }
   }, [initialQuoteId, loadQuote]);
 
-  // Compute conflicts whenever items change
-  const conflicts = useMemo(() => {
-    return detectConflicts(state.items);
+  // Compute conflicts whenever items change — deferred to avoid blocking renders
+  const [conflicts, setConflicts] = useState<Map<string, TimeConflict>>(() => new Map());
+  const conflictItemsRef = useRef(state.items);
+  useEffect(() => {
+    conflictItemsRef.current = state.items;
+    const run = () => {
+      setConflicts(detectConflicts(conflictItemsRef.current));
+    };
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      const id = (window as any).requestIdleCallback(run, { timeout: 500 });
+      return () => (window as any).cancelIdleCallback(id);
+    }
+    // Fallback for browsers without requestIdleCallback
+    const tid = setTimeout(run, 50);
+    return () => clearTimeout(tid);
   }, [state.items]);
 
   const contextValue = useMemo(
@@ -750,6 +1044,15 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       dispatch,
       conflicts,
       isSaving: state.ui.isSaving,
+      // Undo/Redo
+      canUndo,
+      canRedo,
+      undo,
+      redo,
+      // Price staleness
+      staleItems,
+      recheckPrice,
+      // Actions
       setTripName,
       setDestination,
       setDates,
@@ -776,10 +1079,21 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
       toggleSidebar,
       setDiscoveryPanelWidth,
       setSearchFormCollapsed,
+      setExpiryDate,
+      // Multi-option
+      addOption,
+      removeOption,
+      setActiveOption,
+      duplicateToOption,
+      // Documents
+      addDocument,
+      removeDocument,
+      // Save/Load
       saveQuote,
       loadQuote,
     }),
-    [state, conflicts, setTripName, setDestination, setDates, setTravelers, addItem, updateItem, removeItem, reorderItems, setMarkup, setCurrency, setClient, setActiveTab, setSearchResults, restoreCachedSearch, expandItem, openPreview, closePreview, openClientModal, closeClientModal, openSendModal, closeSendModal, openTemplatesPanel, closeTemplatesPanel, toggleSidebar, setDiscoveryPanelWidth, setSearchFormCollapsed, saveQuote, loadQuote]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state, conflicts, canUndo, canRedo, staleItems]
   );
 
   return (

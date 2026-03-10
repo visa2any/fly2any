@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, lazy, Suspense } from "react";
 import {
   QuoteWorkspaceProvider,
   QuoteWorkspaceLayout,
@@ -13,11 +13,13 @@ import {
   ViewModeProvider,
   useQuoteWorkspace,
 } from "@/components/agent/quote-workspace";
-import ClientSelectModal from "@/components/agent/quote-workspace/overlays/ClientSelectModal";
-import QuotePreviewOverlay from "@/components/agent/quote-workspace/overlays/QuotePreviewOverlay";
-import SendQuoteModal from "@/components/agent/quote-workspace/overlays/SendQuoteModal";
-import QuoteTemplatesPanel from "@/components/agent/quote-workspace/overlays/QuoteTemplatesPanel";
 import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
+
+// Lazy-load heavy overlay modals — only loaded when first opened
+const ClientSelectModal = lazy(() => import("@/components/agent/quote-workspace/overlays/ClientSelectModal"));
+const QuotePreviewOverlay = lazy(() => import("@/components/agent/quote-workspace/overlays/QuotePreviewOverlay"));
+const SendQuoteModal = lazy(() => import("@/components/agent/quote-workspace/overlays/SendQuoteModal"));
+const QuoteTemplatesPanel = lazy(() => import("@/components/agent/quote-workspace/overlays/QuoteTemplatesPanel"));
 
 export default function QuoteWorkspace() {
   const searchParams = useSearchParams();
@@ -72,7 +74,7 @@ function WorkspaceOverlays() {
   };
 
   return (
-    <>
+    <Suspense fallback={null}>
       <ClientSelectModal />
       <QuotePreviewOverlay />
       <SendQuoteModal />
@@ -83,6 +85,6 @@ function WorkspaceOverlays() {
         onSaveAsTemplate={() => {}} // Handled internally by the panel's own save modal
         currentQuoteData={currentQuoteData}
       />
-    </>
+    </Suspense>
   );
 }
