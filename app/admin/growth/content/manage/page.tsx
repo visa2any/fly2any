@@ -22,9 +22,9 @@ export default function ContentManagePage() {
 
   const fetchContent = async () => {
     try {
-      const res = await fetch('/api/admin/content');
+      const res = await fetch('/api/admin/content-queue');
       const data = await res.json();
-      setContent(data.content || []);
+      setContent(data.items || []);
     } catch (error) {
       console.error('Failed to fetch content:', error);
     } finally {
@@ -53,7 +53,7 @@ export default function ContentManagePage() {
 
   const deleteContent = async (id: string) => {
     try {
-      await fetch(`/api/admin/content?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/admin/content-queue?id=${id}`, { method: 'DELETE' });
       await fetchContent();
     } catch (error) {
       console.error('Failed to delete:', error);
@@ -71,7 +71,7 @@ export default function ContentManagePage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 w-full mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Content Queue</h1>
         <button onClick={fetchContent} className="p-2 hover:bg-gray-100 rounded-lg">

@@ -151,3 +151,41 @@ export async function DELETE(request: NextRequest) {
 
   }, { category: ErrorCategory.DATABASE });
 }
+
+export async function PATCH(request: NextRequest) {
+  return handleApiError(request, async () => {
+    const session = await auth();
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, status } = body;
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { error: 'Missing required fields: id, status' },
+        { status: 400 }
+      );
+    }
+
+    const validStatuses = ['pending', 'scheduled', 'cancelled', 'posted', 'failed'];
+    if (!validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    const item = await prisma.contentQueue.update({
+      where: { id },
+      data: {
+        status,
+        ...(status === 'scheduled' ? { scheduledAt: new Date(Date.now() + 60000) } : {}),
+      },
+    });
+
+    return NextResponse.json({ success: true, item });
+
+  }, { category: ErrorCategory.DATABASE });
+}

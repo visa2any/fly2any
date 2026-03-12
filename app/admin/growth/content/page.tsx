@@ -1,19 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, Sparkles, Eye, ThumbsUp, Clock, Play, Pause, Trash2, RefreshCw, Filter, Calendar, Globe, Twitter, Instagram, MessageCircle, TrendingUp, Zap, CheckCircle2, AlertCircle, Edit3 } from 'lucide-react'
+import { FileText, Sparkles, Eye, ThumbsUp, Clock, Trash2, RefreshCw, Calendar, Globe, MessageCircle, TrendingUp, Zap, CheckCircle2, AlertCircle, Edit3, Twitter, Instagram } from 'lucide-react'
 
 interface ContentItem {
   id: string
-  type: 'blog' | 'deal' | 'guide' | 'social'
+  type: string
   title: string
+  content: string
   excerpt: string
-  status: 'draft' | 'published' | 'scheduled' | 'failed'
-  platform: string[]
+  status: string
+  platforms: string[]
   views: number
   engagement: number
   createdAt: string
-  publishedAt?: string
+  postedAt?: string
   scheduledAt?: string
 }
 
@@ -26,11 +27,20 @@ interface ContentStats {
   avgEngagement: number
 }
 
+const STATUS_MAP: Record<string, { label: string; class: string }> = {
+  pending: { label: 'Pending', class: 'bg-amber-100 text-amber-700' },
+  scheduled: { label: 'Scheduled', class: 'bg-blue-100 text-blue-700' },
+  posted: { label: 'Published', class: 'bg-green-100 text-green-700' },
+  processing: { label: 'Processing', class: 'bg-indigo-100 text-indigo-700' },
+  failed: { label: 'Failed', class: 'bg-red-100 text-red-700' },
+  cancelled: { label: 'Cancelled', class: 'bg-gray-100 text-gray-700' },
+}
+
 export default function ContentFactoryAdmin() {
   const [content, setContent] = useState<ContentItem[]>([])
   const [stats, setStats] = useState<ContentStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'blog' | 'deal' | 'guide' | 'social'>('all')
+  const [filter, setFilter] = useState<string>('all')
   const [generating, setGenerating] = useState(false)
 
   useEffect(() => { fetchData() }, [])
@@ -61,20 +71,22 @@ export default function ContentFactoryAdmin() {
     setGenerating(false)
   }
 
-  const filteredContent = content.filter(c => filter === 'all' || c.type === filter)
-
-  const statusColors = {
-    draft: 'bg-gray-100 text-gray-700',
-    published: 'bg-green-100 text-green-700',
-    scheduled: 'bg-blue-100 text-blue-700',
-    failed: 'bg-red-100 text-red-700'
+  const deleteContent = async (id: string) => {
+    try {
+      await fetch(`/api/admin/content?id=${id}`, { method: 'DELETE' })
+      setContent(prev => prev.filter(c => c.id !== id))
+    } catch (e) { console.error(e) }
   }
 
-  const typeIcons = {
+  const filteredContent = content.filter(c => filter === 'all' || c.type === filter)
+
+  const typeIcons: Record<string, typeof FileText> = {
     blog: FileText,
     deal: Zap,
     guide: Globe,
-    social: MessageCircle
+    social: MessageCircle,
+    twitter: Twitter,
+    instagram: Instagram,
   }
 
   if (loading) return (
@@ -84,7 +96,7 @@ export default function ContentFactoryAdmin() {
   )
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 w-full mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -120,9 +132,9 @@ export default function ContentFactoryAdmin() {
             { label: 'Total Content', value: stats.total, icon: FileText, gradient: 'from-purple-500 to-pink-500' },
             { label: 'Published', value: stats.published, icon: CheckCircle2, gradient: 'from-green-500 to-emerald-500' },
             { label: 'Scheduled', value: stats.scheduled, icon: Calendar, gradient: 'from-blue-500 to-cyan-500' },
-            { label: 'Drafts', value: stats.drafts, icon: Edit3, gradient: 'from-gray-500 to-gray-600' },
+            { label: 'Pending', value: stats.drafts, icon: Clock, gradient: 'from-amber-500 to-orange-500' },
             { label: 'Total Views', value: stats.totalViews.toLocaleString(), icon: Eye, gradient: 'from-orange-500 to-red-500' },
-            { label: 'Avg Engagement', value: `${stats.avgEngagement}%`, icon: TrendingUp, gradient: 'from-cyan-500 to-blue-500' }
+            { label: 'Avg Engagement', value: stats.avgEngagement, icon: TrendingUp, gradient: 'from-cyan-500 to-blue-500' }
           ].map(({ label, value, icon: Icon, gradient }) => (
             <div key={label} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all">
               <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-lg flex items-center justify-center mb-3`}>
@@ -161,7 +173,7 @@ export default function ContentFactoryAdmin() {
 
       {/* Filters */}
       <div className="flex gap-2">
-        {(['all', 'blog', 'deal', 'guide', 'social'] as const).map(f => (
+        {['all', 'blog', 'deal', 'guide', 'social'].map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -180,6 +192,7 @@ export default function ContentFactoryAdmin() {
           </div>
         ) : filteredContent.map(item => {
           const TypeIcon = typeIcons[item.type] || FileText
+          const statusCfg = STATUS_MAP[item.status] || { label: item.status, class: 'bg-gray-100 text-gray-700' }
           return (
             <div key={item.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all group">
               <div className="p-5">
@@ -190,8 +203,8 @@ export default function ContentFactoryAdmin() {
                     </div>
                     <span className="text-xs font-medium text-gray-500 uppercase">{item.type}</span>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[item.status]}`}>
-                    {item.status}
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusCfg.class}`}>
+                    {statusCfg.label}
                   </span>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
@@ -199,18 +212,24 @@ export default function ContentFactoryAdmin() {
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span className="flex items-center gap-1"><Eye className="h-4 w-4" /> {item.views}</span>
-                    <span className="flex items-center gap-1"><ThumbsUp className="h-4 w-4" /> {item.engagement}%</span>
+                    <span className="flex items-center gap-1"><ThumbsUp className="h-4 w-4" /> {item.engagement}</span>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1.5 hover:bg-gray-100 rounded-lg"><Edit3 className="h-4 w-4 text-gray-600" /></button>
-                    <button className="p-1.5 hover:bg-red-50 rounded-lg"><Trash2 className="h-4 w-4 text-red-500" /></button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Delete this content item?')) deleteContent(item.id)
+                      }}
+                      className="p-1.5 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </button>
                   </div>
                 </div>
               </div>
-              {item.platform && item.platform.length > 0 && (
+              {item.platforms && item.platforms.length > 0 && (
                 <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
                   <span className="text-xs text-gray-500">Platforms:</span>
-                  {item.platform.map(p => (
+                  {item.platforms.map(p => (
                     <span key={p} className="px-2 py-0.5 bg-white rounded text-xs font-medium text-gray-700 border border-gray-200">{p}</span>
                   ))}
                 </div>

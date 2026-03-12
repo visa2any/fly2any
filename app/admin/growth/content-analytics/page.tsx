@@ -109,29 +109,14 @@ export default function ContentAnalyticsDashboard() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const [contentRes, queueRes] = await Promise.all([
-        fetch('/api/admin/content').catch(() => null),
-        fetch('/api/admin/content-queue').catch(() => null),
-      ])
+      const queueRes = await fetch('/api/admin/content-queue').catch(() => null)
 
       let allItems: ContentItem[] = []
 
-      if (contentRes?.ok) {
-        const data = await contentRes.json()
-        allItems = [...allItems, ...(data.content || [])]
-      }
       if (queueRes?.ok) {
         const data = await queueRes.json()
-        allItems = [...allItems, ...(data.items || [])]
+        allItems = data.items || []
       }
-
-      // Deduplicate by id
-      const seen = new Set<string>()
-      allItems = allItems.filter(item => {
-        if (seen.has(item.id)) return false
-        seen.add(item.id)
-        return true
-      })
 
       setItems(allItems)
 

@@ -204,13 +204,17 @@ export default function ContentReviewPage() {
   useEffect(() => { fetchData() }, [fetchData])
 
   const handleApprove = async (id: string) => {
-    // For now, this triggers the processing of the item
-    // In a full implementation, this would call a dedicated API endpoint
     try {
-      // Optimistic UI update
-      setQueue(prev => prev.map(item => 
-        item.id === id ? { ...item, status: 'processing' } : item
-      ))
+      const res = await fetch('/api/admin/content-queue', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'scheduled' }),
+      })
+      if (res.ok) {
+        setQueue(prev => prev.map(item => 
+          item.id === id ? { ...item, status: 'scheduled' } : item
+        ))
+      }
     } catch (e) {
       console.error('Approve failed:', e)
     }
