@@ -106,7 +106,7 @@ const contextContent = {
 };
 
 function SignInContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/account';
   const urlError = searchParams?.get('error');

@@ -63,7 +63,7 @@ interface PaymentInfo {
 
 function CheckoutContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   const [step, setStep] = useState<CheckoutStep>(1);
   const [journey, setJourney] = useState<Journey | null>(null);

@@ -91,6 +91,7 @@ export function getCategoryDisplayName(category: CategoryType): string {
     guide: 'Travel Guides',
     tip: 'Travel Tips',
     story: 'Travel Stories',
+    analysis: 'Travel Analysis',
   };
   return names[category] || category;
 }
@@ -106,6 +107,7 @@ export function getCategoryIcon(category: CategoryType): string {
     guide: '🗺️',
     tip: '💡',
     story: '📖',
+    analysis: '📊',
   };
   return icons[category] || '📚';
 }
@@ -121,6 +123,7 @@ export function getCategoryColor(category: CategoryType): string {
     guide: 'from-purple-600 to-indigo-600',
     tip: 'from-yellow-600 to-amber-600',
     story: 'from-pink-600 to-rose-600',
+    analysis: 'from-teal-600 to-cyan-600',
   };
   return colors[category] || 'from-gray-600 to-gray-800';
 }

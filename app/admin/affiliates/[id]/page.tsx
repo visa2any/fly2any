@@ -79,7 +79,7 @@ interface AffiliateDetails {
 }
 
 export default function AffiliateDetailPage() {
-  const params = useParams();
+  const params = useParams()!;
   const router = useRouter();
   const affiliateId = params.id as string;
 

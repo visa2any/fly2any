@@ -129,15 +129,15 @@ const MONTHS_DB: Record<string, number> = {
   april: 3, apr: 3, may: 4, june: 5, jun: 5, july: 6, jul: 6,
   august: 7, aug: 7, september: 8, sep: 8, sept: 8,
   october: 9, oct: 9, november: 10, nov: 10, december: 11, dec: 11,
-  // Portuguese
-  janeiro: 0, jan: 0, fevereiro: 1, fev: 1, março: 2, marco: 2, mar: 2,
-  abril: 3, abr: 3, maio: 4, mai: 4, junho: 5, jun: 5, julho: 6, jul: 6,
+  // Portuguese (unique keys only)
+  janeiro: 0, fevereiro: 1, fev: 1, março: 2, marco: 2,
+  abril: 3, abr: 3, maio: 4, mai: 4, junho: 5, julho: 6,
   agosto: 7, ago: 7, setembro: 8, set: 8, outubro: 9, out: 9,
-  novembro: 10, nov: 10, dezembro: 11, dez: 11,
-  // Spanish
-  enero: 0, ene: 0, febrero: 1, marzo: 2, mzo: 2, abril: 3,
-  mayo: 4, junio: 5, julio: 6, agosto: 7, septiembre: 8, sep: 8,
-  octubre: 9, oct: 9, noviembre: 10, diciembre: 11, dic: 11,
+  novembro: 10, dezembro: 11, dez: 11,
+  // Spanish (unique keys only)
+  enero: 0, ene: 0, febrero: 1, marzo: 2, mzo: 2,
+  mayo: 4, junio: 5, julio: 6, septiembre: 8,
+  octubre: 9, noviembre: 10, diciembre: 11, dic: 11,
 };
 
 // ============================================================================

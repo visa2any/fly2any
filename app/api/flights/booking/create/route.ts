@@ -348,7 +348,7 @@ export async function POST(request: NextRequest) {
     console.log(`   Flight Offer ID: ${flightOffer.id}`);
     console.log(`   Passengers: ${passengers.length}`);
     console.log(`   Total Price: ${flightOffer.price?.total} ${flightOffer.price?.currency}`);
-    console.log(`   Booking Reference (Pre-generated): ${preGeneratedBookingRef || 'PENDING'}`);
+    // Note: preGeneratedBookingRef is generated below in Step 3
     if (fareUpgrade) console.log(`   Fare Upgrade: ${fareUpgrade.fareName} (+${fareUpgrade.upgradePrice})`);
     if (bundle) console.log(`   Bundle: ${bundle.bundleName} (+${bundle.price})`);
     if (addOns && addOns.length > 0) console.log(`   Add-ons: ${addOns.length} selected`);
@@ -599,11 +599,11 @@ export async function POST(request: NextRequest) {
     console.log(`✈️  STEP 4: Creating booking with detected source: ${flightSource}`);
 
     let flightOrder: any;
-    let bookingId: string;
-    let pnr: string;
+    let bookingId: string = '';
+    let pnr: string = '';
     let isMockBooking: boolean = false;
     let duffelOrderId: string | undefined;
-    let sourceApi: 'Amadeus' | 'Duffel';
+    let sourceApi: 'Amadeus' | 'Duffel' = 'Amadeus';
     let holdPricing: any = null;
 
     // Check for SEPARATE TICKET flights (mixed carrier combinations)
@@ -719,7 +719,7 @@ export async function POST(request: NextRequest) {
         pnr = `${outboundPnr}/${returnPnr}`; // Combined PNR display
         bookingId = outboundOrderId;
         duffelOrderId = outboundSource === 'Duffel' ? outboundOrderId : (returnSource === 'Duffel' ? returnOrderId : undefined);
-        isMockBooking = outboundSource === 'Duffel' ? !outboundOrder.data?.live_mode : false;
+        isMockBooking = outboundSource === 'Duffel' ? !(outboundOrder as any).data?.live_mode : false;
 
         console.log(`   Outbound: ${outboundSource} PNR=${outboundPnr} ID=${outboundOrderId}`);
         console.log(`   Return: ${returnSource} PNR=${returnPnr} ID=${returnOrderId}`);
@@ -1256,7 +1256,7 @@ A Duffel booking failed and was automatically routed to manual ticketing.
               passengerCount: passengers.length.toString(),
               source: flightSource,
               bookingReference: preGeneratedBookingRef, // Also in metadata for redundancy
-              duffelOrderId: duffelOrderId, // Link to airline booking
+              duffelOrderId: duffelOrderId || '', // Link to airline booking
             },
           }),
           'Create Payment Intent',
@@ -1547,7 +1547,7 @@ Customer needs to complete payment to finalize booking.
               where: { code: promoCode.code.toUpperCase() },
               data: { usageCount: { increment: 1 } },
             });
-            await prisma.voucherRedemption.create({
+            await (prisma.voucherRedemption.create as any)({
               data: {
                 voucherCode: promoCode.code.toUpperCase(),
                 userId: session?.user?.id || null,
@@ -1577,7 +1577,7 @@ Customer needs to complete payment to finalize booking.
             };
             const riskScore = totalAmount > 2000 ? 50 : 10;
 
-            await prisma.cardAuthorization.create({
+            await (prisma.cardAuthorization.create as any)({
               data: {
                 bookingReference: savedBooking.bookingReference,
                 cardholderName: payment.cardName || payment.signatureName,

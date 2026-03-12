@@ -75,7 +75,7 @@ const errorMessages: Record<string, { title: string; message: string; action?: s
 };
 
 function ErrorContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const errorCode = searchParams.get('error') || 'Default';
   const errorInfo = errorMessages[errorCode] || errorMessages.Default;
   const [isPopup, setIsPopup] = useState(false);

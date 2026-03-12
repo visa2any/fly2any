@@ -36,7 +36,7 @@ import { Breadcrumbs } from '@/components/blog/article/Breadcrumbs';
  * - Comments section placeholder
  */
 export default function BlogPostPage() {
-  const params = useParams();
+  const params = useParams()!;
   const slug = params?.slug as string | undefined;
 
   const normalizedSlug = Array.isArray(slug) ? slug[0] : slug;

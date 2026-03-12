@@ -1,0 +1,759 @@
+app/account/bookings/[id]/ClientPage.tsx(185,67): error TS2367: This comparison appears to be unintentional because the types '"one-way" | "round-trip"' and '"car_rental"' have no overlap.
+app/admin/authorizations/page.tsx(676,11): error TS2739: Type 'CardAuthorization' is missing the following properties from type 'AuthorizationData': signatureTyped, createdAt
+app/admin/bookings/[id]/ClientPage.tsx(371,67): error TS2367: This comparison appears to be unintentional because the types '"one-way" | "round-trip"' and '"car_rental"' have no overlap.
+app/admin/bookings/[id]/ClientPage.tsx(828,51): error TS2339: Property 'outbound' does not exist on type 'FlightData'.
+app/admin/bookings/[id]/ClientPage.tsx(829,54): error TS2339: Property 'return' does not exist on type 'FlightData'.
+app/agency/analytics/page.tsx(21,18): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/agency/layout.tsx(35,25): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/agency/markup-rules/page.tsx(21,18): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/agency/page.tsx(21,18): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/agency/payouts/page.tsx(21,18): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/agency/payouts/page.tsx(62,7): error TS2322: Type '({ booking: { confirmationNumber: string; tripName: string; }; } & { id: string; status: CommissionStatus; createdAt: Date; updatedAt: Date; paidAt: Date | null; ... 31 more ...; clawbackAmount: number; })[]' is not assignable to type 'Commission[]'.
+  Type '{ booking: { confirmationNumber: string; tripName: string; }; } & { id: string; status: CommissionStatus; createdAt: Date; updatedAt: Date; paidAt: Date | null; ... 31 more ...; clawbackAmount: number; }' is missing the following properties from type 'Commission': amount, rate
+app/agency/team/page.tsx(21,18): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/agent/payouts/page.tsx(67,7): error TS7034: Variable 'payoutsRaw' implicitly has type 'any[]' in some locations where its type cannot be determined.
+app/agent/payouts/page.tsx(84,20): error TS7005: Variable 'payoutsRaw' implicitly has an 'any[]' type.
+app/agent/quotes/page.tsx(58,9): error TS7034: Variable 'quotesRaw' implicitly has type 'any[]' in some locations where its type cannot be determined.
+app/agent/quotes/page.tsx(79,15): error TS7005: Variable 'quotesRaw' implicitly has an 'any[]' type.
+app/api/admin/ai-analytics/route.ts(48,41): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+app/api/admin/analytics/route.ts(332,15): error TS2353: Object literal may only specify known properties, and 'cabinClass' does not exist in type 'AgentBookingSelect<DefaultArgs>'.
+app/api/admin/analytics/route.ts(416,24): error TS7006: Parameter 'f' implicitly has an 'any' type.
+app/api/admin/analytics/stats/route.ts(15,14): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+app/api/admin/analytics/stats/route.ts(16,14): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+app/api/admin/analytics/stats/route.ts(17,14): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+app/api/admin/bookings/[id]/auto-ticket/route.ts(71,49): error TS2339: Property 'provider' does not exist on type 'Booking'.
+app/api/admin/bookings/[id]/auto-ticket/route.ts(142,17): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+app/api/admin/bookings/[id]/auto-ticket/route.ts(143,17): error TS2322: Type 'number | null' is not assignable to type 'number | undefined'.
+  Type 'null' is not assignable to type 'number | undefined'.
+app/api/admin/bookings/[id]/sync/route.ts(14,45): error TS2339: Property 'BOOKINGS' does not exist on type 'typeof Resource'.
+app/api/admin/bookings/[id]/sync/route.ts(73,44): error TS2339: Property 'BOOKINGS' does not exist on type 'typeof Resource'.
+app/api/admin/bookings/route.ts(43,7): error TS2322: Type '"transfer" | "flight" | "car" | "tour" | "activity" | undefined' is not assignable to type '"flight" | "car" | undefined'.
+  Type '"transfer"' is not assignable to type '"flight" | "car" | undefined'.
+app/api/admin/bookings/route.ts(52,7): error TS2322: Type '"transfer" | "flight" | "car" | "tour" | "activity" | undefined' is not assignable to type '"flight" | "car" | undefined'.
+  Type '"transfer"' is not assignable to type '"flight" | "car" | undefined'.
+app/api/admin/bookings/sync-batch/route.ts(13,45): error TS2339: Property 'BOOKINGS' does not exist on type 'typeof Resource'.
+app/api/admin/content-queue/route.ts(25,25): error TS2339: Property 'isAdmin' does not exist on type '{ id: string; } & User'.
+app/api/admin/content-queue/route.ts(80,25): error TS2339: Property 'isAdmin' does not exist on type '{ id: string; } & User'.
+app/api/admin/content-queue/route.ts(137,25): error TS2339: Property 'isAdmin' does not exist on type '{ id: string; } & User'.
+app/api/admin/content/generate/route.ts(61,31): error TS2339: Property 'content' does not exist on type 'ContentPiece | { title: string; outline: string[]; keywords: string[]; }'.
+  Property 'content' does not exist on type '{ title: string; outline: string[]; keywords: string[]; }'.
+app/api/admin/generate-authorization-pdf/route.tsx(644,63): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+app/api/admin/users/route.ts(53,15): error TS2353: Object literal may only specify known properties, and 'bookings' does not exist in type 'UserCountOutputTypeSelect<DefaultArgs>'.
+app/api/admin/users/route.ts(69,15): error TS2339: Property 'adminUser' does not exist on type '{ password: string | null; name: string | null; id: string; country: string | null; phone: string | null; email: string; createdAt: Date; updatedAt: Date; emailVerified: Date | null; ... 27 more ...; lastLoginAt: Date | null; }'.
+app/api/admin/users/route.ts(71,24): error TS2339: Property '_count' does not exist on type '{ password: string | null; name: string | null; id: string; country: string | null; phone: string | null; email: string; createdAt: Date; updatedAt: Date; emailVerified: Date | null; ... 27 more ...; lastLoginAt: Date | null; }'.
+app/api/agency/markup-rules/route.ts(37,20): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/api/agency/markup-rules/route.ts(65,20): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/api/agency/markup-rules/route.ts(88,61): error TS18048: 'data.minPrice' is possibly 'undefined'.
+app/api/agency/markup-rules/route.ts(88,77): error TS18048: 'data.maxPrice' is possibly 'undefined'.
+app/api/agency/markup-rules/route.ts(137,20): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/api/agency/markup-rules/route.ts(210,20): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/api/agency/team/route.ts(34,20): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/api/agency/team/route.ts(78,20): error TS2367: This comparison appears to be unintentional because the types 'AgentTier' and '"AGENCY"' have no overlap.
+app/api/agency/team/route.ts(127,13): error TS2322: Type '"ADMIN" | "AGENT"' is not assignable to type 'TeamRole | undefined'.
+  Type '"ADMIN"' is not assignable to type 'TeamRole | undefined'.
+app/api/agency/team/route.ts(176,9): error TS2322: Type '"ADMIN" | "AGENT"' is not assignable to type 'TeamRole | undefined'.
+  Type '"ADMIN"' is not assignable to type 'TeamRole | undefined'.
+app/api/agents/clients/[id]/stats/route.ts(32,47): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/clients/[id]/stats/route.ts(36,20): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/clients/[id]/stats/route.ts(41,48): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/clients/[id]/stats/route.ts(46,20): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/clients/[id]/timeline/route.ts(59,11): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/me/dashboard/route.ts(298,22): error TS18047: 'q.client' is possibly 'null'.
+app/api/agents/me/dashboard/route.ts(298,44): error TS18047: 'q.client' is possibly 'null'.
+app/api/agents/quotes/[id]/bookings/route.ts(36,11): error TS7034: Variable 'bookings' implicitly has type 'any[]' in some locations where its type cannot be determined.
+app/api/agents/quotes/[id]/bookings/route.ts(45,19): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(46,29): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(59,19): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(60,29): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(73,19): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(74,29): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(87,19): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(88,29): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(101,19): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(102,29): error TS2367: This comparison appears to be unintentional because the types 'QuoteStatus' and '"accepted"' have no overlap.
+app/api/agents/quotes/[id]/bookings/route.ts(108,32): error TS7005: Variable 'bookings' implicitly has an 'any[]' type.
+app/api/agents/quotes/[id]/convert/route.ts(92,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+app/api/agents/quotes/[id]/convert/route.ts(195,16): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+app/api/agents/quotes/[id]/email-pdf/route.ts(59,50): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/email-pdf/route.ts(59,76): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/email-pdf/route.ts(65,77): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/payment-link/route.ts(104,26): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/payment-link/route.ts(104,52): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/send-sms/route.ts(133,15): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/send-sms/route.ts(134,15): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/white-label-pdf/route.ts(113,61): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/white-label-pdf/route.ts(113,87): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/[id]/white-label-pdf/route.ts(114,39): error TS18047: 'quote.client' is possibly 'null'.
+app/api/agents/quotes/analytics/route.ts(150,20): error TS18047: 'q.client' is possibly 'null'.
+app/api/agents/quotes/analytics/route.ts(150,42): error TS18047: 'q.client' is possibly 'null'.
+app/api/ai/chat/stream/route.ts(447,119): error TS7006: Parameter 'm' implicitly has an 'any' type.
+app/api/ai/co-host-reply/route.ts(57,9): error TS2322: Type '{ role: string; content: any; }' is not assignable to type 'GroqMessage'.
+  Types of property 'role' are incompatible.
+    Type 'string' is not assignable to type '"user" | "system" | "assistant"'.
+app/api/analytics/errors/business-impact/route.ts(121,7): error TS2322: Type '"html" | "json" | "text" | "markdown"' is not assignable to type '"html" | "text" | "markdown" | undefined'.
+  Type '"json"' is not assignable to type '"html" | "text" | "markdown" | undefined'.
+app/api/analytics/errors/business-impact/route.ts(187,7): error TS2322: Type '"json"' is not assignable to type '"html" | "text" | "markdown" | undefined'.
+app/api/aviation/airports/route.ts(52,3): error TS1117: An object literal cannot have multiple properties with the same name.
+app/api/booking-flow/confirm-booking/route.ts(268,24): error TS2339: Property 'webhookEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+app/api/booking-flow/confirm-booking/route.ts(440,7): error TS2322: Type 'string' is not assignable to type 'number'.
+app/api/booking-flow/confirm-booking/route.ts(444,7): error TS2322: Type '"critical"' is not assignable to type '"normal" | "high" | "low" | undefined'.
+app/api/booking-flow/create-payment-intent/route.ts(194,7): error TS2322: Type 'string' is not assignable to type 'number'.
+app/api/cars/booking/route.ts(234,31): error TS2339: Property 'pickupLocation' does not exist on type '{ id: string; bookingReference: string; productType: string; status: string; userId: string | null; car: { id: any; name: any; category: any; company: any; transmission: any; fuelType: any; passengers: any; doors: any; luggage: any; image: any; features: any; }; ... 6 more ...; updatedAt: string; }'.
+app/api/cars/booking/route.ts(238,39): error TS2339: Property 'total' does not exist on type '{ method: string; status: string; amount: any; currency: string; baseAmount: any; markup: number; markupPercent: number; profit: number; cardLast4: any; cardBrand: any; cardholderName: any; }'.
+app/api/cron/distribute/route.ts(137,15): error TS2322: Type 'PostResult[]' is not assignable to type 'NullableJsonNullValueInput | InputJsonValue | undefined'.
+  Type 'PostResult[]' is not assignable to type 'InputJsonObject'.
+    Index signature for type 'string' is missing in type 'PostResult[]'.
+app/api/flights/booking/complete-3ds/route.ts(72,9): error TS2322: Type 'string' is not assignable to type 'Passenger[]'.
+app/api/flights/offer/refresh/route.ts(132,44): error TS7006: Parameter 'o' implicitly has an 'any' type.
+app/api/hotels/[id]/reviews/route.ts(231,12): error TS2304: Cannot find name 'HotelContext'.
+app/api/hotels/[id]/reviews/route.ts(323,73): error TS2554: Expected 1-2 arguments, but got 3.
+app/api/hotels/[id]/reviews/route.ts(347,35): error TS2339: Property 'averageScore' does not exist on type 'ReviewSentiment'.
+app/api/hotels/[id]/reviews/route.ts(354,31): error TS2339: Property 'overallSentiment' does not exist on type 'ReviewSentiment'.
+app/api/hotels/[id]/route.ts(100,13): error TS2353: Object literal may only specify known properties, and 'policies' does not exist in type 'PropertyInclude<DefaultArgs>'.
+app/api/hotels/[id]/route.ts(117,29): error TS2554: Expected 4 arguments, but got 3.
+app/api/hotels/[id]/route.ts(124,34): error TS2339: Property 'images' does not exist on type '{ state: string | null; name: string; id: string; ownerId: string; slug: string; description: string | null; shortDescription: string | null; propertyType: string; starRating: number | null; ... 78 more ...; icalImportUrls: string[]; }'.
+app/api/hotels/booking/create/route.ts(294,13): error TS2554: Expected 3-5 arguments, but got 2.
+app/api/hotels/booking/create/route.ts(403,24): error TS2304: Cannot find name 'checkIn'.
+app/api/hotels/booking/create/route.ts(404,25): error TS2304: Cannot find name 'checkOut'.
+app/api/hotels/booking/create/route.ts(405,19): error TS2304: Cannot find name 'nights'.
+app/api/hotels/search/route.ts(534,55): error TS18048: 'latitude' is possibly 'undefined'.
+app/api/hotels/search/route.ts(539,28): error TS18048: 'latitude' is possibly 'undefined'.
+app/api/hotels/search/route.ts(539,54): error TS18048: 'latitude' is possibly 'undefined'.
+app/api/hotels/search/route.ts(540,29): error TS18048: 'longitude' is possibly 'undefined'.
+app/api/hotels/search/route.ts(540,56): error TS18048: 'longitude' is possibly 'undefined'.
+app/api/hotels/search/route.ts(987,38): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+app/api/hotels/suggestions/route.ts(46,81): error TS7006: Parameter 'c' implicitly has an 'any' type.
+app/api/properties/import/route.ts(120,49): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+app/api/properties/import/route.ts(121,47): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+app/api/properties/import/route.ts(122,54): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+app/api/properties/import/route.ts(141,84): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+app/api/properties/import/route.ts(560,97): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(this: Cheerio<Element>, match: (this: Element, index: number, value: Element) => value is Element): Cheerio<Element>', gave the following error.
+    Type 'RegExpMatchArray | null' is not assignable to type 'boolean'.
+      Type 'null' is not assignable to type 'boolean'.
+  Overload 2 of 2, '(this: Cheerio<Element>, match: AcceptedFilters<Element>): Cheerio<Element>', gave the following error.
+    Argument of type '(this: Element, _: number, el: Element) => RegExpMatchArray | null' is not assignable to parameter of type 'AcceptedFilters<Element>'.
+      Type '(this: Element, _: number, el: Element) => RegExpMatchArray | null' is not assignable to type 'FilterFunction<Element>'.
+        Type 'RegExpMatchArray | null' is not assignable to type 'boolean'.
+          Type 'null' is not assignable to type 'boolean'.
+app/api/properties/import/route.ts(565,100): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(this: Cheerio<Element>, match: (this: Element, index: number, value: Element) => value is Element): Cheerio<Element>', gave the following error.
+    Type 'RegExpMatchArray | null' is not assignable to type 'boolean'.
+      Type 'null' is not assignable to type 'boolean'.
+  Overload 2 of 2, '(this: Cheerio<Element>, match: AcceptedFilters<Element>): Cheerio<Element>', gave the following error.
+    Argument of type '(this: Element, _: number, el: Element) => RegExpMatchArray | null' is not assignable to parameter of type 'AcceptedFilters<Element>'.
+      Type '(this: Element, _: number, el: Element) => RegExpMatchArray | null' is not assignable to type 'FilterFunction<Element>'.
+        Type 'RegExpMatchArray | null' is not assignable to type 'boolean'.
+          Type 'null' is not assignable to type 'boolean'.
+app/api/properties/import/route.ts(606,85): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+app/api/properties/import/route.ts(616,92): error TS1501: This regular expression flag is only available when targeting 'es2018' or later.
+app/api/push/register/route.ts(60,11): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type '(Without<PushSubscriptionUpdateInput, PushSubscriptionUncheckedUpdateInput> & PushSubscriptionUncheckedUpdateInput) | (Without<...> & PushSubscriptionUpdateInput)'.
+app/api/push/register/route.ts(62,9): error TS2322: Type '{ endpoint: string; p256dh: "web" | "android" | "ios"; auth: string; userAgent: string | null; userId: string | undefined; }' is not assignable to type '(Without<PushSubscriptionCreateInput, PushSubscriptionUncheckedCreateInput> & PushSubscriptionUncheckedCreateInput) | (Without<...> & PushSubscriptionCreateInput)'.
+  Type '{ endpoint: string; p256dh: "web" | "android" | "ios"; auth: string; userAgent: string | null; userId: string | undefined; }' is not assignable to type 'Without<PushSubscriptionUncheckedCreateInput, PushSubscriptionCreateInput> & PushSubscriptionCreateInput'.
+    Type '{ endpoint: string; p256dh: "web" | "android" | "ios"; auth: string; userAgent: string | null; userId: string | undefined; }' is not assignable to type 'Without<PushSubscriptionUncheckedCreateInput, PushSubscriptionCreateInput>'.
+      Types of property 'userId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'undefined'.
+          Type 'string' is not assignable to type 'undefined'.
+app/api/quote/[token]/accept/route.ts(13,16): error TS2353: Object literal may only specify known properties, and 'viewToken' does not exist in type 'AgentQuoteWhereInput'.
+app/api/quote/[token]/accept/route.ts(43,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AgentQuoteUpdateInput, AgentQuoteUncheckedUpdateInput> & AgentQuoteUncheckedUpdateInput) | (Without<...> & AgentQuoteUpdateInput)'.
+app/api/quote/[token]/accept/route.ts(44,21): error TS2339: Property 'metadata' does not exist on type '{ id: string; currency: string; status: QuoteStatus; viewCount: number; createdAt: Date; updatedAt: Date; startDate: Date; endDate: Date; paymentStatus: PaymentLinkStatus; ... 81 more ...; stripePaymentIntentId: string | null; }'.
+app/api/quote/[token]/interaction/route.ts(15,16): error TS2353: Object literal may only specify known properties, and 'viewToken' does not exist in type 'AgentQuoteWhereInput'.
+app/api/quote/[token]/interaction/route.ts(16,27): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'AgentQuoteSelect<DefaultArgs>'.
+app/api/quote/[token]/interaction/route.ts(23,32): error TS2339: Property 'metadata' does not exist on type '{ id: string; currency: string; status: QuoteStatus; viewCount: number; createdAt: Date; updatedAt: Date; startDate: Date; endDate: Date; paymentStatus: PaymentLinkStatus; ... 81 more ...; stripePaymentIntentId: string | null; }'.
+app/api/quote/[token]/interaction/route.ts(57,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AgentQuoteUpdateInput, AgentQuoteUncheckedUpdateInput> & AgentQuoteUncheckedUpdateInput) | (Without<...> & AgentQuoteUpdateInput)'.
+app/api/quote/[token]/interaction/route.ts(81,16): error TS2353: Object literal may only specify known properties, and 'viewToken' does not exist in type 'AgentQuoteWhereInput'.
+app/api/quote/[token]/interaction/route.ts(82,17): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'AgentQuoteSelect<DefaultArgs>'.
+app/api/quote/[token]/interaction/route.ts(89,25): error TS2339: Property 'metadata' does not exist on type '{ id: string; currency: string; status: QuoteStatus; viewCount: number; createdAt: Date; updatedAt: Date; startDate: Date; endDate: Date; paymentStatus: PaymentLinkStatus; ... 81 more ...; stripePaymentIntentId: string | null; }'.
+app/api/quotes/share/[shareableLink]/accept/route.ts(47,39): error TS2367: This comparison appears to be unintentional because the types '"DRAFT" | "SENT" | "VIEWED" | "MODIFIED" | "DECLINED"' and '"CANCELLED"' have no overlap.
+app/api/quotes/share/[shareableLink]/accept/route.ts(82,16): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+app/api/quotes/share/[shareableLink]/accept/route.ts(93,43): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/accept/route.ts(93,69): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/accept/route.ts(111,24): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/accept/route.ts(111,50): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/decline/route.ts(71,43): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/decline/route.ts(71,69): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/decline/route.ts(89,24): error TS18047: 'quote.client' is possibly 'null'.
+app/api/quotes/share/[shareableLink]/decline/route.ts(89,50): error TS18047: 'quote.client' is possibly 'null'.
+app/api/reservations/transfers/route.ts(145,30): error TS2783: 'type' is specified more than once, so this usage will be overwritten.
+app/api/scaling/predictions/route.ts(95,9): error TS7034: Variable 'errorPatternRecommendations' implicitly has type 'any[]' in some locations where its type cannot be determined.
+app/api/scaling/predictions/route.ts(149,9): error TS7005: Variable 'errorPatternRecommendations' implicitly has an 'any[]' type.
+app/api/scaling/predictions/route.ts(206,13): error TS1117: An object literal cannot have multiple properties with the same name.
+app/api/tracking/account-error/route.ts(99,17): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ AUTH_OAUTH_NOT_LINKED: string; AUTH_SIGNIN_FAILED: string; AUTH_SIGNUP_FAILED: string; }'.
+app/api/tripmatch/trips/[id]/members/route.ts(254,32): error TS2769: No overload matches this call.
+  Argument of type '[string, string, any, string, string, string, any, string | undefined]' is not assignable to parameter of type 'never'.
+  Overload 2 of 2, '(template: TemplateStringsArray, ...parameters: readonly ParameterOrFragment<never>[]): PendingQuery<Row[]>', gave the following error.
+    Argument of type '"NOW()" | undefined' is not assignable to parameter of type 'ParameterOrFragment<never>'.
+      Type 'undefined' is not assignable to type 'ParameterOrFragment<never>'.
+app/api/webhooks/n8n/route.ts(232,7): error TS2353: Object literal may only specify known properties, and 'supplierStatus' does not exist in type 'Partial<Booking>'.
+app/api/webhooks/n8n/route.ts(248,5): error TS2353: Object literal may only specify known properties, and 'paymentStatus' does not exist in type 'Partial<Booking>'.
+app/api/webhooks/n8n/route.ts(273,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+app/api/webhooks/n8n/route.ts(318,28): error TS2339: Property 'metadata' does not exist on type '{ url: string | null; userAgent: string | null; id: string; userId: string | null; sessionId: string; ipAddress: string | null; timestamp: Date; eventType: string; eventData: JsonValue; referrer: string | null; }'.
+app/api/webhooks/n8n/route.ts(322,34): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+app/api/webhooks/n8n/route.ts(337,11): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventUpdateInput, AnalyticsEventUncheckedUpdateInput> & AnalyticsEventUncheckedUpdateInput) | (Without<...> & AnalyticsEventUpdateInput)'.
+app/api/webhooks/n8n/route.ts(374,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+app/api/webhooks/n8n/route.ts(412,32): error TS2339: Property 'type' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(413,32): error TS2339: Property 'type' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(419,23): error TS2339: Property 'type' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(420,30): error TS2339: Property 'destination' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(420,53): error TS2339: Property 'arrivalCity' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(421,26): error TS2339: Property 'departureDate' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(421,51): error TS2339: Property 'checkIn' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(422,27): error TS2339: Property 'returnDate' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(422,49): error TS2339: Property 'checkOut' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(423,24): error TS2339: Property 'contactEmail' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(424,28): error TS2339: Property 'leadPassengerName' does not exist on type 'Booking'.
+app/api/webhooks/n8n/route.ts(445,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+app/api/webhooks/n8n/route.ts(471,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+app/api/webhooks/n8n/route.ts(497,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+app/blog/[slug]/ClientPage.tsx(177,29): error TS2339: Property 'id' does not exist on type '{ slug: string; title: string; excerpt: string; category: string; author: { name: string; role: string; bio: string; }; publishedAt: Date; readTime: number; views: number; likes: number; tags: string[]; featuredImage: { ...; }; content: Element; }'.
+app/checkout/page.tsx(26,11): error TS2339: Property 'items' does not exist on type 'FlightCartContextType'.
+app/contact/page.tsx(147,19): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/contact/page.tsx(181,15): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/deals/[code]/page.tsx(99,17): error TS18047: 'params' is possibly 'null'.
+app/flights/booking-optimized/page.tsx(589,13): error TS2353: Object literal may only specify known properties, and 'popularityLabel' does not exist in type 'FareOption'.
+app/flights/booking-optimized/page.tsx(1644,15): error TS2322: Type '{ flight: { from: any; to: any; date: any; passengers: { adults: number; children: number; infants: number; }; class: any; }; currency: string; farePrice: number; addOns: { label: string; amount: number; subtext?: string | undefined; }[]; ... 11 more ...; productType: string; }' is not assignable to type 'IntrinsicAttributes & StickySummaryProps'.
+  Property 'totalPrice' does not exist on type 'IntrinsicAttributes & StickySummaryProps'.
+app/flights/to/new-york-to-dubai/page.tsx(255,132): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ low: string; medium: string; high: string; peak: string; }'.
+  No index signature with a parameter of type 'string' was found on type '{ low: string; medium: string; high: string; peak: string; }'.
+app/host/calendar/page.tsx(15,10): error TS2614: Module '"@/components/host/SeasonalPricingTemplates"' has no exported member 'SeasonalPricingTemplates'. Did you mean to use 'import SeasonalPricingTemplates from "@/components/host/SeasonalPricingTemplates"' instead?
+app/host/calendar/page.tsx(758,27): error TS7006: Parameter 'startDate' implicitly has an 'any' type.
+app/host/calendar/page.tsx(758,38): error TS7006: Parameter 'endDate' implicitly has an 'any' type.
+app/host/calendar/page.tsx(758,47): error TS7006: Parameter 'priceMultiplier' implicitly has an 'any' type.
+app/host/dashboard/components/QuickActions.tsx(78,45): error TS2322: Type '{ hidden: { opacity: number; scale: number; y: number; }; show: { opacity: number; scale: number; y: number; transition: { type: string; stiffness: number; damping: number; }; }; }' is not assignable to type 'Variants'.
+  Property 'show' is incompatible with index signature.
+    Type '{ opacity: number; scale: number; y: number; transition: { type: string; stiffness: number; damping: number; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; scale: number; y: number; transition: { type: string; stiffness: number; damping: number; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; scale: number; y: number; transition: { type: string; stiffness: number; damping: number; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ type: string; stiffness: number; damping: number; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ type: string; stiffness: number; damping: number; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ type: string; stiffness: number; damping: number; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'type' are incompatible.
+                    Type 'string' is not assignable to type 'AnimationGeneratorType | undefined'.
+app/host/dashboard/components/TodayActivity.tsx(81,18): error TS2304: Cannot find name 'today'.
+app/host/messages/page.tsx(6,10): error TS2614: Module '"@/components/host/MessageTemplates"' has no exported member 'MessageTemplates'. Did you mean to use 'import MessageTemplates from "@/components/host/MessageTemplates"' instead?
+app/host/messages/page.tsx(353,38): error TS7006: Parameter 'body' implicitly has an 'any' type.
+app/list-your-property/create/components/RoomBuilder.tsx(25,9): error TS1117: An object literal cannot have multiple properties with the same name.
+app/quote/[token]/ClientQuotePortal.tsx(257,21): error TS2322: Type 'Date | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+app/quote/[token]/ClientQuotePortal.tsx(425,11): error TS2322: Type '{ agentName: string; agentTitle: string; agentEmail: string; agentPhone: string | undefined; agentPhoto: string | undefined; tone: any; clientName: string | undefined; }' is not assignable to type 'IntrinsicAttributes & AgentSignatureProps'.
+  Property 'clientName' does not exist on type 'IntrinsicAttributes & AgentSignatureProps'.
+app/quote/[token]/page.tsx(17,14): error TS2353: Object literal may only specify known properties, and 'viewToken' does not exist in type 'AgentQuoteWhereInput'.
+app/quote/[token]/page.tsx(35,14): error TS2353: Object literal may only specify known properties, and 'viewToken' does not exist in type 'AgentQuoteWhereInput'.
+app/quote/[token]/page.tsx(43,7): error TS2353: Object literal may only specify known properties, and 'items' does not exist in type 'AgentQuoteInclude<DefaultArgs>'.
+app/quote/[token]/page.tsx(83,9): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AgentQuoteUpdateInput, AgentQuoteUncheckedUpdateInput> & AgentQuoteUncheckedUpdateInput) | (Without<...> & AgentQuoteUpdateInput)'.
+app/solo-travel/page.tsx(156,19): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/solo-travel/page.tsx(299,35): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/solo-travel/page.tsx(368,19): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/transfers/page.tsx(166,38): error TS2322: Type '"transfers"' is not assignable to type '"tours" | "activities" | "flights" | "hotels" | "insurance" | "cars" | "packages" | undefined'.
+app/travel-planning/page.tsx(161,19): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/travel-planning/page.tsx(315,17): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/travel-planning/page.tsx(450,37): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: number[]; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: number[]; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: number[]; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: number[]; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: number[]; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'number[]' is not assignable to type 'Easing | Easing[] | undefined'.
+                      Type 'number[]' is not assignable to type 'EasingFunction | Easing[]'.
+                        Type 'number[]' is not assignable to type 'Easing[]'.
+                          Type 'number' is not assignable to type 'Easing'.
+app/verify-upload/[token]/page.tsx(180,9): error TS2353: Object literal may only specify known properties, and 'context' does not exist in type '{ component?: string | undefined; action?: string | undefined; category?: ErrorCategory | undefined; severity?: ErrorSeverity | undefined; url?: string | undefined; userAgent?: string | undefined; additionalData?: Record<...> | undefined; }'.
+app/verify-upload/[token]/page.tsx(274,9): error TS2353: Object literal may only specify known properties, and 'context' does not exist in type '{ component?: string | undefined; action?: string | undefined; category?: ErrorCategory | undefined; severity?: ErrorSeverity | undefined; url?: string | undefined; userAgent?: string | undefined; additionalData?: Record<...> | undefined; }'.
+app/world-cup-2026/page.tsx(74,5): error TS2322: Type 'string' is not assignable to type '{ name: string; address: string; }'.
+app/world-cup-2026/schedule/page.tsx(15,5): error TS2322: Type 'string' is not assignable to type '{ name: string; address: string; }'.
+app/world-cup-2026/stadiums/[slug]/page.tsx(24,48): error TS2554: Expected 1 arguments, but got 4.
+app/world-cup-2026/stadiums/[slug]/page.tsx(35,25): error TS2554: Expected 2 arguments, but got 1.
+app/world-cup-2026/teams/[slug]/page.tsx(24,42): error TS2554: Expected 1 arguments, but got 3.
+app/world-cup-2026/teams/[slug]/page.tsx(35,42): error TS2554: Expected 0 arguments, but got 1.
+components/admin/AdminLayout.tsx(37,23): error TS18047: 'pathname' is possibly 'null'.
+components/agency/AgencySidebar.tsx(83,84): error TS18047: 'pathname' is possibly 'null'.
+components/agency/AgencySidebar.tsx(133,84): error TS18047: 'pathname' is possibly 'null'.
+components/ai/AITravelAssistant.tsx(739,23): error TS2345: Argument of type '(prev: Message[]) => (Message | { content: string; consultant: { id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | ... 11 more ... | "crisis-management"; } | undefined; ... 7 more ...; bookingRef?: string | undefined; })[]' is not assignable to parameter of type 'SetStateAction<Message[]>'.
+  Type '(prev: Message[]) => (Message | { content: string; consultant: { id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | ... 11 more ... | "crisis-management"; } | undefined; ... 7 more ...; bookingRef?: string | undefined; })[]' is not assignable to type '(prevState: Message[]) => Message[]'.
+    Type '(Message | { content: string; consultant: { id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | "hotel-accommodations" | ... 10 more ... | "crisis-management"; } | undefined; ... 7 more ...; bookingRef?: string | undefined; })[]' is not assignable to type 'Message[]'.
+      Type 'Message | { content: string; consultant: { id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | "hotel-accommodations" | ... 10 more ... | "crisis-management"; } | undefined; ... 7 more ...; bookingRef?: string | undefined; }' is not assignable to type 'Message'.
+        Type '{ content: string; consultant: { id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | "hotel-accommodations" | "payment-billing" | ... 9 more ... | "crisis-management"; } | undefined; ... 7 more ...; bookingRef?: string; }' is not assignable to type 'Message'.
+          Types of property 'consultant' are incompatible.
+            Type '{ id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | "hotel-accommodations" | "payment-billing" | "legal-compliance" | "travel-insurance" | ... 7 more ... | "crisis-management"; } | undefined' is not assignable to type '{ id: string; name: string; title: string; avatar: string; team: TeamType; } | undefined'.
+              Type '{ id: string; name: string; title: string; avatar: string; team: "customer-service" | "flight-operations" | "hotel-accommodations" | "payment-billing" | "legal-compliance" | "travel-insurance" | ... 7 more ... | "crisis-management"; }' is not assignable to type '{ id: string; name: string; title: string; avatar: string; team: TeamType; }'.
+                Types of property 'team' are incompatible.
+                  Type '"customer-service" | "flight-operations" | "hotel-accommodations" | "payment-billing" | "legal-compliance" | "travel-insurance" | "visa-documentation" | "car-rental" | "loyalty-rewards" | ... 4 more ... | "crisis-management"' is not assignable to type 'TeamType'.
+                    Type '"accessibility-services"' is not assignable to type 'TeamType'.
+components/ai/AITravelAssistant.tsx(1012,11): error TS2345: Argument of type 'TeamType' is not assignable to parameter of type 'TeamType | undefined'.
+  Type '"accessibility-services"' is not assignable to type 'TeamType | undefined'.
+components/ai/AITravelAssistant.tsx(1221,16): error TS2304: Cannot find name 'conversationHistoryForAI'.
+components/ai/AITravelAssistant.tsx(1251,14): error TS2304: Cannot find name 'conversationHistoryForAI'.
+components/ai/AITravelAssistant.tsx(1414,16): error TS2304: Cannot find name 'conversationHistoryForAI'.
+components/ai/AITravelAssistant.tsx(1442,14): error TS2304: Cannot find name 'conversationHistoryForAI'.
+components/ai/AITravelAssistant.tsx(1654,40): error TS2345: Argument of type '"concierge"' is not assignable to parameter of type 'TeamType'.
+components/blog/article/ArticleTemplate.tsx(46,14): error TS2741: Property 'id' is missing in type '{ slug: string; title: string; excerpt: string; category: string; author: { name: string; role: string; }; publishedAt: Date; readTime: number; views?: number | undefined; likes?: number | undefined; featuredImage: { ...; }; content?: ReactNode; }' but required in type 'ArticleHeroProps'.
+components/blog/BlogBookmarkButton.tsx(21,21): error TS2345: Argument of type 'boolean | undefined' is not assignable to parameter of type 'SetStateAction<boolean>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<boolean>'.
+components/conversion/IntentBasedCTA.tsx(6,15): error TS2459: Module '"@/lib/ai/intent-scorer"' declares 'IntentScore' locally, but it is not exported.
+components/error/ErrorToastListener.tsx(40,22): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+components/home/MobileHomeSearchWrapper.tsx(556,14): error TS2367: This comparison appears to be unintentional because the types '"tours" | "activities" | "flights" | "hotels" | "insurance" | "cars" | "packages"' and '"transfers"' have no overlap.
+components/hotels/HotelCard.tsx(821,45): error TS2339: Property 'rooms' does not exist on type 'LiteAPIHotel'.
+components/hotels/HotelCardSkeleton.tsx(56,9): error TS2322: Type '{ initial: { backgroundPosition: string; }; animate: { backgroundPosition: string; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ backgroundPosition: string; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ backgroundPosition: string; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ backgroundPosition: string; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(92,13): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(103,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(104,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(105,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(112,23): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(116,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(117,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(118,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(123,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(124,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(125,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(126,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(135,15): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(143,25): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/hotels/HotelCardSkeleton.tsx(148,13): error TS2322: Type '{ initial: { opacity: number; }; animate: { opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }; }' is not assignable to type 'Variants'.
+  Property 'animate' is incompatible with index signature.
+    Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number[]; transition: { repeat: number; duration: number; ease: string; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues$1 | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ repeat: number; duration: number; ease: string; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+components/layout/GlobalLayout.tsx(190,9): error TS2322: Type '(lang: Locale) => void' is not assignable to type '(lang: Language) => void'.
+  Types of parameters 'lang' and 'lang' are incompatible.
+    Type 'Language' is not assignable to type '"en"'.
+      Type '"es"' is not assignable to type '"en"'.
+components/layout/Header.tsx(163,17): error TS2345: Argument of type 'Language' is not assignable to parameter of type '"en"'.
+  Type '"es"' is not assignable to type '"en"'.
+components/layout/Header.tsx(712,7): error TS2322: Type '(lang: Locale) => void' is not assignable to type '(lang: Language) => void'.
+  Types of parameters 'lang' and 'lang' are incompatible.
+    Type 'Language' is not assignable to type '"en"'.
+      Type '"es"' is not assignable to type '"en"'.
+components/layout/LocaleSwitcher.tsx(42,17): error TS2345: Argument of type '"en" | "es" | "pt"' is not assignable to parameter of type '"en"'.
+  Type '"es"' is not assignable to type '"en"'.
+components/seo/Breadcrumbs.tsx(54,64): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+components/seo/Breadcrumbs.tsx(163,64): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+components/seo/HreflangTags.tsx(67,13): error TS18047: 'pathname' is possibly 'null'.
+components/seo/HreflangTags.tsx(68,27): error TS18047: 'pathname' is possibly 'null'.
+components/seo/HreflangTags.tsx(89,13): error TS18047: 'pathname' is possibly 'null'.
+components/seo/HreflangTags.tsx(90,25): error TS18047: 'pathname' is possibly 'null'.
+components/tracking/ReferralTracker.tsx(18,21): error TS18047: 'searchParams' is possibly 'null'.
+components/tripmatch/TripMatchNav.tsx(62,12): error TS18047: 'pathname' is possibly 'null'.
+hooks/useVoiceInput.ts(185,67): error TS2339: Property 'text' does not exist on type 'VoiceTranscription'.
+hooks/useVoiceInput.ts(186,61): error TS2339: Property 'text' does not exist on type 'VoiceTranscription'.
+hooks/useVoiceInput.ts(190,36): error TS2339: Property 'text' does not exist on type 'VoiceTranscription'.
+hooks/useVoiceInput.ts(196,37): error TS2339: Property 'text' does not exist on type 'VoiceTranscription'.
+hooks/useVoiceInput.ts(354,31): error TS2693: 'SpeechRecognition' only refers to a type, but is being used as a value here.
+hooks/useVoiceInput.ts(355,37): error TS2693: 'SpeechRecognition' only refers to a type, but is being used as a value here.
+hooks/useVoiceOutput.ts(128,53): error TS2322: Type 'string | undefined' is not assignable to type 'VoiceEmotion | undefined'.
+  Type 'string' is not assignable to type 'VoiceEmotion | undefined'.
+lib/ai/email-personalizer.ts(7,35): error TS2459: Module '"./lead-scorer"' declares 'LeadScore' locally, but it is not exported.
+lib/ai/email-personalizer.ts(8,37): error TS2459: Module '"./intent-scorer"' declares 'IntentScore' locally, but it is not exported.
+lib/ai/email-personalizer.ts(108,20): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ platinum: string[]; gold: string[]; silver: string[]; bronze: string[]; nurture: string[]; }'.
+lib/ai/entity-extractor.ts(133,15): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(133,65): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(134,48): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(134,66): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(136,17): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(138,51): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(139,32): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(139,58): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/entity-extractor.ts(140,15): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/ai/execution-pipeline.ts(205,23): error TS2339: Property 'language' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(207,21): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(307,44): error TS2339: Property 'stage' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(311,56): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(348,57): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(357,33): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(359,36): error TS2339: Property 'language' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(365,36): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(396,7): error TS2322: Type '"SEARCH_EXECUTED"' is not assignable to type 'ConversationStage | undefined'.
+lib/ai/execution-pipeline.ts(416,27): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/execution-pipeline.ts(467,25): error TS2339: Property 'intent' does not exist on type 'ReasoningOutput'.
+lib/ai/learning/interaction-tracker.ts(274,31): error TS2322: Type '"flights"' is not assignable to type 'TeamType'.
+lib/ai/learning/interaction-tracker.ts(274,42): error TS2322: Type '"hotels"' is not assignable to type 'TeamType'.
+lib/ai/learning/interaction-tracker.ts(274,52): error TS2322: Type '"payments"' is not assignable to type 'TeamType'.
+lib/ai/learning/interaction-tracker.ts(274,64): error TS2322: Type '"support"' is not assignable to type 'TeamType'.
+lib/ai/learning/interaction-tracker.ts(274,75): error TS2322: Type '"general"' is not assignable to type 'TeamType'.
+lib/ai/learning/ml-signal-engine.ts(318,7): error TS2322: Type '"general"' is not assignable to type 'TeamType'.
+lib/ai/learning/store-abstraction.ts(249,68): error TS2322: Type '{}' is not assignable to type 'Record<string, number>'.
+  Index signature for type 'string' is missing in type '{}'.
+lib/ai/learning/store-abstraction.ts(261,68): error TS2740: Type '{}' is missing the following properties from type 'Record<ResponsePattern, { success: number; total: number; }>': consultative, booking_confirm, inspirational, search_results, and 4 more.
+lib/ai/learning/store-abstraction.ts(261,76): error TS2740: Type '{}' is missing the following properties from type 'Record<ResponsePattern, { success: number; total: number; }>': consultative, booking_confirm, inspirational, search_results, and 4 more.
+lib/ai/learning/suggestion-engine.ts(189,13): error TS2322: Type '"general" | TeamType' is not assignable to type 'TeamType'.
+  Type '"general"' is not assignable to type 'TeamType'.
+lib/ai/llm-load-balancer.ts(122,21): error TS2367: This comparison appears to be unintentional because the types '"high" | "mid"' and '"low"' have no overlap.
+lib/ai/llm-load-balancer.ts(128,9): error TS2367: This comparison appears to be unintentional because the types '"high" | "mid"' and '"low"' have no overlap.
+lib/ai/llm-load-balancer.ts(135,34): error TS2367: This comparison appears to be unintentional because the types '"high" | "mid"' and '"low"' have no overlap.
+lib/ai/realtime-observability.ts(347,3): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ groq: "up"; openai: "up"; duffel: "up"; stripe: "up"; }'.
+  No index signature with a parameter of type 'string' was found on type '{ groq: "up"; openai: "up"; duffel: "up"; stripe: "up"; }'.
+lib/ai/reasoning-layer.ts(257,3): error TS2322: Type '"flights"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(258,3): error TS2322: Type '"hotels"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(259,3): error TS2322: Type '"payments"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(260,3): error TS2322: Type '"payments"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(261,3): error TS2322: Type '"support"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(262,3): error TS2322: Type '"support"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(263,3): error TS2322: Type '"flights"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(264,3): error TS2322: Type '"support"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(265,3): error TS2322: Type '"support"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(266,3): error TS2322: Type '"general"' is not assignable to type 'TeamType'.
+lib/ai/reasoning-layer.ts(606,5): error TS2322: Type '"hotels"' is not assignable to type 'TeamType | null'.
+lib/ai/reasoning-layer.ts(609,5): error TS2322: Type '"support"' is not assignable to type 'TeamType | null'.
+lib/ai/reasoning-layer.ts(711,5): error TS2322: Type '"general"' is not assignable to type 'TeamType | null'.
+lib/ai/session-manager.ts(98,7): error TS2322: Type '"GREETING"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(126,5): error TS2322: Type '"GREETING"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(127,5): error TS2322: Type '"GATHERING_DETAILS"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(130,5): error TS2322: Type '"SEARCH_EXECUTED"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(131,5): error TS2322: Type '"PRESENTING_OPTIONS"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(132,5): error TS2322: Type '"DEEP_DIVE"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(133,5): error TS2322: Type '"BOOKING_INTENT"' is not assignable to type 'ConversationStage'.
+lib/ai/session-manager.ts(134,5): error TS2322: Type '"CHECKOUT"' is not assignable to type 'ConversationStage'.
+lib/ai/smart-router.ts(107,8): error TS2352: Conversion of type 'HandoffSlots' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'HandoffSlots'.
+lib/ai/smart-router.ts(109,8): error TS2352: Conversion of type 'HandoffSlots' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'HandoffSlots'.
+lib/ai/smart-router.ts(738,31): error TS2339: Property 'stage' does not exist on type 'ReasoningOutput'.
+lib/ai/smart-router.ts(855,7): error TS2322: Type '"GATHERING_DETAILS"' is not assignable to type 'ConversationStage'.
+lib/airports/airport-helpers.ts(9,3): error TS2724: '"@/lib/data/airport-helpers"' has no exported member named 'getAirportDetails'. Did you mean 'getAirportStats'?
+lib/airports/airport-helpers.ts(10,3): error TS2614: Module '"@/lib/data/airport-helpers"' has no exported member 'getNearbyAirports'. Did you mean to use 'import getNearbyAirports from "@/lib/data/airport-helpers"' instead?
+lib/analytics/funnel-alerts.ts(51,9): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'AnalyticsEventWhereInput'.
+lib/api/liteapi.ts(405,9): error TS2393: Duplicate function implementation.
+lib/api/liteapi.ts(1252,9): error TS2393: Duplicate function implementation.
+lib/automation/consolidator-booking.ts(304,61): error TS2339: Property 'last' does not exist on type 'Promise<void>'.
+lib/bookings/providers/duffel-adapter.ts(63,39): error TS2339: Property 'penalty_amount' does not exist on type 'OrderCancellation'.
+lib/bookings/providers/duffel-adapter.ts(74,21): error TS2339: Property 'map' does not exist on type '{ baggage: any[]; seats: any[]; other: any[]; }'.
+lib/bookings/providers/duffel-adapter.ts(94,40): error TS2554: Expected 4 arguments, but got 2.
+lib/car-rental/location-database.ts(283,3): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/car-rental/location-database.ts(394,36): error TS1117: An object literal cannot have multiple properties with the same name.
+lib/database/transaction.ts(37,30): error TS2345: Argument of type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends">' is not assignable to parameter of type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$disconnect" | "$transaction" | "$extends" | "$use">'.
+  Type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends">' is missing the following properties from type 'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$disconnect" | "$transaction" | "$extends" | "$use">': $connect, $on
+lib/email/affiliate-notifications.ts(36,21): error TS2339: Property 'isConfigured' does not exist on type 'UnifiedClient'.
+lib/email/affiliate-notifications.ts(200,21): error TS2339: Property 'isConfigured' does not exist on type 'UnifiedClient'.
+lib/email/affiliate-notifications.ts(327,21): error TS2339: Property 'isConfigured' does not exist on type 'UnifiedClient'.
+lib/email/ai-decision-engine.ts(271,25): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+lib/email/ai-decision-engine.ts(279,36): error TS7006: Parameter 's' implicitly has an 'any' type.
+lib/email/ai-decision-engine.ts(279,39): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/email/campaign-flows.ts(74,22): error TS2561: Object literal may only specify known properties, but 'userId' does not exist in type 'bookingsWhereInput'. Did you mean to write 'user_id'?
+lib/email/campaign-flows.ts(87,22): error TS2561: Object literal may only specify known properties, but 'userId' does not exist in type 'bookingsWhereInput'. Did you mean to write 'user_id'?
+lib/email/campaign-flows.ts(152,22): error TS2561: Object literal may only specify known properties, but 'userId' does not exist in type 'bookingsWhereInput'. Did you mean to write 'user_id'?
+lib/email/campaign-flows.ts(407,11): error TS2561: Object literal may only specify known properties, but 'userId' does not exist in type 'bookingsWhereInput'. Did you mean to write 'user_id'?
+lib/email/price-alert.ts(432,14): error TS2339: Property 'simulated' does not exist on type 'SendResult'.
+lib/growth/ai-growth-brain.ts(358,16): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+lib/growth/ai-growth-brain.ts(364,42): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/growth/ai-growth-brain.ts(365,41): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/growth/ai-growth-brain.ts(423,37): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+lib/growth/ai-growth-brain.ts(427,36): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+lib/growth/ai-growth-brain.ts(430,42): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+lib/growth/ai-growth-brain.ts(433,38): error TS7006: Parameter 's' implicitly has an 'any' type.
+lib/growth/ai-growth-brain.ts(433,41): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/growth/ai-retention-engine.ts(232,46): error TS18048: 'event.data' is possibly 'undefined'.
+lib/growth/ai-retention-engine.ts(246,20): error TS2339: Property 'bookingCount' does not exist on type 'GrowthDecision'.
+lib/growth/ai-retention-engine.ts(379,20): error TS2339: Property 'webhookEvent' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+lib/growth/automation-engine.ts(257,11): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'AnalyticsEventWhereInput'.
+lib/growth/automation-engine.ts(286,13): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'AnalyticsEventWhereInput'.
+lib/growth/automation-engine.ts(294,13): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type 'AnalyticsEventWhereInput'.
+lib/growth/automation-engine.ts(314,11): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+lib/growth/automation-engine.ts(496,11): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventCreateInput, AnalyticsEventUncheckedCreateInput> & AnalyticsEventUncheckedCreateInput) | (Without<...> & AnalyticsEventCreateInput)'.
+lib/growth/automation-engine.ts(529,30): error TS2339: Property 'metadata' does not exist on type '{ url: string | null; userAgent: string | null; id: string; userId: string | null; sessionId: string; ipAddress: string | null; timestamp: Date; eventType: string; eventData: JsonValue; referrer: string | null; }'.
+lib/growth/automation-engine.ts(533,36): error TS2551: Property 'booking' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'. Did you mean 'bookings'?
+lib/growth/automation-engine.ts(548,13): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventUpdateInput, AnalyticsEventUncheckedUpdateInput> & AnalyticsEventUncheckedUpdateInput) | (Without<...> & AnalyticsEventUpdateInput)'.
+lib/growth/automation-engine.ts(577,30): error TS2339: Property 'metadata' does not exist on type '{ url: string | null; userAgent: string | null; id: string; userId: string | null; sessionId: string; ipAddress: string | null; timestamp: Date; eventType: string; eventData: JsonValue; referrer: string | null; }'.
+lib/growth/automation-engine.ts(581,11): error TS2353: Object literal may only specify known properties, and 'metadata' does not exist in type '(Without<AnalyticsEventUpdateInput, AnalyticsEventUncheckedUpdateInput> & AnalyticsEventUncheckedUpdateInput) | (Without<...> & AnalyticsEventUpdateInput)'.
+lib/growth/index.ts(60,15): error TS2305: Module '"./ai-growth-brain"' has no exported member 'UserContext'.
+lib/hooks/useIntentTracking.ts(4,30): error TS2459: Module '"@/lib/ai/intent-scorer"' declares 'IntentScore' locally, but it is not exported.
+lib/journey/services/AIExperienceEngine.ts(67,118): error TS2322: Type '"romantic"' is not assignable to type 'InterestType'.
+lib/journey/services/AIExperienceEngine.ts(98,109): error TS2322: Type '"romantic"' is not assignable to type 'InterestType'.
+lib/logging/quote-observability.ts(247,11): error TS2393: Duplicate function implementation.
+lib/logging/quote-observability.ts(282,11): error TS2393: Duplicate function implementation.
+lib/mappers/amadeus-hotel-mapper.ts(502,3): error TS2322: Type 'null' is not assignable to type 'string'.
+lib/mock-data/car-rentals.ts(688,9): error TS2322: Type '{ id: string; vehicle: { imageURL: string; acrissCode: string; description: string; category: string; seats: number; transmission: string; airConditioning: boolean; doors: number; fuelType: string; }; ... 16 more ...; badges: string[] | undefined; }[]' is not assignable to type 'AmadeusCarRental[]'.
+  Type '{ id: string; vehicle: { imageURL: string; acrissCode: string; description: string; category: string; seats: number; transmission: string; airConditioning: boolean; doors: number; fuelType: string; }; ... 16 more ...; badges: string[] | undefined; }' is not assignable to type 'AmadeusCarRental'.
+    Types of property 'price' are incompatible.
+      Type '{ currency: string; total: string; perDay: string; baseAmount: string; markup: string; markupPercent: number; }' is missing the following properties from type 'AmadeusCarRentalPrice': base, taxes
+lib/monitoring/global-error-handler.ts(230,25): error TS2304: Cannot find name 'CustomerErrorContext'.
+lib/monitoring/global-error-handler.ts(302,23): error TS2304: Cannot find name 'CustomerErrorContext'.
+lib/monitoring/global-error-handler.ts(356,21): error TS2304: Cannot find name 'CustomerErrorContext'.
+lib/monitoring/global-error-handler.ts(372,21): error TS2304: Cannot find name 'CustomerErrorContext'.
+lib/monitoring/global-error-handler.ts(388,21): error TS2304: Cannot find name 'CustomerErrorContext'.
+lib/monitoring/global-error-handler.ts(404,21): error TS2304: Cannot find name 'CustomerErrorContext'.
+lib/pdf/pdf-service.tsx(50,27): error TS2345: Argument of type 'Buffer<ArrayBufferLike>' is not assignable to parameter of type 'BodyInit | null | undefined'.
+  Type 'Buffer<ArrayBufferLike>' is missing the following properties from type 'URLSearchParams': size, append, delete, get, and 2 more.
+lib/popups/popup-orchestrator.ts(108,9): error TS2322: Type 'Map<string, PopupState>' is not assignable to type 'Map<PopupType, PopupState>'.
+  Type 'string' is not assignable to type 'PopupType'.
+lib/quotes/QuoteSchemaMapper.ts(244,39): error TS2304: Cannot find name 'travelers'.
+lib/quotes/QuoteSchemaMapper.ts(268,21): error TS2304: Cannot find name 'travelers'.
+lib/quotes/QuoteSchemaMapper.ts(279,31): error TS2304: Cannot find name 'travelers'.
+lib/quotes/QuoteSchemaMapper.ts(296,21): error TS2304: Cannot find name 'travelers'.
+lib/quotes/QuoteSchemaMapper.ts(304,43): error TS2304: Cannot find name 'travelers'.
+lib/quotes/QuoteSchemaMapper.ts(331,39): error TS2304: Cannot find name 'travelers'.
+lib/quotes/QuoteSchemaMapper.ts(383,32): error TS2339: Property 'title' does not exist on type 'QuoteItem'.
+  Property 'title' does not exist on type 'FlightItem'.
+lib/quotes/QuoteSchemaMapper.ts(384,46): error TS2339: Property 'notes' does not exist on type 'QuoteItem'.
+  Property 'notes' does not exist on type 'FlightItem'.
+lib/scaling/predictor.ts(108,9): error TS2322: Type '{ resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: number[]; riskLevel: "low"; }[] | { resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: [...]; riskLevel: "high" | ... 1 more ... | "medium"; }[]' is not assignable to type '{ resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: [number, number]; riskLevel: "high" | "low" | "medium"; }[]'.
+  Type '{ resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: number[]; riskLevel: "low"; }[]' is not assignable to type '{ resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: [number, number]; riskLevel: "high" | "low" | "medium"; }[]'.
+    Type '{ resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: number[]; riskLevel: "low"; }' is not assignable to type '{ resourceType: string; currentLoad: number; predictedLoad: number; confidenceInterval: [number, number]; riskLevel: "high" | "low" | "medium"; }'.
+      Types of property 'confidenceInterval' are incompatible.
+        Type 'number[]' is not assignable to type '[number, number]'.
+          Target requires 2 element(s) but source may have fewer.
+lib/seo/content-governance.ts(109,29): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
+lib/sustainability/carbon-calculator.ts(388,5): error TS2322: Type 'number' is not assignable to type 'CarbonFootprint'.
+lib/sustainability/carbon-calculator.ts(390,7): error TS2554: Expected 1 arguments, but got 4.
+lib/utils/blog-helpers.ts(87,9): error TS2741: Property 'analysis' is missing in type '{ blog: string; news: string; deal: string; guide: string; tip: string; story: string; }' but required in type 'Record<CategoryType, string>'.
+lib/utils/blog-helpers.ts(102,9): error TS2741: Property 'analysis' is missing in type '{ blog: string; news: string; deal: string; guide: string; tip: string; story: string; }' but required in type 'Record<CategoryType, string>'.
+lib/utils/blog-helpers.ts(117,9): error TS2741: Property 'analysis' is missing in type '{ blog: string; news: string; deal: string; guide: string; tip: string; story: string; }' but required in type 'Record<CategoryType, string>'.

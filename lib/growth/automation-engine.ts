@@ -251,7 +251,7 @@ export class DistributionRateLimiter {
     const windowStart = new Date(Date.now() - limit.windowHours * 60 * 60 * 1000);
 
     try {
-      const count = await prisma.analyticsEvent.count({
+      const count = await (prisma.analyticsEvent as any).count({
         where: {
           eventType: 'SOCIAL_POST',
           metadata: {
@@ -279,7 +279,7 @@ export class DistributionRateLimiter {
 
     try {
       const [dailyCount, weeklyCount] = await Promise.all([
-        prisma.analyticsEvent.count({
+        (prisma.analyticsEvent as any).count({
           where: {
             userId,
             eventType: 'EMAIL_SENT',
@@ -287,7 +287,7 @@ export class DistributionRateLimiter {
             createdAt: { gte: dailyWindow },
           },
         }),
-        prisma.analyticsEvent.count({
+        (prisma.analyticsEvent as any).count({
           where: {
             userId,
             eventType: 'EMAIL_SENT',
@@ -308,7 +308,7 @@ export class DistributionRateLimiter {
    */
   static async recordAction(channel: string, metadata?: Record<string, any>): Promise<void> {
     try {
-      await prisma.analyticsEvent.create({
+      await (prisma.analyticsEvent as any).create({
         data: {
           eventType: 'SOCIAL_POST',
           metadata: { channel, ...metadata },
@@ -488,7 +488,7 @@ export class CartAbandonmentTracker {
    */
   static async trackAbandonment(data: CartAbandonmentData): Promise<string> {
     try {
-      const event = await prisma.analyticsEvent.create({
+      const event = await (prisma.analyticsEvent as any).create({
         data: {
           eventType: 'CART_ABANDONED',
           userId: data.userId,
@@ -526,11 +526,11 @@ export class CartAbandonmentTracker {
 
       if (!event) return false;
 
-      const metadata = event.metadata as any;
+      const metadata = (event as any).metadata as any;
       const abandonedAt = new Date(metadata.abandonedAt);
 
       // Check for booking created after abandonment
-      const booking = await prisma.booking.findFirst({
+      const booking = await (prisma as any).bookings.findFirst({
         where: {
           OR: [
             { userId: event.userId || undefined },
@@ -542,7 +542,7 @@ export class CartAbandonmentTracker {
 
       if (booking) {
         // Mark as recovered
-        await prisma.analyticsEvent.update({
+        await (prisma.analyticsEvent as any).update({
           where: { id: abandonmentId },
           data: {
             metadata: {
@@ -574,8 +574,8 @@ export class CartAbandonmentTracker {
 
       if (!event) return;
 
-      const metadata = event.metadata as any;
-      await prisma.analyticsEvent.update({
+      const metadata = (event as any).metadata as any;
+      await (prisma.analyticsEvent as any).update({
         where: { id: abandonmentId },
         data: {
           metadata: {

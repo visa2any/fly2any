@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { Suspense } from 'react';
 
 function PopupSignInContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const [error, setError] = useState<string | null>(null);
   const callbackUrl = searchParams.get('callbackUrl') || '/account';
 

@@ -14,6 +14,17 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { normalizeVoiceInput, detectLanguageFromVoice, detectEmotionFromVoice } from '@/lib/ai/voice-input';
 
+// Web Speech API types (not in standard TS lib)
+type SpeechRecognition = any;
+type SpeechRecognitionEvent = any;
+type SpeechRecognitionErrorEvent = any;
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 export interface VoiceInputState {
   isListening: boolean;
   isSupported: boolean;
@@ -171,18 +182,18 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
           final += result[0].transcript;
 
           const normalized = normalizeVoiceInput(result[0].transcript);
-          const detectedLang = detectLanguageFromVoice(normalized.text);
-          const emotion = detectEmotionFromVoice(normalized.text);
+          const detectedLang = detectLanguageFromVoice(normalized.normalizedText);
+          const emotion = detectEmotionFromVoice(normalized.normalizedText);
 
           setState(s => ({
             ...s,
-            transcript: normalized.text,
+            transcript: normalized.normalizedText,
             confidence: result[0].confidence || 0.8,
             language: detectedLang,
             emotion: emotion,
           }));
 
-          onTranscript?.(normalized.text, { language: detectedLang, emotion });
+          onTranscript?.(normalized.normalizedText, { language: detectedLang, emotion });
         } else {
           interim += result[0].transcript;
         }
@@ -337,10 +348,3 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   };
 }
 
-// Type declarations for Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}

@@ -1,5 +1,5 @@
 /**
- * ADVANCED ROBOTS.TXT CONFIGURATION - 2025 EDITION
+ * ADVANCED ROBOTS.TXT CONFIGURATION - 2026 EDITION
  *
  * Controls search engine crawler access with:
  * - AI bot management (ChatGPT, Claude, Perplexity)
@@ -7,8 +7,8 @@
  * - Rate limiting for aggressive bots
  * - Strategic content access control
  *
- * @version 2.1.0
- * @last-updated 2025-12-26
+ * @version 2.2.0
+ * @last-updated 2026-03-10
  */
 
 import { MetadataRoute } from 'next';
@@ -62,6 +62,7 @@ export default function robots(): MetadataRoute.Robots {
           '/',
           '/flights/',
           '/hotels/',
+          '/cars/',
           '/tours/',
           '/activities/',
           '/transfers/',
@@ -85,6 +86,7 @@ export default function robots(): MetadataRoute.Robots {
           '/',
           '/flights/',
           '/hotels/',
+          '/cars/',
           '/tours/',
           '/activities/',
           '/transfers/',
@@ -108,6 +110,7 @@ export default function robots(): MetadataRoute.Robots {
           '/',
           '/flights/',
           '/hotels/',
+          '/cars/',
           '/tours/',
           '/activities/',
           '/transfers/',
@@ -127,9 +130,9 @@ export default function robots(): MetadataRoute.Robots {
       },
 
       // === AI SEARCH ENGINES - ChatGPT, Google AI, Cohere (Full Access) ===
-      // OAI-SearchBot = ChatGPT Search (Dec 2025: primary search crawler)
+      // OAI-SearchBot = ChatGPT Search (primary search crawler)
       // GPTBot = Training data collection
-      // ChatGPT-User = User-initiated browsing (Dec 2025: ignores robots.txt)
+      // ChatGPT-User = User-initiated browsing (ignores robots.txt)
       {
         userAgent: ['OAI-SearchBot'], // ChatGPT Search - PRIORITY
         allow: '/',
@@ -149,6 +152,7 @@ export default function robots(): MetadataRoute.Robots {
           '/',
           '/flights/',
           '/hotels/',
+          '/cars/',
           '/tours/',
           '/activities/',
           '/transfers/',
@@ -178,6 +182,7 @@ export default function robots(): MetadataRoute.Robots {
           '/',
           '/flights/',
           '/hotels/',
+          '/cars/',
           '/tours/',
           '/activities/',
           '/transfers/',
@@ -287,13 +292,13 @@ export default function robots(): MetadataRoute.Robots {
     ],
 
     // Sitemap references - organized by content type
+    // Next.js route handlers serve at /sitemaps/routes (no .xml extension)
     sitemap: [
-      `${SITE_URL}/sitemap-index.xml`,         // Master index
-      `${SITE_URL}/sitemap.xml`,               // Core pages
-      `${SITE_URL}/sitemaps/routes.xml`,       // Flight routes
-      `${SITE_URL}/sitemaps/cities.xml`,       // City pages
-      `${SITE_URL}/sitemaps/destinations.xml`, // Destinations & deals
-      `${SITE_URL}/sitemaps/blog.xml`,         // Blog & content
+      `${SITE_URL}/sitemap.xml`,              // Core pages (Next.js auto-generated)
+      `${SITE_URL}/sitemaps/routes`,          // Flight routes (~8,350 URLs)
+      `${SITE_URL}/sitemaps/cities`,          // City pages
+      `${SITE_URL}/sitemaps/destinations`,    // Destinations & deals
+      `${SITE_URL}/sitemaps/blog`,            // Blog & content
     ],
 
     // Host declaration (helps with multi-domain setups)

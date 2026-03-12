@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: { city: string } })
       description: `Explore top tours and activities in ${cityInfo.title}. Book with instant confirmation.`,
       url: `${SITE_URL}/activities/in/${citySlug}`,
       type: "website",
+      images: [{ url: `${SITE_URL}/api/og?title=Activities in ${encodeURIComponent(cityInfo.title)}`, width: 1200, height: 630 }],
     },
     alternates: { canonical: `${SITE_URL}/activities/in/${citySlug}` },
   };
@@ -51,6 +52,28 @@ export default function ActivitiesInCityLayout({ children, params }: { children:
       name: cityInfo.title,
       description: `Explore tours and activities in ${cityInfo.title}`,
       touristType: ["Adventure travelers", "Cultural tourists", "Family travelers"],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: `What are the best things to do in ${cityInfo.title}?`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: `Top activities in ${cityInfo.title} include ${cityInfo.activities}. Fly2Any offers 50,000+ bookable experiences with instant confirmation and free cancellation.`,
+          },
+        },
+        {
+          "@type": "Question",
+          name: `How much do activities cost in ${cityInfo.title}?`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: `Activity prices in ${cityInfo.title} range from $15 for walking tours to $150+ for premium experiences. Most popular activities are $30-$80 per person with free cancellation available.`,
+          },
+        },
+      ],
     },
   ];
 

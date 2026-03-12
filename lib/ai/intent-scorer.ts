@@ -31,7 +31,7 @@ interface UserSignals {
   avgPriceViewed: number;
 }
 
-interface IntentScore {
+export interface IntentScore {
   score: number; // 0-100
   level: 'cold' | 'warm' | 'hot' | 'ready';
   confidence: number;

@@ -22,7 +22,7 @@ const SendQuoteModal = lazy(() => import("@/components/agent/quote-workspace/ove
 const QuoteTemplatesPanel = lazy(() => import("@/components/agent/quote-workspace/overlays/QuoteTemplatesPanel"));
 
 export default function QuoteWorkspace() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const quoteId = searchParams?.get("id") || undefined;
 
   return (

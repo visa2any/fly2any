@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/card';
 
 function InsuranceResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

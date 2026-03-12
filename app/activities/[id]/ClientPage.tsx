@@ -28,7 +28,7 @@ interface ActivityDetailsClientProps {
 }
 
 export default function ActivityDetailsClient({ initialData }: ActivityDetailsClientProps) {
-  const params = useParams();
+  const params = useParams()!;
   const router = useRouter();
   const [activity, setActivity] = useState<ActivityData | null>(initialData.id ? initialData : null);
   const [loading, setLoading] = useState(!initialData.id);

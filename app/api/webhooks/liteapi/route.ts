@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     // Idempotency check - prevent duplicate processing
     if (webhookId) {
-      const existing = await prisma.webhookEvent.findUnique({
+      const existing = await (prisma as any).webhookEvent.findUnique({
         where: { id: webhookId },
       }).catch(() => null);
 
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log webhook to database
-    const webhookEvent = await prisma.webhookEvent.create({
+    const webhookEvent = await (prisma as any).webhookEvent.create({
       data: {
         id: webhookId || `liteapi_${Date.now()}`,
         eventType: event,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
 
       // Mark webhook as processed
       if (webhookEvent) {
-        await prisma.webhookEvent.update({
+        await (prisma as any).webhookEvent.update({
           where: { id: webhookEvent.id },
           data: { status: 'processed', processedAt: new Date() },
         }).catch(() => null);
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     } catch (handlerError: any) {
       console.error(`[LiteAPI] Handler error:`, handlerError);
       if (webhookEvent) {
-        await prisma.webhookEvent.update({
+        await (prisma as any).webhookEvent.update({
           where: { id: webhookEvent.id },
           data: { status: 'failed', errorMessage: handlerError.message },
         }).catch(() => null);
@@ -182,7 +182,7 @@ async function handleBookingConfirmed(data: LiteAPIWebhookPayload['data']) {
         { liteApiBookingId: data.bookingId },
         { confirmationNumber: data.confirmationNumber },
       ],
-    },
+    } as any,
     data: {
       status: 'confirmed',
       confirmationNumber: data.confirmationNumber || undefined,
@@ -203,12 +203,12 @@ async function handleBookingConfirmed(data: LiteAPIWebhookPayload['data']) {
         { liteApiBookingId: data.bookingId },
         { confirmationNumber: data.confirmationNumber },
       ],
-    },
-    include: { user: true },
+    } as any,
+    include: { user: true } as any,
   }).catch(() => null);
 
   // Send confirmation email
-  const guestEmail = data.guest?.email || booking?.user?.email || booking?.guestEmail;
+  const guestEmail = data.guest?.email || (booking as any)?.user?.email || booking?.guestEmail;
   if (guestEmail && resendClient.isConfigured()) {
     await resendClient.send({
       from: RESEND_CONFIG.fromEmail,
@@ -261,7 +261,7 @@ async function handleBookingCancelled(data: LiteAPIWebhookPayload['data']) {
         { liteApiBookingId: data.bookingId },
         { confirmationNumber: data.confirmationNumber },
       ],
-    },
+    } as any,
     data: {
       status: 'cancelled',
       updatedAt: new Date(),
@@ -272,12 +272,12 @@ async function handleBookingCancelled(data: LiteAPIWebhookPayload['data']) {
 
   // Get booking for notification
   const booking = await prisma.hotelBooking.findFirst({
-    where: { liteApiBookingId: data.bookingId },
-    include: { user: true },
+    where: { liteApiBookingId: data.bookingId } as any,
+    include: { user: true } as any,
   }).catch(() => null);
 
   // Send cancellation email
-  const guestEmail = data.guest?.email || booking?.user?.email || booking?.guestEmail;
+  const guestEmail = data.guest?.email || (booking as any)?.user?.email || booking?.guestEmail;
   if (guestEmail && resendClient.isConfigured()) {
     await resendClient.send({
       from: RESEND_CONFIG.fromEmail,
@@ -315,7 +315,7 @@ async function handleBookingModified(data: LiteAPIWebhookPayload['data']) {
   console.log(`[LiteAPI] 📝 Booking modified: ${data.bookingId}`);
 
   await prisma.hotelBooking.updateMany({
-    where: { liteApiBookingId: data.bookingId },
+    where: { liteApiBookingId: data.bookingId } as any,
     data: {
       checkInDate: data.checkIn ? new Date(data.checkIn) : undefined,
       checkOutDate: data.checkOut ? new Date(data.checkOut) : undefined,
@@ -325,7 +325,7 @@ async function handleBookingModified(data: LiteAPIWebhookPayload['data']) {
 
   // Get booking for notification
   const booking = await prisma.hotelBooking.findFirst({
-    where: { liteApiBookingId: data.bookingId },
+    where: { liteApiBookingId: data.bookingId } as any,
   }).catch(() => null);
 
   if (booking?.userId) {
@@ -345,7 +345,7 @@ async function handleBookingFailed(data: LiteAPIWebhookPayload['data']) {
   console.error(`[LiteAPI] ⚠️ Booking failed: ${data.bookingId} - ${data.status}`);
 
   await prisma.hotelBooking.updateMany({
-    where: { liteApiBookingId: data.bookingId },
+    where: { liteApiBookingId: data.bookingId } as any,
     data: {
       status: 'failed',
       updatedAt: new Date(),
@@ -370,7 +370,7 @@ async function handlePaymentCompleted(data: LiteAPIWebhookPayload['data']) {
   console.log(`[LiteAPI] 💰 Payment completed: ${data.bookingId} - ${data.payment?.amount} ${data.payment?.currency}`);
 
   await prisma.hotelBooking.updateMany({
-    where: { liteApiBookingId: data.bookingId },
+    where: { liteApiBookingId: data.bookingId } as any,
     data: {
       paymentStatus: 'paid',
       totalPrice: data.payment?.amount,
@@ -384,7 +384,7 @@ async function handlePaymentRefunded(data: LiteAPIWebhookPayload['data']) {
   console.log(`[LiteAPI] 💸 Refund processed: ${data.bookingId} - ${data.refund?.amount} ${data.refund?.currency}`);
 
   await prisma.hotelBooking.updateMany({
-    where: { liteApiBookingId: data.bookingId },
+    where: { liteApiBookingId: data.bookingId } as any,
     data: {
       paymentStatus: 'refunded',
       updatedAt: new Date(),
@@ -392,7 +392,7 @@ async function handlePaymentRefunded(data: LiteAPIWebhookPayload['data']) {
   }).catch(() => null);
 
   const booking = await prisma.hotelBooking.findFirst({
-    where: { liteApiBookingId: data.bookingId },
+    where: { liteApiBookingId: data.bookingId } as any,
   }).catch(() => null);
 
   if (booking?.userId) {

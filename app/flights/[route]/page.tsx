@@ -88,7 +88,7 @@ function getLocationName(code: string): string {
   return code.toUpperCase();
 }
 
-// Generate metadata for this route
+// Generate metadata for this route — optimized for CTR in SERPs
 export async function generateMetadata({ params }: { params: RouteParams }): Promise<Metadata> {
   const parsed = parseRouteSlug(params.route);
 
@@ -104,24 +104,79 @@ export async function generateMetadata({ params }: { params: RouteParams }): Pro
   const originName = getLocationName(origin);
   const destinationName = getLocationName(destination);
 
-  const currentYear = new Date().getFullYear();
+  // Get pricing data for compelling titles (deterministic, no API call)
+  const est = generateDeterministicData(origin, destination);
+  const priceFrom = est.price;
+  const duration = est.duration;
 
-  return genMeta({
-    title: `Cheap Flights from ${originName} to ${destinationName} ${currentYear} - Compare Prices`,
-    description: `Find the best flight deals from ${originName} (${origin}) to ${destinationName} (${destination}). Compare prices from 500+ airlines, track price alerts, and book with confidence. Save up to 40% on flights to ${destinationName}.`,
+  // Short names for titles (strip state/country for brevity)
+  const originShort = originName.split(',')[0].trim();
+  const destinationShort = destinationName.split(',')[0].trim();
+
+  // Vary title patterns based on route characteristics for SERP differentiation
+  const seed = origin.charCodeAt(0) + destination.charCodeAt(0);
+  const titleVariant = seed % 4;
+
+  let title: string;
+  switch (titleVariant) {
+    case 0:
+      title = `${origin} to ${destination} Flights from $${priceFrom} | ${originShort} to ${destinationShort}`;
+      break;
+    case 1:
+      title = `Flights ${originShort} to ${destinationShort} — From $${priceFrom} | Compare & Save`;
+      break;
+    case 2:
+      title = `${originShort} to ${destinationShort} Flights from $${priceFrom} (${duration})`;
+      break;
+    default:
+      title = `${origin}→${destination} from $${priceFrom} | Cheap ${destinationShort} Flights`;
+      break;
+  }
+
+  // Description with specific data points that drive clicks
+  const description = `${origin} to ${destination} flights from $${priceFrom}. Flight time ~${duration}. Compare 900+ airlines, find direct flights, and track prices. Book ${originShort} to ${destinationShort} with free cancellation options.`;
+
+  const canonicalUrl = `${SITE_URL}/flights/${origin.toLowerCase()}-to-${destination.toLowerCase()}`;
+
+  return {
+    title,
+    description,
     keywords: [
       `${origin} to ${destination} flights`,
-      `flights from ${originName} to ${destinationName}`,
-      `cheap ${origin} ${destination} flights`,
-      `${origin}-${destination} airfare`,
-      `best time to fly ${origin} to ${destination}`,
-      `${destinationName} flights from ${originName}`,
-      `book ${origin} to ${destination}`,
-      `${origin} ${destination} flight deals`,
-    ],
-    canonical: `${SITE_URL}/flights/${params.route}`,
-    ogType: 'website',
-  });
+      `${originShort} to ${destinationShort} flights`,
+      `cheap flights ${origin} ${destination}`,
+      `${origin} ${destination} airfare`,
+      `flights from ${originShort} to ${destinationShort}`,
+      `${destination} flights from ${origin}`,
+    ].join(', '),
+    openGraph: {
+      title: `${origin} to ${destination} Flights from $${priceFrom} | Fly2Any`,
+      description,
+      type: 'website',
+      url: canonicalUrl,
+      siteName: 'Fly2Any',
+      images: [{
+        url: `${SITE_URL}/api/og?origin=${origin}&destination=${destination}&price=${priceFrom}`,
+        width: 1200,
+        height: 630,
+        alt: `Flights from ${originShort} to ${destinationShort}`,
+      }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${origin}→${destination} from $${priceFrom} | Fly2Any`,
+      description: `Compare ${originShort} to ${destinationShort} flights. From $${priceFrom}, ~${duration} flight time.`,
+    },
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large' as const,
+      'max-snippet': -1,
+    },
+  };
 }
 
 // Generate static params — all worldwide routes from seoEngine
@@ -368,7 +423,7 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
               Flights from {originName} to {destinationName}
             </h1>
             <p className="text-xl text-blue-100 mb-6">
-              Compare prices from 500+ airlines and find the best deals on flights from {origin} to {destination}.
+              Compare prices from 900+ airlines and find the best deals on flights from {origin} to {destination}.
               {pricing.isEstimated && <span className="block text-sm mt-2 opacity-80">*Prices shown are estimated based on historical data.</span>}
             </p>
 
@@ -413,7 +468,7 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
                 Search Flights from {origin} to {destination}
               </a>
               <p className="text-sm text-gray-500 mt-4">
-                ⚡ Check 500+ airlines instantly
+                ⚡ Check 900+ airlines instantly
               </p>
             </div>
           </div>
@@ -535,7 +590,7 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
               Ready to Book Your Flight?
             </h2>
             <p className="text-xl text-blue-100 mb-8">
-              Search now and compare prices from 500+ airlines
+              Search now and compare prices from 900+ airlines
             </p>
             <a
               href={`/flights/results?origin=${origin}&destination=${destination}`}

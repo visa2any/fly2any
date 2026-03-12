@@ -51,7 +51,7 @@ const CATEGORIES: Record<string, { name: string; icon: string; desc: string; her
 };
 
 export default function AllCategoryPage() {
-  const params = useParams();
+  const params = useParams()!;
   const category = (params.category as string) || 'cruises';
   const [selectedRegion, setSelectedRegion] = useState('all');
 

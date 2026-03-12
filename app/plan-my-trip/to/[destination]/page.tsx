@@ -19,7 +19,7 @@ const DEST_DATA: Record<string, { name: string; highlights: string[]; bestTime: 
 };
 
 export default function PlanTripToPage() {
-  const params = useParams();
+  const params = useParams()!;
   const slug = params.destination as string;
   const dest = DEST_DATA[slug] || { name: slug.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()), highlights: [], bestTime: "Year-round", duration: "7-14 days", from: 1999, image: "default" };
 

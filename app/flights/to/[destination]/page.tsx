@@ -245,7 +245,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function DestinationPage() {
-  const params = useParams();
+  const params = useParams()!;
   const slug = params.destination as string;
   const dest = destinations[slug];
 

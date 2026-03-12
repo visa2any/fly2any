@@ -119,7 +119,7 @@ interface BookingDetails {
 }
 
 function BookingConfirmationContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const processedRef = useRef(false);
 

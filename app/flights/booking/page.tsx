@@ -32,7 +32,7 @@ import { Loader2 } from 'lucide-react';
  */
 function BookingRedirectContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   useEffect(() => {
     // Preserve all query parameters when redirecting

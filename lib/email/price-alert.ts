@@ -429,7 +429,7 @@ export async function sendPriceAlertEmail(params: PriceAlertEmailParams): Promis
     throw new Error(`Price alert email failed: ${result.error}`);
   }
 
-  if (result.simulated) {
+  if ((result as any).simulated) {
     console.log(`📧 Price alert email simulated (dev) for ${params.to}`);
   } else {
     console.log(`✅ Price alert email sent to ${params.to}:`, result.messageId);

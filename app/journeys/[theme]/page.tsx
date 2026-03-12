@@ -168,7 +168,7 @@ function PackageCard({ pkg, theme }: { pkg: typeof THEME_DATA["romantic-getaways
 }
 
 export default function JourneyThemePage() {
-  const params = useParams();
+  const params = useParams()!;
   const themeSlug = params.theme as string;
   const theme = THEME_DATA[themeSlug] || {
     name: themeSlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),

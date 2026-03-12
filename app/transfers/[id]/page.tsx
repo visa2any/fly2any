@@ -6,7 +6,7 @@ import TransferDetailsClient from './ClientPage';
 import { Loader2 } from 'lucide-react';
 
 function TransferDetailsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   // Get transfer data from URL params (passed from results page)
   const transferData = {

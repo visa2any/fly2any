@@ -22,7 +22,7 @@ import { formatCurrency } from '@/lib/utils';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const { items, total, currency, clearCart, updatePassengerInfo } = useFlightCart();
   
   // Handle null searchParams

@@ -15,7 +15,7 @@ import { Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 function UnsubscribeContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const email = searchParams.get('email');
 
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');

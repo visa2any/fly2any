@@ -372,11 +372,11 @@ class BookingStorage {
         if (params.bookingType === 'car') {
           // Car bookings: booking_type = 'car' OR flight->>'type' = 'car_rental'
           conditions.push(`(booking_type = 'car' OR flight->>'type' = 'car_rental')`);
-        } else if (params.bookingType === 'activity') {
+        } else if ((params.bookingType as string) === 'activity') {
           conditions.push(`(booking_type = 'activity' OR flight->>'type' = 'activity')`);
-        } else if (params.bookingType === 'tour') {
+        } else if ((params.bookingType as string) === 'tour') {
           conditions.push(`(booking_type = 'tour' OR flight->>'type' = 'tour')`);
-        } else if (params.bookingType === 'transfer') {
+        } else if ((params.bookingType as string) === 'transfer') {
           conditions.push(`(booking_type = 'transfer' OR flight->>'type' = 'transfer')`);
         } else {
           // Flight bookings: booking_type IS NULL or 'flight', exclude other types
@@ -518,22 +518,23 @@ class BookingStorage {
 
     return bookings.map(b => {
       // Determine product type from booking_type column or flight.type fallback
-      const flightType = b.flight?.type;
+      const flightType = (b.flight as any)?.type;
+      const bType = b.bookingType as string | undefined;
       let productType: 'flight' | 'car' | 'activity' | 'tour' | 'transfer' = 'flight';
-      if (b.bookingType === 'car' || flightType === 'car_rental') productType = 'car';
-      else if (b.bookingType === 'activity' || flightType === 'activity') productType = 'activity';
-      else if (b.bookingType === 'tour' || flightType === 'tour') productType = 'tour';
-      else if (b.bookingType === 'transfer' || flightType === 'transfer') productType = 'transfer';
+      if (bType === 'car' || flightType === 'car_rental') productType = 'car';
+      else if (bType === 'activity' || flightType === 'activity') productType = 'activity';
+      else if (bType === 'tour' || flightType === 'tour') productType = 'tour';
+      else if (bType === 'transfer' || flightType === 'transfer') productType = 'transfer';
 
-      const mainPassenger = b.passengers?.[0] || {};
+      const mainPassenger = b.passengers?.[0] || {} as any;
       const customerName = mainPassenger.firstName && mainPassenger.lastName
         ? `${mainPassenger.firstName} ${mainPassenger.lastName}`.trim()
-        : b.contactInfo?.name || 'Unknown';
+        : (b.contactInfo as any)?.name || 'Unknown';
       const customerEmail = mainPassenger.email || b.contactInfo?.email;
 
       if (productType === 'car') {
         // Car rental booking
-        const carData = b.flight;
+        const carData = b.flight as any;
         const rental = carData?.rental || {};
         return {
           id: b.id,
@@ -559,7 +560,7 @@ class BookingStorage {
 
       if (productType === 'activity') {
         // Activity booking
-        const activityData = b.flight;
+        const activityData = b.flight as any;
         return {
           id: b.id,
           bookingReference: b.bookingReference,
@@ -581,7 +582,7 @@ class BookingStorage {
 
       if (productType === 'tour') {
         // Tour booking
-        const tourData = b.flight;
+        const tourData = b.flight as any;
         return {
           id: b.id,
           bookingReference: b.bookingReference,
@@ -603,7 +604,7 @@ class BookingStorage {
 
       if (productType === 'transfer') {
         // Transfer booking
-        const transferData = b.flight;
+        const transferData = b.flight as any;
         return {
           id: b.id,
           bookingReference: b.bookingReference,

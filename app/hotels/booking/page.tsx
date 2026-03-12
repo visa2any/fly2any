@@ -74,7 +74,7 @@ interface HotelBookingData {
 
 function HotelCheckoutContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const { data: session } = useSession();
 
   // States

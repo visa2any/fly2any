@@ -143,7 +143,7 @@ async function handleAutoTicketCallback(payload: N8NWebhookPayload) {
 
   if (success && data?.pnr) {
     // Success: Update booking with PNR
-    const customerPaid = booking.totalPrice || booking.price || 0;
+    const customerPaid = (booking as any).totalPrice || (booking as any).price || 0;
     const profit = customerPaid - (data.consolidatorPrice || 0);
 
     await bookingStorage.update(bookingId, {
@@ -218,7 +218,7 @@ async function handleBookingConfirmCallback(payload: N8NWebhookPayload) {
       status: 'confirmed',
       confirmedAt: new Date().toISOString(),
       consolidatorReference: data?.consolidatorReference,
-    });
+    } as any);
   }
 
   return NextResponse.json({ success, processed: true });

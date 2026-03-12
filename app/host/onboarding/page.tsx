@@ -58,7 +58,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 
 export default function PostPublishOnboarding() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const propertyId = searchParams?.get('propertyId');
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [showConfetti, setShowConfetti] = useState(true);

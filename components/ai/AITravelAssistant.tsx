@@ -751,7 +751,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
                           team: metadata.team || consultant.team,
                         }
                       : m.consultant,
-                  }
+                  } as Message
                 : m
             )
           );
@@ -1009,7 +1009,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
           queryText,
           consultant,
           handoffHistory,
-          previousTeam,
+          previousTeam as TeamType | undefined,
           'handoff'
         );
 
@@ -1078,6 +1078,11 @@ export function AITravelAssistant({ language = 'en' }: Props) {
 
       return; // Exit early for conversational responses
     }
+
+    // Build conversation history for AI (used across flight, hotel, and general branches)
+    const conversationHistoryForAI = messages
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
     // SMART FLIGHT SEARCH TRIGGER: Also trigger for follow-up responses in flight context
     // This handles cases like: Sarah asks "one-way or round-trip?" → User says "Both"
@@ -1597,10 +1602,6 @@ export function AITravelAssistant({ language = 'en' }: Props) {
     if (!isFlightQuery && !isHotelQuery) {
       // ALL OTHER QUERIES - Use REAL AI streaming
       // This ensures human-like, contextual responses instead of templates
-      const conversationHistoryForAI = messages
-        .filter(m => m.role === 'user' || m.role === 'assistant')
-        .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
-
       let responseContent: string;
 
       try {
@@ -1651,7 +1652,7 @@ export function AITravelAssistant({ language = 'en' }: Props) {
       // GLOBAL ERROR CATCH - ensures UI never breaks silently
       console.error('[AI Assistant] Unhandled error:', error);
       setIsTyping(false);
-      const consultant = getConsultant('concierge');
+      const consultant = getConsultant('concierge' as any);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',

@@ -5,6 +5,7 @@ import type { Booking } from '@/lib/bookings/types';
 const COMPANY_NAME = 'Fly2Any';
 const SUPPORT_EMAIL = 'fly2any.travel@gmail.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fly2any.travel@gmail.com';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@fly2any.com';
 
 // Email failure tracking (for retry logic)
 interface EmailFailure {

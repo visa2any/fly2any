@@ -53,7 +53,7 @@ const CATEGORIES: Record<string, { name: string; icon: string; desc: string; her
 };
 
 export default function CategoryPage() {
-  const params = useParams();
+  const params = useParams()!;
   const destination = (params.destination as string) || '';
   const category = (params.category as string) || '';
 

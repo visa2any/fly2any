@@ -6,7 +6,7 @@
  */
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
-const INDEXNOW_KEY = process.env.INDEXNOW_KEY || 'fly2any-indexnow-key-2025';
+const INDEXNOW_KEY = process.env.INDEXNOW_KEY || 'fly2any-indexnow-key-2026';
 
 // IndexNow endpoints (all share the same key)
 const INDEXNOW_ENDPOINTS = [

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { WizardStep } from '@/lib/properties/types';
+import type { WizardStep } from '../page';
 
 // --- Per-Step Validation Schemas ---
 

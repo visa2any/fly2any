@@ -446,7 +446,7 @@ export default function BookingConfirmationContent() {
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'NOT_STARTED' | 'PENDING' | 'VERIFIED' | 'REJECTED' | null>(null);
   const [verificationCountdown, setVerificationCountdown] = useState(24 * 60 * 60); // 24 hours in seconds
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const t = content[lang];
 

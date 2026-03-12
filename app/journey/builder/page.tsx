@@ -68,7 +68,7 @@ interface FlightOption {
 // ============================================================================
 
 function JourneyBuilderContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const [loading, setLoading] = useState(true);
   const [selectedFlights, setSelectedFlights] = useState<Record<number, FlightOption | null>>({});
   const [flightOptions, setFlightOptions] = useState<Record<number, FlightOption[]>>({});

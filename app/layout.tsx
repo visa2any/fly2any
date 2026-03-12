@@ -50,12 +50,12 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Fly2Any - Find Cheap Flights & Best Travel Deals 2025",
-  description: "Compare flights from 500+ airlines with AI-powered search. Find cheap flights, track price alerts, and book with confidence at Fly2Any.",
+  title: "Fly2Any - Find Cheap Flights & Best Travel Deals 2026",
+  description: "Compare flights from 900+ airlines with AI-powered search. Find cheap flights, track price alerts, and book with confidence at Fly2Any.",
   keywords: "cheap flights, flight deals, airline tickets, travel booking, flight search, airfare, best flight prices, compare flights, flight comparison, travel deals, vacation packages, international flights, domestic flights",
   openGraph: {
     title: "Fly2Any - Smart Flight Search & Booking with AI",
-    description: "AI-powered flight search with price predictions, flexible dates, and multi-flight comparison. Compare 500+ airlines and find your perfect flight.",
+    description: "AI-powered flight search with price predictions, flexible dates, and multi-flight comparison. Compare 900+ airlines and find your perfect flight.",
     type: "website",
     url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com',
     siteName: "Fly2Any",
@@ -109,7 +109,7 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com'),
   alternates: {
-    canonical: './',
+    canonical: process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com',
   },
 };
 

@@ -102,7 +102,7 @@ function isInternationalRoute(from: string, to: string): boolean {
 
 function BookingPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   // CRITICAL: Use global currency context for E2E consistency (PT-BR = BRL)
   const { currency: userCurrency, format: formatCurrency, convert: convertPrice } = useCurrency();

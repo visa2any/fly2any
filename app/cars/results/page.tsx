@@ -173,7 +173,7 @@ function formatFuelType(fuelType: string): string {
 // ===========================
 
 function CarResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [cars, setCars] = useState<CarRental[]>([]);
   const [loading, setLoading] = useState(true);

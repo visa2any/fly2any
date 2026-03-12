@@ -42,8 +42,8 @@ import { Car } from 'lucide-react';
 
 export default function AdminBookingDetailPage() {
   const router = useRouter();
-  const params = useParams();
-  const searchParams = useSearchParams();
+  const params = useParams()!;
+  const searchParams = useSearchParams()!;
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmingPayment, setConfirmingPayment] = useState(false);

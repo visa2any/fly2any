@@ -268,7 +268,7 @@ export class AIEmailDecisionEngine {
     try {
       const [stats, bookings, alerts] = await Promise.all([
         prisma.emailLog.aggregate({ where: { recipientEmail: email }, _count: { id: true }, _max: { sentAt: true, openedAt: true } }).catch(() => null),
-        userId ? prisma.booking.findMany({ where: { userId }, select: { totalAmount: true, createdAt: true }, orderBy: { createdAt: 'desc' }, take: 10 }).catch(() => []) : [],
+        userId ? prisma.bookings.findMany({ where: { userId }, select: { totalAmount: true, createdAt: true }, orderBy: { createdAt: 'desc' }, take: 10 }).catch(() => []) : [],
         userId ? prisma.priceAlert?.count({ where: { userId } }).catch(() => 0) : 0,
       ]);
       let unopened = 0;
@@ -276,7 +276,7 @@ export class AIEmailDecisionEngine {
         const recent = await prisma.emailLog.findMany({ where: { recipientEmail: email }, orderBy: { sentAt: 'desc' }, take: 5, select: { openedAt: true } }).catch(() => []);
         for (const e of recent) { if (!e.openedAt) unopened++; else break; }
       }
-      const ltv = bookings.reduce((s, b) => s + (b.totalAmount || 0), 0);
+      const ltv = bookings.reduce((s: number, b: any) => s + (b.totalAmount || 0), 0);
       const last = stats?._max?.openedAt || stats?._max?.sentAt;
       const inactive = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : 0;
       return {

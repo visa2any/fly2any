@@ -118,7 +118,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function TripDetailPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = useParams()!;
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

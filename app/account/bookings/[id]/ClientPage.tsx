@@ -47,7 +47,7 @@ interface BookingResponse {
 }
 
 export default function BookingDetailPage() {
-  const params = useParams();
+  const params = useParams()!;
   const router = useRouter();
   const bookingId = params.id as string;
 

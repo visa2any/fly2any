@@ -84,7 +84,7 @@ CONSTRAINTS:
 - Use ONLY provided data
 - NO fictional statistics
 - Prices must match exactly
-- Year is 2025
+- Year is 2026
 
 Return valid JSON:
 {

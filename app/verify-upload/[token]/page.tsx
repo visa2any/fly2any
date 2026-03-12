@@ -55,7 +55,7 @@ interface DocumentState {
 }
 
 export default function MobileUploadPage() {
-  const params = useParams();
+  const params = useParams()!;
   const router = useRouter();
   const token = params.token as string;
 

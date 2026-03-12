@@ -105,7 +105,7 @@ export function personalizeEmail(
   const intent = context.intentScore?.level || 'cold';
 
   // Select subject
-  const subjects = SUBJECT_TEMPLATES[tier];
+  const subjects = SUBJECT_TEMPLATES[tier as keyof typeof SUBJECT_TEMPLATES];
   const subject = interpolate(
     subjects[Math.floor(Math.random() * subjects.length)],
     context

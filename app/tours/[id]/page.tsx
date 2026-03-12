@@ -6,7 +6,7 @@ import TourDetailsClient from './ClientPage';
 import { Loader2 } from 'lucide-react';
 
 function TourDetailsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   // Get tour data from URL params (passed from results page)
   // Parse multiple images from comma-separated imgs param

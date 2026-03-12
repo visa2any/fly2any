@@ -27,7 +27,7 @@ interface BookingConfirmation {
 
 function ConfirmationContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const [booking, setBooking] = useState<BookingConfirmation | null>(null);
   const [loading, setLoading] = useState(true);
 

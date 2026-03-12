@@ -262,20 +262,18 @@ export function getTravelAgencySchema() {
     '@context': 'https://schema.org',
     '@type': 'TravelAgency',
     'name': 'Fly2Any',
-    'description': 'Fly2Any is a leading online travel agency specializing in flight bookings, hotel reservations, car rentals, and tour packages.',
+    'description': 'Fly2Any is an online-only travel platform specializing in flight bookings, hotel reservations, car rentals, and tour packages. 100% digital — no physical offices.',
     'url': 'https://www.fly2any.com',
-    'address': {
-      '@type': 'PostalAddress',
-      'streetAddress': '123 Travel Street',
-      'addressLocality': 'New York',
-      'addressRegion': 'NY',
-      'postalCode': '10001',
-      'addressCountry': 'US'
-    },
+    'areaServed': 'Worldwide',
     'telephone': '+1-800-FLY2ANY',
     'openingHours': 'Mo-Su 00:00-23:59',
     'priceRange': '$$',
-    'servesCuisine': 'Global travel services'
+    'sameAs': [
+      'https://twitter.com/fly2any',
+      'https://www.facebook.com/fly2any',
+      'https://www.instagram.com/fly2any',
+      'https://www.linkedin.com/company/fly2any'
+    ]
   };
 }
 

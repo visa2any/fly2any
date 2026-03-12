@@ -62,7 +62,7 @@ interface Profile {
 }
 
 export default function ProfilePage() {
-  const params = useParams();
+  const params = useParams()!;
   const userId = params.userId as string;
   const { data: session } = useSession();
 

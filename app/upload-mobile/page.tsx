@@ -6,7 +6,7 @@ import { Upload, Loader2, CheckCircle, AlertCircle, Smartphone } from 'lucide-re
 import { toast } from 'react-hot-toast';
 
 function MobileUploadContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const session = searchParams.get('session');
   const router = useRouter();
 

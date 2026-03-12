@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, useTransition } from 'react';
+import { createPortal } from 'react-dom';
+import { format } from 'date-fns';
 
 import { Plane, Calendar, Users, ChevronDown, ArrowLeftRight, PlaneTakeoff, PlaneLanding, CalendarDays, CalendarCheck, ArrowRight, Sparkles } from 'lucide-react';
 import { X, Hotel, Car, Map as MapIcon, MapPin, Building2, Plus, Minus, Activity, Package, Shield, Check } from 'lucide-react';
@@ -54,6 +56,8 @@ interface EnhancedSearchBarProps {
   hideTabs?: boolean;  // Hide the service tabs (for Journey page)
   journeyMode?: boolean;  // When true, redirects to /journey/builder instead of /flights/results
   transparent?: boolean;  // Level-6 glassmorphism mode for hero overlay
+  compact?: boolean;  // Compact mode for embedding in airline/destination pages
+  initialDestination?: string;  // Pre-fill destination (e.g., from destination pages)
 }
 
 interface Airport {
@@ -396,6 +400,8 @@ export default function EnhancedSearchBar({
     emoji?: string;
     type?: string;
     categories?: string[];
+    lat?: number;
+    lng?: number;
   } | null>(initialHotelDestination ? {
     name: initialHotelDestination,
     country: '', // Will be empty when coming from results page

@@ -156,7 +156,7 @@ TransferCard.displayName = 'TransferCard';
 type CategoryFilter = 'all' | 'private' | 'luxury' | 'shared' | 'group';
 
 function TransferResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [loading, setLoading] = useState(true);

@@ -93,7 +93,7 @@ const contextContent = {
 };
 
 function SignUpContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const rawCallbackUrl = searchParams?.get('callbackUrl') || '';
 

@@ -522,6 +522,36 @@ export function generateTransferSchema(transfer: TransferSchemaData) {
   };
 }
 
+// CarRental Schema - For car rental listings
+export interface CarRentalOfferData {
+  location: string;
+  vehicleType: string;
+  provider: string;
+  pricePerDay: number;
+  currency: string;
+}
+
+export function generateCarRentalOfferSchema(rental: CarRentalOfferData) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'RentalCarReservation',
+    reservationFor: {
+      '@type': 'Car',
+      name: rental.vehicleType,
+    },
+    provider: {
+      '@type': 'AutoRental',
+      name: rental.provider,
+    },
+    pickupLocation: {
+      '@type': 'Place',
+      name: rental.location,
+    },
+    totalPrice: rental.pricePerDay,
+    priceCurrency: rental.currency,
+  };
+}
+
 // SoftwareApplication Schema - For app visibility
 export function generateAppSchema() {
   return {
@@ -666,6 +696,33 @@ export function generateAIActionSchema() {
         },
         'query-input': ['required name=destination', 'required name=checkin'],
       },
+      {
+        '@type': 'SearchAction',
+        name: 'Search Tours',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/tours?destination={destination}`,
+        },
+        'query-input': ['required name=destination'],
+      },
+      {
+        '@type': 'SearchAction',
+        name: 'Search Car Rentals',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/cars?pickup={location}&date={date}`,
+        },
+        'query-input': ['required name=location', 'required name=date'],
+      },
+      {
+        '@type': 'SearchAction',
+        name: 'Search Airport Transfers',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: `${SITE_URL}/transfers?pickup={airport}&destination={destination}`,
+        },
+        'query-input': ['required name=airport', 'required name=destination'],
+      },
     ],
   };
 }
@@ -705,7 +762,7 @@ export function generateKnowledgePanelSchema() {
     description: 'AI-powered travel booking - 900+ airlines, 2M+ hotels worldwide.',
     foundingDate: '2024',
     areaServed: 'Worldwide',
-    serviceType: ['Flight Booking', 'Hotel Booking', 'Car Rental'],
+    serviceType: ['Flight Booking', 'Hotel Booking', 'Car Rental', 'Tours & Activities', 'Airport Transfers'],
     sameAs: [
       'https://twitter.com/fly2any',
       'https://facebook.com/fly2any',

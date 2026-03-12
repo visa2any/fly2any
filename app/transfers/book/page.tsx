@@ -8,7 +8,7 @@ import { BookingSteps, inputStyles, labelStyles, buttonStyles } from '@/componen
 import { ExperienceConfirmation } from '@/components/booking/ExperienceConfirmation';
 
 function TransferBookingContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);

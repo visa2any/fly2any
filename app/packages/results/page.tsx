@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useScrollDirection } from '@/lib/hooks/useScrollDirection';
 
 function PackageResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [packages, setPackages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

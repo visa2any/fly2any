@@ -6,7 +6,7 @@ import ActivityDetailsClient from './ClientPage';
 import { Loader2 } from 'lucide-react';
 
 function ActivityDetailsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   // Get activity data from URL params (passed from results page)
   // Parse multiple images from comma-separated imgs param

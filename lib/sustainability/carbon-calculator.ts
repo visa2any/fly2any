@@ -385,7 +385,7 @@ export function compareCabinClasses(
   const comparison: Record<string, CarbonFootprint | null> = {};
 
   for (const cabinClass of classes) {
-    comparison[cabinClass] = calculateFlightEmissions(
+    comparison[cabinClass] = calculateFlightEmissionsFromAirports(
       origin,
       destination,
       cabinClass,

@@ -125,7 +125,7 @@ export function useVoiceOutput(options: UseVoiceOutputOptions = {}) {
     synth.cancel();
 
     // Process through voice-output layer (stage-aware filtering)
-    const processed = formatForVoice(text, stage, { emotion });
+    const processed = formatForVoice(text, stage, { emotion: emotion as any });
 
     if (!processed.canSpeak) {
       console.log('[VoiceOutput] Text too short or blocked:', processed.blockReason);

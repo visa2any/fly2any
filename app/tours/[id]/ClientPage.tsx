@@ -28,7 +28,7 @@ interface TourDetailsClientProps {
 }
 
 export default function TourDetailsClient({ initialData }: TourDetailsClientProps) {
-  const params = useParams();
+  const params = useParams()!;
   const router = useRouter();
   const [tour, setTour] = useState<TourData | null>(initialData.id ? initialData : null);
   const [loading, setLoading] = useState(!initialData.id);

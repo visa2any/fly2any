@@ -111,7 +111,7 @@ function PolicySection({ title, icon: Icon, children, defaultOpen = false }: { t
 // ===========================
 
 function CarCheckoutContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
 
   const carDataParam = searchParams.get('car');

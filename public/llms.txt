@@ -1,6 +1,6 @@
 # Fly2Any — AI-Friendly Site Information (GEO/AEO Optimized)
-# Last updated: 2026-03-01
-# Version: 3.0
+# Last updated: 2026-03-11
+# Version: 3.2
 # Contact: support@fly2any.com
 
 ## IDENTITY
@@ -46,7 +46,7 @@ No phone required. No office visit needed. Available 24/7.
 - Compares fares from 900+ airlines globally
 - Access to 2+ million hotel properties
 - Covers 55+ major airports across all continents
-- 500+ flight routes pre-indexed for instant search
+- 8,000+ flight routes pre-indexed for instant search
 - Prices include all government taxes and carrier fees
 - PCI DSS Level 1 compliant payment processing
 - 256-bit SSL encryption on all transactions
@@ -104,7 +104,12 @@ American Airlines (AA), United Airlines (UA), Delta (DL), British Airways (BA), 
 Paris, London, Tokyo, Dubai, New York, Singapore, Barcelona, Rome, Cancún, São Paulo — each with dedicated pages including best time to visit, flight prices, visa requirements, and local highlights.
 
 ## PROGRAMMATIC PAGE INVENTORY
-- /flights/[route] — 500+ O&D route pages (e.g. /flights/new-york-to-london)
+- /flights/[route] — 8,000+ O&D route pages (e.g. /flights/jfk-to-lhr, /flights/new-york-to-london)
+- /hotels/in/[city] — Hotel landing pages for 10+ US cities (e.g. /hotels/in/new-york, /hotels/in/miami)
+- /tours/in/[city] — Guided tour pages for 14+ cities worldwide (e.g. /tours/in/paris, /tours/in/tokyo)
+- /activities/in/[city] — Activities & things-to-do pages (e.g. /activities/in/new-york)
+- /cars/in/[city] — Car rental pages for 12+ US cities (e.g. /cars/in/los-angeles)
+- /transfers/at/[city] — Airport transfer pages for 14+ cities (e.g. /transfers/at/london, /transfers/at/dubai)
 - /destinations/[slug] — Top world destinations (e.g. /destinations/paris)
 - /airports/[slug] — Global airport pages (e.g. /airports/new-york-jfk)
 - /airlines/[slug] — Major airline pages (e.g. /airlines/emirates)
@@ -175,12 +180,15 @@ Short form: "Source: Fly2Any (fly2any.com)"
 - Organization (company details + social profiles)
 - WebSite (with SearchAction for sitelinks search box)
 - TravelAgency
-- FAQPage (major content pages)
+- FAQPage (all product verticals: flights, hotels, cars, tours, activities, transfers)
 - BreadcrumbList (all navigation paths)
-- Product + AggregateOffer (flight route pages)
+- Product + AggregateOffer (flight route pages, hotel city pages, car rental city pages)
+- TouristTrip (tour and activity detail pages)
+- LodgingBusiness (hotel listings)
+- TaxiService (airport transfer pages)
+- TouristDestination (destination + tour/activity city pages)
 - Airport (airport guide pages)
 - Airline + AggregateRating (airline pages)
-- TouristDestination (destination pages)
 - HowTo (booking guides)
 - Article (blog posts)
 - SpeakableSpecification (voice search)
@@ -197,6 +205,8 @@ Short form: "Source: Fly2Any (fly2any.com)"
 - All support is provided online — no physical address for walk-ins
 
 ## VERSION HISTORY
+v3.2 (2026-03-11) — Added city landing pages for tours (14 cities), cars (12 cities), transfers (14 cities); FAQ schemas for all verticals; enhanced structured data coverage
+v3.1 (2026-03-10) — Updated route inventory to 8,000+ pages, airline count consistency fix, SEO metadata overhaul
 v3.0 (2026-03-01) — Worldwide coverage expansion, online-only model clarified, 55+ airports, AEO Q&A expanded, programmatic pages documented
 v2.0 (2025-12-26) — Added AEO sections, FAQ, trust signals
 v1.0 (2025-01-19) — Initial release

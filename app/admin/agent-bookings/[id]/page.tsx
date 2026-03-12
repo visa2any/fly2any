@@ -111,7 +111,7 @@ interface PassengerData {
 
 export default function AdminAgentBookingDetailPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = useParams()!;
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [passengerData, setPassengerData] = useState<PassengerData | null>(null);
   const [loading, setLoading] = useState(true);

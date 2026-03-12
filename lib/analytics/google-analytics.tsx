@@ -51,7 +51,7 @@ export interface BookingEvent {
  */
 export function GoogleAnalytics() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   // Track page views on route change
   useEffect(() => {

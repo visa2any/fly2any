@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import PostPaymentSuccess from "@/components/agent/quote-workspace/post-payment/PostPaymentSuccess";
 
 function SuccessContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
   // Get booking data from URL params (in production, fetch from API)
   const bookingId = searchParams.get("id") || `BK${Date.now()}`;

@@ -248,7 +248,7 @@ const packageDataPT = {
 const packageData = currentLanguage === 'pt' ? packageDataPT : packageDataEN;
 
 export default function PackageDetailPage() {
-  const params = useParams();
+  const params = useParams()!;
   const [selectedImage, setSelectedImage] = useState(0);
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
   const [showBookingModal, setShowBookingModal] = useState(false);

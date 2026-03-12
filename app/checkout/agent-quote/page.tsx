@@ -90,7 +90,7 @@ const STEPS = [
 
 export default function AgentQuoteCheckoutPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const linkId = searchParams?.get('linkId') || '';
 
   const [quote, setQuote] = useState<QuoteData | null>(null);

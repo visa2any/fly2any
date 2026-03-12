@@ -119,20 +119,20 @@ export function selectModel(context: TaskContext): ModelSelection {
 
   // Escalated conversation
   if (context.is_escalated) {
-    tier = Math.max(tier === 'low' ? 1 : tier === 'mid' ? 2 : 3, 2) === 2 ? 'mid' : 'high';
+    tier = Math.max((tier as ModelTier) === 'low' ? 1 : (tier as ModelTier) === 'mid' ? 2 : 3, 2) === 2 ? 'mid' : 'high';
     reason = 'Escalated conversation - upgrading model';
   }
 
   // High emotional state
   if (['FRUSTRATED', 'PANICKED', 'ANXIOUS'].includes(context.emotional_state)) {
-    if (tier === 'low') {
+    if ((tier as ModelTier) === 'low') {
       tier = 'mid';
       reason = 'Elevated emotional state - upgrading from low';
     }
   }
 
   // Uncertainty detected
-  if (context.has_uncertainty && tier === 'low') {
+  if (context.has_uncertainty && (tier as ModelTier) === 'low') {
     tier = 'mid';
     reason = 'Uncertainty detected - upgrading model';
   }

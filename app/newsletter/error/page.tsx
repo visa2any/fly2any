@@ -30,7 +30,7 @@ const errorMessages: Record<string, { title: string; message: string; icon: type
 
 export default function NewsletterErrorPage() {
   const [mounted, setMounted] = useState(false);
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const reason = searchParams.get('reason') || 'server_error';
   const errorInfo = errorMessages[reason] || errorMessages.server_error;
   const ErrorIcon = errorInfo.icon;

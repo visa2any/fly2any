@@ -6,7 +6,7 @@ import { Upload, Check, Camera, Image as ImageIcon, Loader2, Wand2 } from 'lucid
 import { useImageProcessor } from '../create/hooks/useImageProcessor';
 
 export default function MobileUploadPage() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const sessionId = searchParams.get('session');
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);

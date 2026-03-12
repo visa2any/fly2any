@@ -51,7 +51,7 @@ export interface TriggerResult {
 // ===================================
 
 const EVENT_EMAIL_MAP: Record<EmailEvent, {
-  intent: EmailIntent['type'];
+  intent: string;
   priority: EmailIntent['priority'];
   template: string;
   delayMinutes?: number;
@@ -144,10 +144,10 @@ class EmailTriggerService {
       return {
         triggered: false,
         decision: {
-          decision: 'skip',
+          send: false,
           reason: `Unknown event: ${payload.event}`,
-          confidence: 1,
-        },
+          confidenceScore: 1,
+        } as any as AIDecisionResult,
       };
     }
 
@@ -156,8 +156,8 @@ class EmailTriggerService {
 
     // Build email intent
     const intent: EmailIntent = {
-      type: config.intent,
       event: payload.event,
+      template: config.template as any,
       priority: config.priority,
       data: payload.data,
     };
@@ -169,11 +169,11 @@ class EmailTriggerService {
     await this.logDecision(payload, decision);
 
     // Handle decision
-    if (decision.decision === 'skip') {
+    if ((decision as any).decision === 'skip') {
       return { triggered: false, decision };
     }
 
-    if (decision.decision === 'delay') {
+    if ((decision as any).decision === 'delay') {
       const totalDelay = (decision.delayMinutes || 0) + (config.delayMinutes || 0);
       const scheduledTime = new Date(Date.now() + totalDelay * 60 * 1000);
 
@@ -203,6 +203,19 @@ class EmailTriggerService {
     const context: UserContext = {
       email: payload.email,
       userId: payload.userId,
+      isRegistered: !!payload.userId,
+      isLoggedIn: !!payload.userId,
+      totalEmailsSent: 0,
+      totalEmailsOpened: 0,
+      consecutiveUnopened: 0,
+      hasBookedBefore: false,
+      lifetimeValue: 0,
+      bookingCount: 0,
+      priceSensitivity: 'medium',
+      engagementScore: 50,
+      recentSearches: [],
+      hasPriceAlert: false,
+      daysInactive: 0,
     };
 
     if (payload.userId && prisma) {
@@ -240,7 +253,7 @@ class EmailTriggerService {
         const alertCount = await prisma.priceAlert.count({
           where: { userId: payload.userId },
         });
-        context.priceAlertCount = alertCount;
+        context.hasPriceAlert = alertCount > 0;
 
       } catch (e) {
         console.warn('[EmailTrigger] Could not fetch user context:', e);
@@ -259,10 +272,10 @@ class EmailTriggerService {
 
     if (delay <= 0) {
       await this.sendEmail(payload, EVENT_EMAIL_MAP[payload.event].template, {
-        decision: 'send',
+        send: true,
         reason: 'Scheduled time passed',
-        confidence: 1,
-      });
+        confidenceScore: 1,
+      } as any as AIDecisionResult);
       return;
     }
 
@@ -287,10 +300,10 @@ class EmailTriggerService {
     if (delay < 60 * 60 * 1000) { // Less than 1 hour
       const timeout = setTimeout(async () => {
         await this.sendEmail(payload, EVENT_EMAIL_MAP[payload.event].template, {
-          decision: 'send',
+          send: true,
           reason: 'Scheduled delivery',
-          confidence: 1,
-        });
+          confidenceScore: 1,
+        } as any as AIDecisionResult);
         this.scheduledEmails.delete(key);
       }, delay);
 
@@ -389,7 +402,7 @@ class EmailTriggerService {
    * Log AI decision
    */
   private async logDecision(payload: EventPayload, decision: AIDecisionResult): Promise<void> {
-    console.log(`🤖 [AI] ${payload.event} → ${decision.decision}: ${decision.reason}`);
+    console.log(`🤖 [AI] ${payload.event} → ${(decision as any).decision}: ${decision.reason}`);
 
     if (prisma) {
       try {
@@ -397,9 +410,9 @@ class EmailTriggerService {
           data: {
             email: payload.email,
             event: payload.event,
-            decision: decision.decision,
+            decision: (decision as any).decision,
             reason: decision.reason,
-            confidence: decision.confidence,
+            confidence: decision.confidenceScore,
             metadata: JSON.stringify(decision),
           },
         });
@@ -427,7 +440,7 @@ class EmailTriggerService {
             template,
             event: payload.event,
             sentAt: new Date(),
-            aiDecision: decision.decision,
+            aiDecision: (decision as any).decision,
             metadata: JSON.stringify({ decision, payload: payload.data }),
           },
         });

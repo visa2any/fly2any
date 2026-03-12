@@ -66,7 +66,7 @@ function ActivityCard({ activity }: { activity: any }) {
 }
 
 export default function ActivitiesInCityPage() {
-  const params = useParams();
+  const params = useParams()!;
   const citySlug = params.city as string;
   const cityInfo = CITY_DATA[citySlug] || { name: citySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), state: "", highlights: [] };
 

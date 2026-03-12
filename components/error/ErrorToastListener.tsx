@@ -12,7 +12,7 @@ import { toast } from 'react-hot-toast';
  * they understand why they are back on the homepage.
  */
 function ErrorToastHandler() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const pathname = usePathname();
 

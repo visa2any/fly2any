@@ -12,8 +12,10 @@ import {
 import {
   PropertyType, PROPERTY_TYPES_INFO, BUILDING_TYPES,
   PROPERTY_AMENITY_CATEGORIES,
-  type WizardStep
+  type RoomData,
 } from '@/lib/properties/types';
+
+export type WizardStep = 'basics' | 'location' | 'spaces' | 'amenities' | 'photos' | 'policies' | 'pricing' | 'review';
 
 // Components
 import { HostHeader } from '@/components/host/HostHeader';
@@ -27,7 +29,7 @@ const LocationPicker = dynamic(
     loading: () => <div className="h-[400px] w-full bg-neutral-100 rounded-2xl animate-pulse flex items-center justify-center text-neutral-400">Loading Map...</div>
   }
 );
-import { RoomBuilder, type RoomData } from './components/RoomBuilder';
+import { RoomBuilder } from './components/RoomBuilder';
 import { AmenitySelector } from './components/AmenitySelector';
 import { PhotoUploader } from './components/PhotoUploader';
 import { WizardProgressBar } from './components/WizardProgressBar';
@@ -55,7 +57,7 @@ const STEPS: { id: WizardStep; label: string; icon: any }[] = [
 
 export default function CreatePropertyPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const { data: session, status } = useSession();
 
   // Innovation #1: Initialize step from URL ?step=basics
@@ -385,6 +387,9 @@ export default function CreatePropertyPage() {
                       address: p.addressLine1 || '',
                       city: p.city || '',
                       country: p.country || '',
+                      state: p.state || '',
+                      neighborhood: p.neighborhood || '',
+                      postalCode: p.postalCode || '',
                       latitude: p.latitude || 0,
                       longitude: p.longitude || 0,
                     },
@@ -1190,7 +1195,7 @@ export default function CreatePropertyPage() {
                 {isAutoSaving ? (
                     <Loader2 className="w-4 h-4 text-primary-600 animate-spin shrink-0" />
                 ) : lastSaved ? (
-                     <Check className="w-4 h-4 text-green-500 shrink-0" title={`Saved ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`} />
+                     <span title={`Saved ${lastSaved.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`}><Check className="w-4 h-4 text-green-500 shrink-0" /></span>
                 ) : null}
              </div>
              <button 

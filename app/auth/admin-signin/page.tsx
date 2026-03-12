@@ -7,7 +7,7 @@ import { Mail, Lock, Plane, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 function AdminSignInContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const callbackUrl = searchParams?.get('callbackUrl') || '/admin';
 

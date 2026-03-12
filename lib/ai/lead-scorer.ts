@@ -33,7 +33,7 @@ interface LeadProfile {
   referralCode?: string;
 }
 
-interface LeadScore {
+export interface LeadScore {
   score: number; // 0-100
   tier: 'platinum' | 'gold' | 'silver' | 'bronze' | 'nurture';
   ltv: number; // Predicted lifetime value

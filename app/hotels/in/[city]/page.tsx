@@ -61,7 +61,7 @@ function HotelCard({ hotel }: { hotel: any }) {
 }
 
 export default function HotelsInCityPage() {
-  const params = useParams();
+  const params = useParams()!;
   const citySlug = params.city as string;
   const cityInfo = CITY_DATA[citySlug] || { name: citySlug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()), state: "", country: "USA", image: "", description: "" };
 

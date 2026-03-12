@@ -185,7 +185,7 @@ const sortFlights = (flights: ScoredFlight[], sortBy: SortOption): ScoredFlight[
 // ===========================
 
 function FlightResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [lang] = useState<'en' | 'pt' | 'es'>('en');
   const t = translations[lang];

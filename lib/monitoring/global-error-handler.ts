@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // import { alertCustomerError, type CustomerErrorContext } from './customer-error-alerts';
 // We must dynamically import this to prevent "fs" module errors in client bundle
 // if this file is imported by client components (even though it shouldn't be)
+type CustomerErrorContext = Record<string, any>;
 
 /**
  * Error severity levels

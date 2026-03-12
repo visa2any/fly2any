@@ -271,7 +271,7 @@ export interface IntentAnalysis {
  */
 export function getAgentPerformance(): AgentPerformance[] {
   const metrics = metricsStore.getAll();
-  const agents: TeamType[] = ['flights', 'hotels', 'payments', 'support', 'general'];
+  const agents: TeamType[] = ['flight-operations', 'hotel-accommodations', 'payment-billing', 'customer-service', 'technical-support'];
 
   return agents.map(agent => {
     const agentMetrics = metrics.filter(m => m.primaryAgent === agent);

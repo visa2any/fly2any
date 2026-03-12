@@ -225,7 +225,7 @@ export class AIRetentionEngine {
     }
 
     // Return visit after long absence
-    if (event.type === 'return_visit' && event.data?.daysAbsent > 30) {
+    if (event.type === 'return_visit' && event.data!.daysAbsent > 30) {
       return {
         ...baseFlow,
         flowType: 'LOYALTY',
@@ -243,7 +243,7 @@ export class AIRetentionEngine {
 
     // Successful booking — loyalty building
     if (event.type === 'booking') {
-      if (decision.bookingCount >= 3) {
+      if ((decision as any).bookingCount >= 3) {
         return {
           ...baseFlow,
           flowType: 'LOYALTY',
@@ -376,7 +376,7 @@ export class AIRetentionEngine {
   private async logFlow(flow: RetentionFlow): Promise<void> {
     if (!prisma) return;
     try {
-      await prisma.webhookEvent?.create({
+      await (prisma as any).webhookEvent?.create({
         data: {
           id: `retention_${Date.now()}_${flow.userId}`,
           eventType: 'retention_flow',

@@ -228,7 +228,7 @@ ActivityCard.displayName = 'ActivityCard';
 const ITEMS_PER_PAGE = 12; // Show 12 items initially for performance
 
 function ActivityResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const { addItem } = useExperiencesCart();
   const [activities, setActivities] = useState<Activity[]>([]);

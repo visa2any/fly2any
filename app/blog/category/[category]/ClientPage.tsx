@@ -20,7 +20,7 @@ import Image from 'next/image';
  * Categories: blog, news, deal, guide, tip, story
  */
 export default function CategoryPage() {
-  const params = useParams();
+  const params = useParams()!;
   const category = params.category as string;
 
   const [posts, setPosts] = useState<BlogPost[]>([]);

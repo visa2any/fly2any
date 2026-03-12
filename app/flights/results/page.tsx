@@ -505,7 +505,7 @@ const generatePriceInsights = (flights: ScoredFlight[]): PriceStatistics => {
 // ===========================
 
 function FlightResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
   const t = useTranslations('FlightResults');

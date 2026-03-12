@@ -25,8 +25,8 @@ interface PaymentConfirmation {
 }
 
 export default function PaymentConfirmPage() {
-  const params = useParams();
-  const searchParams = useSearchParams();
+  const params = useParams()!;
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'processing' | 'failed'>('loading');
   const [confirmation, setConfirmation] = useState<PaymentConfirmation | null>(null);

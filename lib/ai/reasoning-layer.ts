@@ -22,7 +22,14 @@ export type ConversationStage =
   | 'NARROWING'         // Some context → suggest destinations, seasons, tips
   | 'READY_TO_SEARCH'   // Has dates/city → ask for remaining details
   | 'READY_TO_BOOK'     // All details, flight selected → explicit permission only
-  | 'POST_BOOKING';     // Booking complete → support, upsell
+  | 'POST_BOOKING'      // Booking complete → support, upsell
+  | 'GREETING'          // Initial greeting
+  | 'GATHERING_DETAILS' // Collecting trip details
+  | 'SEARCH_EXECUTED'   // Search has been performed
+  | 'PRESENTING_OPTIONS'// Showing search results
+  | 'DEEP_DIVE'         // Detailed discussion about options
+  | 'BOOKING_INTENT'    // User shows intent to book
+  | 'CHECKOUT';         // User is checking out
 
 // Chaos Intent Classifications
 export type ChaosClassification =
@@ -51,6 +58,10 @@ export interface ReasoningOutput {
   conversion_hint: string | null;
   risk_flags: string[];
   suggested_destinations?: string[];  // For exploratory - NO PRICES
+  // Aliases used by execution-pipeline and smart-router
+  stage?: ConversationStage;
+  intent?: string;
+  language?: string;
 }
 
 export interface ReasoningInput {
@@ -254,16 +265,16 @@ function getStageGuidance(stage: ConversationStage, language: string): string {
 // ============================================================================
 
 const INTENT_TO_AGENT: Record<string, TeamType> = {
-  flight_search: 'flights',
-  hotel_search: 'hotels',
-  booking_status: 'payments',
-  payment_issue: 'payments',
-  cancellation: 'support',
-  complaint: 'support',
-  pricing: 'flights',
-  visa_passport: 'support',
-  baggage: 'support',
-  general_inquiry: 'general',
+  flight_search: 'flight-operations',
+  hotel_search: 'hotel-accommodations',
+  booking_status: 'payment-billing',
+  payment_issue: 'payment-billing',
+  cancellation: 'customer-service',
+  complaint: 'customer-service',
+  pricing: 'flight-operations',
+  visa_passport: 'visa-documentation',
+  baggage: 'customer-service',
+  general_inquiry: 'customer-service',
 };
 
 // ============================================================================
@@ -598,15 +609,15 @@ export function processUserIntent(input: ReasoningInput): ReasoningOutput {
   const stageGuidance = getStageGuidance(conversationStage, language);
 
   // Agent routing
-  const primaryAgent = INTENT_TO_AGENT[intent] || 'general';
+  const primaryAgent = INTENT_TO_AGENT[intent] || 'customer-service' as TeamType;
   let secondaryAgent: TeamType | null = null;
 
   // Multi-topic detection
   if (intent === 'flight_search' && INTENT_PATTERNS.hotel_search.test(message)) {
-    secondaryAgent = 'hotels';
+    secondaryAgent = 'hotel-accommodations';
   }
   if (intent === 'booking_status' && INTENT_PATTERNS.complaint.test(message)) {
-    secondaryAgent = 'support';
+    secondaryAgent = 'customer-service';
   }
 
   // Generate guidance - use chaos questions for chaotic inputs
@@ -708,7 +719,7 @@ export function generateFailSafeGuidance(language: string): ReasoningOutput {
     interpreted_intent: 'system_unavailable',
     confidence_level: 'low',
     missing_context: [],
-    recommended_primary_agent: 'general',
+    recommended_primary_agent: 'customer-service',
     recommended_secondary_agent: null,
     response_strategy: 'Apologize briefly. Reassure user. Suggest retry or alternative contact method.',
     clarifying_questions: [],
@@ -717,5 +728,9 @@ export function generateFailSafeGuidance(language: string): ReasoningOutput {
     forbidden_actions: ['expose_pricing_internals', 'share_margins_or_commissions'],
     conversion_hint: null,
     risk_flags: ['SYSTEM_DEGRADED'],
+    chaos_classification: 'CLEAR_INTENT',
+    conversation_stage: 'DISCOVERY',
+    stage_actions: [],
+    stage_forbidden: [],
   };
 }

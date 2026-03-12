@@ -33,7 +33,7 @@ interface AffiliateApprovalData {
  * Send welcome email to new affiliate applicant
  */
 export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData) {
-  if (!resendClient.isConfigured()) {
+  if (!(resendClient as any).isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -197,7 +197,7 @@ export async function sendAffiliateWelcomeEmail(data: AffiliateRegistrationData)
  * Send approval email to affiliate
  */
 export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
-  if (!resendClient.isConfigured()) {
+  if (!(resendClient as any).isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }
@@ -324,7 +324,7 @@ export async function sendAffiliateApprovalEmail(data: AffiliateApprovalData) {
  * Send notification to admin about new affiliate application
  */
 export async function sendAdminAffiliateNotification(data: AffiliateRegistrationData) {
-  if (!resendClient.isConfigured()) {
+  if (!(resendClient as any).isConfigured()) {
     console.warn('⚠️  Email service not configured (RESEND_API_KEY missing)')
     return { success: false, message: 'Email service not configured' }
   }

@@ -344,7 +344,7 @@ export function forceHumanTakeover(conversationId: string): boolean {
  * Update API health
  */
 export function updateApiHealth(api: string, status: 'up' | 'down' | 'slow'): void {
-  state.systemHealth.api_health[api] = status;
+  (state.systemHealth.api_health as Record<string, string>)[api] = status;
 
   if (status === 'down') {
     triggerAlert('critical', 'api_failure', `${api} API down`,

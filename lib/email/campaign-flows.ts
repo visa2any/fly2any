@@ -70,8 +70,8 @@ export const CAMPAIGNS: Record<string, Campaign> = {
         condition: async (userId) => {
           // Only send if user hasn't booked
           if (!prisma) return true;
-          const booking = await prisma.booking.findFirst({
-            where: { userId, createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+          const booking = await prisma.bookings.findFirst({
+            where: { user_id: userId, createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
           });
           return !booking;
         },
@@ -83,8 +83,8 @@ export const CAMPAIGNS: Record<string, Campaign> = {
         emailEvent: 'coupon_eligible',
         condition: async (userId) => {
           if (!prisma) return true;
-          const booking = await prisma.booking.findFirst({
-            where: { userId, createdAt: { gte: new Date(Date.now() - 72 * 60 * 60 * 1000) } },
+          const booking = await prisma.bookings.findFirst({
+            where: { user_id: userId, createdAt: { gte: new Date(Date.now() - 72 * 60 * 60 * 1000) } },
           });
           return !booking;
         },
@@ -113,7 +113,7 @@ export const CAMPAIGNS: Record<string, Campaign> = {
         condition: async (userId) => {
           // Only if user hasn't searched yet
           if (!prisma) return true;
-          const search = await prisma.searchLog?.findFirst({
+          const search = await (prisma as any).searchLog?.findFirst({
             where: { userId },
           });
           return !search;
@@ -148,8 +148,8 @@ export const CAMPAIGNS: Record<string, Campaign> = {
         emailEvent: 'booking_started',
         condition: async (userId) => {
           if (!prisma) return true;
-          const booking = await prisma.booking.findFirst({
-            where: { userId, status: 'confirmed', createdAt: { gte: new Date(Date.now() - 4 * 60 * 60 * 1000) } },
+          const booking = await prisma.bookings.findFirst({
+            where: { user_id: userId, status: 'confirmed', createdAt: { gte: new Date(Date.now() - 4 * 60 * 60 * 1000) } },
           });
           return !booking;
         },
@@ -402,9 +402,9 @@ class CampaignEngine {
     if (!prisma) return false;
 
     try {
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.bookings.findFirst({
         where: {
-          userId,
+          user_id: userId,
           status: { in: ['confirmed', 'ticketed'] },
           createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         },

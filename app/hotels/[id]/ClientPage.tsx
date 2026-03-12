@@ -14,9 +14,9 @@ import Image from 'next/image';
 import { GEOEnhancer } from '@/components/seo/GEOEnhancer';
 
 export default function HotelDetailPage() {
-  const params = useParams();
+  const params = useParams()!;
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const hotelId = params.id as string;
 
   // Get search params for rates (passed from search results)

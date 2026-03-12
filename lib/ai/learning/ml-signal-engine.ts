@@ -315,7 +315,7 @@ export async function predictOptimalAgent(
   });
 
   // Find best agent
-  let bestAgent: TeamType = 'general';
+  let bestAgent: TeamType = 'customer-service';
   let bestRate = 0;
   let currentRate = 0;
 

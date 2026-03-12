@@ -342,7 +342,7 @@ const sortHotels = (hotels: LiteAPIHotel[], sortBy: SortOption): LiteAPIHotel[] 
 // ===========================
 
 function HotelResultsContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
   const router = useRouter();
   const [lang] = useState<'en' | 'pt' | 'es'>('en');
   const t = translations[lang];

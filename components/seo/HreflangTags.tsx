@@ -52,8 +52,8 @@ export function HreflangTags({
   ],
   includeXDefault = true
 }: HreflangTagsProps) {
-  const pathname = usePathname();
-  
+  const pathname = usePathname() || '/';
+
   const hreflangTags = useMemo(() => {
     const tags: Array<{ href: string; hreflang: string }> = [];
     

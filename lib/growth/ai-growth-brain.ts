@@ -355,14 +355,14 @@ export class AIGrowthBrain {
     if (!prisma) return base;
     try {
       const [bookings, alerts] = await Promise.all([
-        prisma.booking.findMany({
+        prisma.bookings.findMany({
           where: { userId },
           select: { status: true, createdAt: true },
         }),
         prisma.priceAlert?.count({ where: { userId } }) || 0,
       ]);
-      const successful = bookings.filter(b => ['confirmed', 'ticketed'].includes(b.status || '')).length;
-      const abandoned = bookings.filter(b => b.status === 'abandoned').length;
+      const successful = bookings.filter((b: any) => ['confirmed', 'ticketed'].includes(b.status || '')).length;
+      const abandoned = bookings.filter((b: any) => b.status === 'abandoned').length;
       return {
         ...base,
         bookingAttempts: bookings.length,
@@ -420,17 +420,17 @@ export class AIGrowthBrain {
     };
     if (!prisma) return base;
     try {
-      const bookings = await prisma.booking.findMany({
+      const bookings = await prisma.bookings.findMany({
         where: { userId, status: { in: ['confirmed', 'ticketed'] } },
         select: { totalAmount: true },
       });
-      const refunds = await prisma.booking.count({
+      const refunds = await prisma.bookings.count({
         where: { userId, status: 'refunded' },
       });
-      const cancellations = await prisma.booking.count({
+      const cancellations = await prisma.bookings.count({
         where: { userId, status: 'cancelled' },
       });
-      const total = bookings.reduce((s, b) => s + (b.totalAmount || 0), 0);
+      const total = bookings.reduce((s: number, b: any) => s + (b.totalAmount || 0), 0);
       return {
         totalRevenue: total,
         averageOrderValue: bookings.length > 0 ? total / bookings.length : 0,
