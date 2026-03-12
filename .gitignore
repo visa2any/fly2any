@@ -79,4 +79,4 @@ build-final.log
 
 # Auto-ticket service with embedded credentials
 services/auto-ticket-api/
-*.txt
+tsc_*.txt
