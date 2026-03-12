@@ -118,14 +118,41 @@ export default function QuoteWorkspaceLayout({
         Client preview overlay has its own print styles that take precedence when open. */}
     <style>{`
       @media print {
-        body > * { display: none !important; }
-        /* Agent itinerary canvas */
-        #quote-print-area { display: block !important; position: static !important; overflow: visible !important; width: 100% !important; height: auto !important; background: white !important; }
-        #quote-print-area * { display: revert !important; }
+        /* Reset the fixed workspace container so content flows for print */
+        .fixed.inset-0 {
+          position: static !important;
+          overflow: visible !important;
+          height: auto !important;
+        }
+        /* Hide non-printable workspace elements */
+        header.print\\:hidden, aside.print\\:hidden, footer.print\\:hidden, .print\\:hidden {
+          display: none !important;
+        }
+        /* Show and reset itinerary canvas for print */
+        #quote-print-area {
+          display: block !important;
+          position: static !important;
+          overflow: visible !important;
+          width: 100% !important;
+          height: auto !important;
+          background: white !important;
+        }
+        #quote-print-area > * {
+          overflow: visible !important;
+        }
         /* Client preview overlay — overrides above when present */
-        #quote-client-preview { display: block !important; position: static !important; overflow: visible !important; background: white !important; }
-        #quote-client-preview * { display: revert !important; }
-        #quote-client-preview-header { display: none !important; }
+        #quote-client-preview {
+          display: block !important;
+          position: static !important;
+          overflow: visible !important;
+          background: white !important;
+        }
+        #quote-client-preview * {
+          display: revert !important;
+        }
+        #quote-client-preview-header {
+          display: none !important;
+        }
       }
     `}</style>
     <div className="fixed inset-0 lg:left-16 bg-gray-50 flex flex-col overflow-hidden">

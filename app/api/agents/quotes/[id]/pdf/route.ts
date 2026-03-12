@@ -46,5 +46,5 @@ export async function GET(
 
     // Stream PDF as download
     return streamPDF(pdfResult.buffer, pdfResult.filename);
-  }, { category: ErrorCategory.DATABASE, severity: ErrorSeverity.HIGH });
+  }, { category: ErrorCategory.EXTERNAL_API, severity: ErrorSeverity.HIGH });
 }

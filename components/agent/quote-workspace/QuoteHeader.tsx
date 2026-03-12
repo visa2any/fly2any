@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { ArrowLeft, Check, Edit2, Eye, Settings, X, Plus, Bell, ChevronDown, Share2, Download, Printer, HelpCircle, MoreHorizontal, Sparkles, Clock, CalendarDays, LogOut, User, Calendar, Undo2, Redo2, AlertTriangle, Menu } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
@@ -211,12 +212,6 @@ export default function QuoteHeader() {
 
   return (
     <>
-    <FollowUpSchedulerModal
-      isOpen={showFollowUp}
-      onClose={() => setShowFollowUp(false)}
-      quoteId={state.id}
-      clientName={state.client?.firstName}
-    />
     <div className="h-14 px-4 flex items-center justify-between gap-4 bg-white border-b border-gray-200 shadow-sm">
       {/* Left: Back + Title + Status + Product Icons */}
       <div className="flex items-center gap-2">
@@ -643,6 +638,15 @@ export default function QuoteHeader() {
         </div>
       </div>
     </div>
+    {typeof document !== 'undefined' && createPortal(
+      <FollowUpSchedulerModal
+        isOpen={showFollowUp}
+        onClose={() => setShowFollowUp(false)}
+        quoteId={state.id}
+        clientName={state.client?.firstName}
+      />,
+      document.body
+    )}
     </>
   );
 }

@@ -121,7 +121,10 @@ export default function QuotePreviewOverlay() {
         >
           <style>{`
             @media print {
-              body > * { display: none !important; }
+              /* Reset fixed workspace container */
+              .fixed.inset-0 { position: static !important; overflow: visible !important; height: auto !important; }
+              /* Hide all workspace elements except the preview */
+              header.print\\:hidden, aside.print\\:hidden, footer.print\\:hidden, .print\\:hidden { display: none !important; }
               #quote-client-preview { display: block !important; position: static !important; overflow: visible !important; background: white !important; }
               #quote-client-preview * { display: revert !important; }
               #quote-client-preview-header { display: none !important; }

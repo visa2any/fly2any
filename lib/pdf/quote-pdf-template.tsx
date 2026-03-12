@@ -208,11 +208,19 @@ interface QuotePDFProps {
 }
 
 const QuotePDFTemplate: React.FC<QuotePDFProps> = ({ quote }) => {
-  const formatDate = (date: Date | string) => {
-    return format(new Date(date), "MMM dd, yyyy");
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return "—";
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "—";
+      return format(d, "MMM dd, yyyy");
+    } catch {
+      return "—";
+    }
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | null | undefined) => {
+    if (amount == null || isNaN(amount)) return "$0.00";
     return `$${amount.toFixed(2)}`;
   };
 

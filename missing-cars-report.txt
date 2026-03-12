@@ -1,0 +1,5 @@
+--- UNMAPPED MODELS FOUND ---
+
+--- MISSING BY CATEGORY ---
+
+Found 0 unique unmapped car entries.
