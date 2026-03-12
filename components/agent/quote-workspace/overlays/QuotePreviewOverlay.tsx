@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar, Users, MapPin, Plane, Building2, Car, Compass, Bus, Shield, Package, Send, Heart, Sparkles, Moon, Lightbulb, CheckCircle2, Printer } from "lucide-react";
 import { format, parseISO, differenceInDays } from "date-fns";
@@ -34,10 +35,31 @@ const productColors: Record<ProductType, string> = {
 };
 
 export default function QuotePreviewOverlay() {
-  const { state, closePreview, openSendModal } = useQuoteWorkspace();
+  const { state, closePreview, openPreview, openSendModal } = useQuoteWorkspace();
   const items = useQuoteItems();
   const pricing = useQuotePricing();
   const isOpen = state.ui.previewOpen;
+  const printAfterOpenRef = useRef(false);
+
+  // Listen for "open preview then print" event from QuoteHeader
+  useEffect(() => {
+    const handler = () => {
+      printAfterOpenRef.current = true;
+      openPreview();
+    };
+    window.addEventListener("open-preview-then-print", handler);
+    return () => window.removeEventListener("open-preview-then-print", handler);
+  }, [openPreview]);
+
+  // Auto-print once preview opens from the event
+  useEffect(() => {
+    if (isOpen && printAfterOpenRef.current) {
+      printAfterOpenRef.current = false;
+      // Wait for render to complete
+      const timer = setTimeout(() => window.print(), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const formatPrice = (amount: number) =>
     new Intl.NumberFormat("en-US", {

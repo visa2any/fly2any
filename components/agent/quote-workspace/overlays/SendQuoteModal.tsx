@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   X, Send, Mail, FileText, Loader2, Check, Sparkles,
-  Smartphone, Copy, ExternalLink, ChevronRight, Eye, CheckCircle2
+  Smartphone, Copy, ExternalLink, ChevronRight, ChevronLeft, Eye, CheckCircle2, MessageCircle
 } from "lucide-react";
 import { useQuoteWorkspace, useQuotePricing } from "../QuoteWorkspaceProvider";
 import { 
@@ -16,8 +16,9 @@ import {
 } from "@/lib/quotes/messageTemplates";
 import { sendQuoteEmail } from "@/lib/quotes/sendQuoteService";
 
-type DeliveryChannel = "email" | "sms" | "link";
+type DeliveryChannel = "email" | "sms" | "whatsapp" | "link";
 type ModalTab = "channels" | "message" | "preview";
+const TAB_ORDER: ModalTab[] = ["channels", "message", "preview"];
 
 export default function SendQuoteModal() {
   const { state, closeSendModal, saveQuote, isSaving } = useQuoteWorkspace();
@@ -131,7 +132,7 @@ export default function SendQuoteModal() {
       return;
     }
 
-    if (channel === "sms" && !phoneNumber) {
+    if ((channel === "sms" || channel === "whatsapp") && !phoneNumber) {
       setError("Phone number is required for this channel");
       return;
     }
@@ -162,20 +163,24 @@ export default function SendQuoteModal() {
         });
         setSent(true);
       } 
-      else if (channel === "sms") {
-        // SMS Endpoint
+      else if (channel === "sms" || channel === "whatsapp") {
+        // SMS/WhatsApp Endpoint
+        const formattedPhone = phoneNumber.startsWith("+") ? phoneNumber : `+1${phoneNumber.replace(/\D/g, "")}`;
         const res = await fetch(`/api/agents/quotes/${quoteId}/send-sms`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            channel: "sms",
-            phoneNumber: phoneNumber.startsWith("+") ? phoneNumber : `+1${phoneNumber.replace(/\D/g, "")}`,
+            channel,
+            phoneNumber: formattedPhone,
             message: interpolatedMessage,
             includeLink: true,
           }),
         });
-        
-        if (!res.ok) throw new Error("Failed to send SMS");
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error((errData as any).error || `Failed to send via ${channel}`);
+        }
         const data = await res.json();
         setShareableLink(data.shareableLink || "");
         setSent(true);
@@ -226,7 +231,7 @@ export default function SendQuoteModal() {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <Dialog.Panel className="w-full max-w-[95vw] md:max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 
                 {/* Header with Tabs - if not sent */}
                 {!sent && (
@@ -236,19 +241,20 @@ export default function SendQuoteModal() {
                       <p className="text-sm text-gray-500">{state.tripName || "Untitled Trip"}</p>
                     </div>
                     
-                    {/* Centered Tabs */}
-                    <div className="hidden md:flex bg-gray-200/50 p-1 rounded-xl">
-                      {(["channels", "message", "preview"] as const).map((tab) => (
+                    {/* Centered Tabs — visible on all screens */}
+                    <div className="flex bg-gray-200/50 p-1 rounded-xl">
+                      {TAB_ORDER.map((tab, i) => (
                         <button
                           key={tab}
                           onClick={() => setActiveTab(tab)}
-                          className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                          className={`px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
                             activeTab === tab
                               ? "bg-white text-gray-900 shadow-sm"
                               : "text-gray-500 hover:text-gray-700"
                           }`}
                         >
-                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                          <span className="w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center border border-current">{i + 1}</span>
+                          <span className="hidden sm:inline">{tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
                         </button>
                       ))}
                     </div>
@@ -282,7 +288,7 @@ export default function SendQuoteModal() {
  
                      <h3 className="text-3xl font-bold text-gray-900 mb-3">Quote Sent!</h3>
                      <p className="text-gray-600 mb-8 text-lg max-w-md">
-                       {state.client?.firstName} will receive this quote via <span className="font-semibold">{channel}</span>.
+                       {state.client?.firstName || "Your client"} will receive this quote via <span className="font-semibold capitalize">{channel === "whatsapp" ? "WhatsApp" : channel}</span>.
                      </p>
  
                      {shareableLink && (
@@ -329,25 +335,28 @@ export default function SendQuoteModal() {
                       {activeTab === "channels" && (
                         <div className="p-8 max-w-3xl mx-auto space-y-8">
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {(["email", "sms", "link"] as const).map((c) => (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {([
+                              { id: "email" as const, label: "Email", icon: Mail, color: "text-primary-600" },
+                              { id: "sms" as const, label: "SMS", icon: Smartphone, color: "text-blue-600" },
+                              { id: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle, color: "text-green-600" },
+                              { id: "link" as const, label: "Link", icon: ExternalLink, color: "text-purple-600" },
+                            ]).map(({ id, label, icon: Icon, color }) => (
                               <button
-                                key={c}
-                                onClick={() => setChannel(c)}
-                                className={`flex flex-col items-center gap-3 p-6 rounded-2xl border-2 transition-all hover:scale-[1.02] ${
-                                  channel === c
+                                key={id}
+                                onClick={() => setChannel(id)}
+                                className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all hover:scale-[1.02] ${
+                                  channel === id
                                     ? "border-primary-500 bg-primary-50 text-primary-900 shadow-md ring-1 ring-primary-500/50"
                                     : "border-gray-200 text-gray-600 hover:border-primary-300 hover:bg-gray-50"
                                 }`}
                               >
                                 <div className={`p-3 rounded-xl ${
-                                  channel === c ? "bg-white shadow-sm" : "bg-gray-100"
+                                  channel === id ? "bg-white shadow-sm" : "bg-gray-100"
                                 }`}>
-                                  {c === "email" && <Mail className={`w-6 h-6 ${channel === c ? "text-primary-600" : "text-gray-500"}`} />}
-                                  {c === "sms" && <Smartphone className={`w-6 h-6 ${channel === c ? "text-blue-600" : "text-gray-500"}`} />}
-                                  {c === "link" && <ExternalLink className={`w-6 h-6 ${channel === c ? "text-purple-600" : "text-gray-500"}`} />}
+                                  <Icon className={`w-6 h-6 ${channel === id ? color : "text-gray-500"}`} />
                                 </div>
-                                <span className="font-semibold capitalize">{c}</span>
+                                <span className="font-semibold text-sm">{label}</span>
                               </button>
                             ))}
                           </div>
@@ -370,13 +379,16 @@ export default function SendQuoteModal() {
                              </div>
 
                              {/* Channel Specific Inputs */}
-                             {channel === "sms" && (
+                             {(channel === "sms" || channel === "whatsapp") && (
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Verify Phone Number</label>
-                                  <input 
-                                    type="tel" 
-                                    value={phoneNumber} 
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    {channel === "whatsapp" ? "WhatsApp Number" : "Phone Number"}
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(e.target.value)}
+                                    placeholder="+1 (555) 000-0000"
                                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none"
                                   />
                                 </div>
@@ -405,17 +417,18 @@ export default function SendQuoteModal() {
 
                       {/* --- Tab: Message --- */}
                       {activeTab === "message" && (
-                        <div className="flex h-full">
-                           <div className="w-64 border-r border-gray-200 p-4 bg-gray-50 overflow-y-auto">
-                              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Templates</h3>
-                              <div className="space-y-2">
+                        <div className="flex flex-col md:flex-row h-full">
+                           {/* Template selector — horizontal scroll on mobile, sidebar on desktop */}
+                           <div className="md:w-64 border-b md:border-b-0 md:border-r border-gray-200 p-3 md:p-4 bg-gray-50 overflow-x-auto md:overflow-y-auto">
+                              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 hidden md:block">Templates</h3>
+                              <div className="flex md:flex-col gap-2 md:space-y-0">
                                 {getAllTemplates().map(t => (
                                   <button
                                     key={t.id}
                                     onClick={() => setSelectedTemplate(t.id)}
-                                    className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${
+                                    className={`whitespace-nowrap md:whitespace-normal md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl text-sm transition-colors flex-shrink-0 ${
                                       selectedTemplate === t.id
-                                      ? "bg-white text-primary-900 shadow-sm ring-1 ring-black/5 font-medium" 
+                                      ? "bg-white text-primary-900 shadow-sm ring-1 ring-black/5 font-medium"
                                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                                     }`}
                                   >
@@ -424,17 +437,17 @@ export default function SendQuoteModal() {
                                 ))}
                               </div>
                            </div>
-                           <div className="flex-1 p-6 flex flex-col">
-                              <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold text-gray-900">Message Preview</h3>
+                           <div className="flex-1 p-4 md:p-6 flex flex-col min-h-[250px]">
+                              <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-semibold text-gray-900 text-sm md:text-base">Message Preview</h3>
                                 <button className="text-xs flex items-center gap-1 text-purple-600 font-medium hover:text-purple-700">
-                                  <Sparkles className="w-3 h-3" /> AI Rewrite (Available Soon)
+                                  <Sparkles className="w-3 h-3" /> AI Rewrite
                                 </button>
                               </div>
                               <textarea
                                 value={interpolatedMessage}
                                 onChange={(e) => setCustomMessage(e.target.value)}
-                                className="flex-1 w-full p-4 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-primary-500 outline-none font-sans text-sm leading-relaxed"
+                                className="flex-1 w-full p-3 md:p-4 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-primary-500 outline-none font-sans text-sm leading-relaxed min-h-[150px]"
                                 placeholder="Type your message..."
                               />
                            </div>
@@ -493,21 +506,28 @@ export default function SendQuoteModal() {
                     </div>
                     
                     <div className="flex gap-3">
-                      <button
-                        onClick={handleClose}
-                        className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      
+                      {/* Back button — only show if not on first tab */}
                       {activeTab !== "channels" ? (
                         <button
-                           onClick={() => setActiveTab("channels")}
-                           className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors flex items-center gap-2"
+                          onClick={() => {
+                            const idx = TAB_ORDER.indexOf(activeTab);
+                            if (idx > 0) setActiveTab(TAB_ORDER[idx - 1]);
+                          }}
+                          className="px-4 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors flex items-center gap-1.5"
                         >
-                           Continue <ChevronRight className="w-4 h-4" />
+                          <ChevronLeft className="w-4 h-4" /> Back
                         </button>
                       ) : (
+                        <button
+                          onClick={handleClose}
+                          className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
+
+                      {/* Next / Send button */}
+                      {activeTab !== "channels" ? (
                         <button
                           onClick={handleSend}
                           disabled={sending}
@@ -521,9 +541,16 @@ export default function SendQuoteModal() {
                           ) : (
                             <>
                               <Send className="w-4 h-4" />
-                              Send {channel === "link" ? "Link" : "Quote"}
+                              Send {channel === "link" ? "Link" : channel === "whatsapp" ? "WhatsApp" : "Quote"}
                             </>
                           )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setActiveTab("message")}
+                          className="px-6 py-2.5 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors flex items-center gap-2"
+                        >
+                          Customize Message <ChevronRight className="w-4 h-4" />
                         </button>
                       )}
                     </div>

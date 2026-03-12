@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Clock, Bell, Check, CalendarDays, MessageSquare, Mail, Phone } from "lucide-react";
 
@@ -29,6 +29,16 @@ export default function FollowUpSchedulerModal({ isOpen, onClose, quoteId, clien
   const [channel, setChannel] = useState("email");
   const [note, setNote] = useState("");
   const [saved, setSaved] = useState(false);
+
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedDays(3);
+      setChannel("email");
+      setNote("");
+      setSaved(false);
+    }
+  }, [isOpen]);
 
   const getFollowUpDate = (days: number) => {
     const d = new Date();
@@ -97,7 +107,7 @@ export default function FollowUpSchedulerModal({ isOpen, onClose, quoteId, clien
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed inset-x-4 bottom-16 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] bg-white rounded-2xl shadow-2xl z-[70] overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto"
+            className="fixed inset-x-4 top-auto bottom-4 sm:inset-auto sm:top-[50%] sm:left-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[420px] bg-white rounded-2xl shadow-2xl z-[70] overflow-hidden max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-120px)] overflow-y-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">

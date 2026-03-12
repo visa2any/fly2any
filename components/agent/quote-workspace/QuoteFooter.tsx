@@ -106,7 +106,7 @@ export default function QuoteFooter() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-full mx-4"
+            className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-[calc(100%-2rem)]"
           >
             <div className={`${
               errorMessage?.startsWith('✓') 
@@ -333,11 +333,11 @@ export default function QuoteFooter() {
         </motion.button>
       </div>
 
+      </div>
       {/* Security Reassurance - Subtle */}
-      <div className="hidden lg:flex items-center justify-center gap-1 text-[10px] text-gray-400 mt-1">
+      <div className="hidden lg:flex items-center justify-center gap-1 text-[10px] text-gray-400 pb-1">
         <Shield className="w-3 h-3" />
         <span>{ctaOptimization.support.secureCheckout}</span>
-      </div>
       </div>
     </>
   );

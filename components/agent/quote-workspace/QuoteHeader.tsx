@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, Check, Edit2, Eye, Settings, X, Plus, Bell, ChevronDown, Share2, Download, Printer, HelpCircle, MoreHorizontal, Sparkles, Clock, CalendarDays, LogOut, User, Calendar, Undo2, Redo2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Check, Edit2, Eye, Settings, X, Plus, Bell, ChevronDown, Share2, Download, Printer, HelpCircle, MoreHorizontal, Sparkles, Clock, CalendarDays, LogOut, User, Calendar, Undo2, Redo2, AlertTriangle, Menu } from "lucide-react";
 import { useQuoteWorkspace } from "./QuoteWorkspaceProvider";
 import { useViewMode } from "./itinerary/ViewModeContext";
 import { SmartPresets, AutosaveIndicator, formatShortcut } from "./velocity";
@@ -56,6 +56,7 @@ export default function QuoteHeader() {
   const [viewCount, setViewCount] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [showMobileActions, setShowMobileActions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -183,10 +184,26 @@ export default function QuoteHeader() {
     }
   };
 
+  const handlePrint = () => {
+    // If preview overlay is already open, print directly
+    // Otherwise we need the preview's print CSS to be in the DOM
+    const previewEl = document.getElementById("quote-client-preview");
+    if (previewEl) {
+      window.print();
+    } else {
+      // Open preview first, then print after it renders
+      import("react-hot-toast").then(({ default: t }) =>
+        t("Opening preview for print...", { duration: 1500, icon: "🖨️" })
+      );
+      // Dispatch event to open preview — QuotePreviewOverlay handles printing CSS
+      window.dispatchEvent(new CustomEvent("open-preview-then-print"));
+    }
+  };
+
   const toolbarIcons = [
     { icon: Share2, label: "Share quote", action: () => openSendModal?.() },
     { icon: Download, label: "Export PDF", action: handleExport },
-    { icon: Printer, label: "Print quote", action: () => window.print() },
+    { icon: Printer, label: "Print quote", action: handlePrint },
     { icon: HelpCircle, label: "Keyboard shortcuts", action: () => window.dispatchEvent(new CustomEvent("open-shortcuts")) },
     { icon: MoreHorizontal, label: "More options", action: () => setShowMore(!showMore) },
   ];
@@ -387,6 +404,73 @@ export default function QuoteHeader() {
         </div>
       </div>
 
+      {/* Mobile Actions Menu */}
+      <div className="lg:hidden relative">
+        <button
+          onClick={() => setShowMobileActions(!showMobileActions)}
+          className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-150"
+          title="Actions"
+        >
+          <Menu className="w-5 h-5 stroke-[1.5]" />
+        </button>
+        <AnimatePresence>
+          {showMobileActions && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-40"
+                onClick={() => setShowMobileActions(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                className="absolute left-0 top-full mt-1 w-52 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden"
+              >
+                <div className="p-1">
+                  <button onClick={() => { undo(); setShowMobileActions(false); }} disabled={!canUndo}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg disabled:opacity-30">
+                    <Undo2 className="w-4 h-4 text-gray-400" /> Undo
+                  </button>
+                  <button onClick={() => { redo(); setShowMobileActions(false); }} disabled={!canRedo}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg disabled:opacity-30">
+                    <Redo2 className="w-4 h-4 text-gray-400" /> Redo
+                  </button>
+                  <hr className="my-1 border-gray-100" />
+                  <button onClick={() => { handleGenerateNarrative(); setShowMobileActions(false); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-violet-700 hover:bg-violet-50 rounded-lg">
+                    <Sparkles className="w-4 h-4" /> AI Story
+                  </button>
+                  <button onClick={() => { openSendModal?.(); setShowMobileActions(false); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                    <Share2 className="w-4 h-4 text-gray-400" /> Share Quote
+                  </button>
+                  <button onClick={() => { handleExport(); setShowMobileActions(false); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                    <Download className="w-4 h-4 text-gray-400" /> Export PDF
+                  </button>
+                  <button onClick={() => { handlePrint(); setShowMobileActions(false); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                    <Printer className="w-4 h-4 text-gray-400" /> Print
+                  </button>
+                  <hr className="my-1 border-gray-100" />
+                  <button onClick={() => { setShowExpiryPicker(true); setShowMobileActions(false); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg">
+                    <CalendarDays className="w-4 h-4 text-gray-400" /> Set Expiry
+                  </button>
+                  <button onClick={() => { setShowFollowUp(true); setShowMobileActions(false); }}
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-sm text-amber-700 hover:bg-amber-50 rounded-lg">
+                    <Bell className="w-4 h-4" /> Follow-up
+                  </button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Center: Client (if assigned) */}
       <div className="hidden md:flex items-center">
         {state.client && (
@@ -471,22 +555,47 @@ export default function QuoteHeader() {
                 {notifications.length === 0 ? (
                   <div className="px-4 py-6 text-center text-sm text-gray-400">No notifications</div>
                 ) : (
-                  <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
-                    {notifications.map((n, i) => (
-                      <div key={i} className="px-4 py-3 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                            <Calendar className="w-3.5 h-3.5 text-amber-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-gray-900 truncate">Follow-up: {n.clientName || "Client"}</p>
-                            <p className="text-[10px] text-gray-500">{n.followUpDate} · via {n.channel}</p>
-                            {n.note && <p className="text-[10px] text-gray-400 truncate mt-0.5">{n.note}</p>}
+                  <>
+                    <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
+                      {notifications.map((n, i) => (
+                        <div key={i} className="px-4 py-3 hover:bg-gray-50 transition-colors group">
+                          <div className="flex items-start gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                              <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-gray-900 truncate">Follow-up: {n.clientName || "Client"}</p>
+                              <p className="text-[10px] text-gray-500">{n.followUpDate} · via {n.channel}</p>
+                              {n.note && <p className="text-[10px] text-gray-400 truncate mt-0.5">{n.note}</p>}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updated = notifications.filter((_, idx) => idx !== i);
+                                setNotifications(updated);
+                                localStorage.setItem("agent-followups", JSON.stringify(updated));
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 rounded transition-all flex-shrink-0"
+                              title="Dismiss"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <div className="px-4 py-2 border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          setNotifications([]);
+                          localStorage.setItem("agent-followups", "[]");
+                        }}
+                        className="text-[10px] text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                  </>
                 )}
               </motion.div>
             )}
