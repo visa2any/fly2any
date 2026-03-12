@@ -332,6 +332,76 @@ export const exactCarModelMappings: VehiclePhotoMap[] = [
     thumbnail: '/images/cars/toyota-corolla.png',
     priority: 90,
   },
+
+  // Toyota Land Cruiser - AI-Generated local image
+  {
+    category: 'LUXURY',
+    manufacturer: 'Toyota',
+    model: 'Toyota Land Cruiser',
+    photoUrl: '/images/cars/toyota-land-cruiser.png',
+    thumbnail: '/images/cars/toyota-land-cruiser.png',
+    priority: 100,
+  },
+
+  // Honda City - AI-Generated local image
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Honda',
+    model: 'Honda City',
+    photoUrl: '/images/cars/honda-city.png',
+    thumbnail: '/images/cars/honda-city.png',
+    priority: 100,
+  },
+
+  // Nissan Sunny (Versa) - AI-Generated local image
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Nissan',
+    model: 'Nissan Sunny',
+    photoUrl: '/images/cars/nissan-sunny.png',
+    thumbnail: '/images/cars/nissan-sunny.png',
+    priority: 100,
+  },
+  {
+    category: 'ECONOMY',
+    manufacturer: 'Nissan',
+    model: 'Nissan Versa',
+    photoUrl: '/images/cars/nissan-sunny.png',
+    thumbnail: '/images/cars/nissan-sunny.png',
+    priority: 100,
+  },
+
+  // Hyundai Elantra - AI-Generated local image
+  {
+    category: 'STANDARD',
+    manufacturer: 'Hyundai',
+    model: 'Hyundai Elantra',
+    photoUrl: '/images/cars/hyundai-elantra.png',
+    thumbnail: '/images/cars/hyundai-elantra.png',
+    priority: 100,
+  },
+
+  // === OCEANIA / AFRICA ===
+
+  // Toyota Hilux - AI-Generated local image
+  {
+    category: 'TRUCK',
+    manufacturer: 'Toyota',
+    model: 'Toyota Hilux',
+    photoUrl: '/images/cars/toyota-hilux.png',
+    thumbnail: '/images/cars/toyota-hilux.png',
+    priority: 100,
+  },
+
+  // Mazda CX-5 - AI-Generated local image
+  {
+    category: 'SUV',
+    manufacturer: 'Mazda',
+    model: 'Mazda CX-5',
+    photoUrl: '/images/cars/mazda-cx5.png',
+    thumbnail: '/images/cars/mazda-cx5.png',
+    priority: 100,
+  },
 ];
 
 /**
