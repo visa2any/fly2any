@@ -1,352 +1,390 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+/**
+ * Content Review Queue - Fly2Any Growth OS
+ * 
+ * Review and moderate content before publishing.
+ * Fetches real data from /api/admin/content-queue API.
+ */
+
+import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import {
   FileText, Check, X, Eye, Clock, AlertTriangle, Filter,
-  ChevronDown, Star, MessageSquare, Image as ImageIcon,
-  ThumbsUp, ThumbsDown, RotateCcw, Sparkles
+  Star, MessageSquare, Sparkles, RefreshCw, CheckCircle2,
+  Calendar, Zap, Globe, PenTool, ChevronRight, Share2,
+  XCircle, Send, ArrowRight, ThumbsUp, ThumbsDown, Trash2,
 } from 'lucide-react'
 
-type ContentType = 'review' | 'blog' | 'deal' | 'destination'
-type ContentStatus = 'pending' | 'approved' | 'rejected' | 'flagged'
+// =============================================================================
+// TYPES
+// =============================================================================
 
 interface QueueItem {
   id: string
-  type: ContentType
+  type: string
   title: string
   content: string
-  author: string
-  authorId: string
-  status: ContentStatus
-  createdAt: Date
-  rating?: number // for reviews
-  aiScore?: number // AI quality score 0-100
-  flags?: string[]
-  metadata?: Record<string, any>
+  platforms: string[]
+  status: string
+  scheduledAt: string
+  postedAt?: string
+  imageUrl?: string
+  hashtags?: string[]
+  error?: string
+  createdBy?: string
+  priority?: number
 }
 
-// Mock data
-const MOCK_QUEUE: QueueItem[] = [
-  {
-    id: '1',
-    type: 'review',
-    title: 'Amazing experience with Fly2Any!',
-    content: 'Found an incredible deal to Paris. The booking process was seamless and customer support was very helpful when I had questions about my itinerary.',
-    author: 'Sarah M.',
-    authorId: 'user_123',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 3600000),
-    rating: 5,
-    aiScore: 92
-  },
-  {
-    id: '2',
-    type: 'review',
-    title: 'Good but could be better',
-    content: 'The search was okay but I wish there were more filter options. Prices were competitive though.',
-    author: 'John D.',
-    authorId: 'user_456',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 7200000),
-    rating: 3,
-    aiScore: 78
-  },
-  {
-    id: '3',
-    type: 'blog',
-    title: 'Top 10 Budget Airlines in Europe',
-    content: 'Discover the best budget airlines for your European adventure...',
-    author: 'Content AI',
-    authorId: 'ai_agent',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 14400000),
-    aiScore: 85
-  },
-  {
-    id: '4',
-    type: 'deal',
-    title: 'NYC to London from $299',
-    content: 'Limited time offer on British Airways flights...',
-    author: 'Deal Bot',
-    authorId: 'deal_agent',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 1800000),
-    aiScore: 95
-  },
-  {
-    id: '5',
-    type: 'review',
-    title: 'Spam content test',
-    content: 'Buy cheap watches at www.spam-site.com!!! Click here!!!',
-    author: 'Unknown',
-    authorId: 'user_spam',
-    status: 'flagged',
-    createdAt: new Date(Date.now() - 900000),
-    rating: 5,
-    aiScore: 12,
-    flags: ['spam', 'external_links']
-  }
-]
+// =============================================================================
+// CONFIG
+// =============================================================================
 
-const TYPE_CONFIG: Record<ContentType, { label: string; icon: any; color: string }> = {
-  review: { label: 'Review', icon: Star, color: 'text-yellow-500 bg-yellow-50' },
-  blog: { label: 'Blog Post', icon: FileText, color: 'text-blue-500 bg-blue-50' },
-  deal: { label: 'Deal', icon: Sparkles, color: 'text-green-500 bg-green-50' },
-  destination: { label: 'Destination', icon: ImageIcon, color: 'text-purple-500 bg-purple-50' }
+const TYPE_CONFIG: Record<string, { label: string; icon: typeof FileText; color: string }> = {
+  blog: { label: 'Blog Post', icon: FileText, color: 'text-blue-600 bg-blue-50' },
+  deal: { label: 'Deal', icon: Zap, color: 'text-green-600 bg-green-50' },
+  guide: { label: 'Guide', icon: Globe, color: 'text-purple-600 bg-purple-50' },
+  social: { label: 'Social', icon: MessageSquare, color: 'text-pink-600 bg-pink-50' },
+  twitter: { label: 'Twitter', icon: Share2, color: 'text-gray-700 bg-gray-100' },
+  instagram: { label: 'Instagram', icon: Star, color: 'text-rose-600 bg-rose-50' },
 }
 
-const STATUS_CONFIG: Record<ContentStatus, { label: string; color: string }> = {
-  pending: { label: 'Pending', color: 'text-amber-600 bg-amber-50 border-amber-200' },
-  approved: { label: 'Approved', color: 'text-green-600 bg-green-50 border-green-200' },
-  rejected: { label: 'Rejected', color: 'text-red-600 bg-red-50 border-red-200' },
-  flagged: { label: 'Flagged', color: 'text-orange-600 bg-orange-50 border-orange-200' }
+const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  pending: { label: 'Pending', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  scheduled: { label: 'Scheduled', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  posted: { label: 'Posted', color: 'text-green-700 bg-green-50 border-green-200' },
+  failed: { label: 'Failed', color: 'text-red-700 bg-red-50 border-red-200' },
+  processing: { label: 'Processing', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
+  partial: { label: 'Partial', color: 'text-orange-700 bg-orange-50 border-orange-200' },
 }
 
-function QualityBadge({ score }: { score: number }) {
-  const getColor = () => {
-    if (score >= 80) return 'text-green-600 bg-green-50'
-    if (score >= 60) return 'text-yellow-600 bg-yellow-50'
-    return 'text-red-600 bg-red-50'
-  }
+// =============================================================================
+// CONTENT CARD
+// =============================================================================
 
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getColor()}`}>
-      AI: {score}%
-    </span>
-  )
-}
-
-function ContentCard({ item, onAction }: {
+function ContentCard({ 
+  item, 
+  onApprove,
+  onDelete,
+  expanded,
+  onToggle,
+}: {
   item: QueueItem
-  onAction: (id: string, action: 'approve' | 'reject' | 'flag' | 'review') => void
+  onApprove: (id: string) => void
+  onDelete: (id: string) => void
+  expanded: boolean
+  onToggle: () => void
 }) {
-  const [expanded, setExpanded] = useState(false)
-  const typeConfig = TYPE_CONFIG[item.type]
-  const statusConfig = STATUS_CONFIG[item.status]
+  const typeConfig = TYPE_CONFIG[item.type] || { label: item.type, icon: FileText, color: 'text-gray-600 bg-gray-50' }
+  const statusConfig = STATUS_CONFIG[item.status] || { label: item.status, color: 'text-gray-600 bg-gray-50 border-gray-200' }
   const TypeIcon = typeConfig.icon
 
+  const platformIcons: Record<string, string> = {
+    twitter: '𝕏', instagram: '📸', facebook: '📘',
+    tiktok: '🎵', blog: '📝', telegram: '📨',
+  }
+
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      className="w-full bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden"
-    >
-      <div className="p-4 md:p-5">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-md transition-all">
+      <div className="p-5">
         {/* Header */}
         <div className="flex items-start gap-3 mb-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${typeConfig.color}`}>
             <TypeIcon className="w-5 h-5" />
           </div>
-
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${statusConfig.color}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${statusConfig.color}`}>
                 {statusConfig.label}
               </span>
-              {item.aiScore !== undefined && <QualityBadge score={item.aiScore} />}
-              {item.rating && (
-                <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                  {item.rating}/5
+              {item.priority && item.priority > 5 && (
+                <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                  High Priority
                 </span>
               )}
             </div>
-            <h4 className="font-semibold text-gray-900 truncate">{item.title}</h4>
-            <p className="text-sm text-gray-500">
-              by {item.author} • {new Date(item.createdAt).toLocaleTimeString()}
+            <h4 className="font-bold text-gray-900 text-sm truncate">{item.title}</h4>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {item.createdBy || 'System'} · {new Date(item.scheduledAt).toLocaleString()}
             </p>
           </div>
         </div>
 
         {/* Content Preview */}
         <div
-          className={`text-sm text-gray-600 ${expanded ? '' : 'line-clamp-2'} cursor-pointer`}
-          onClick={() => setExpanded(!expanded)}
+          className={`text-sm text-gray-600 cursor-pointer rounded-lg p-3 bg-gray-50 ${expanded ? '' : 'line-clamp-3'}`}
+          onClick={onToggle}
         >
           {item.content}
         </div>
+        {!expanded && item.content.length > 200 && (
+          <button onClick={onToggle} className="text-xs text-indigo-600 font-medium mt-1 hover:underline">
+            Show more...
+          </button>
+        )}
 
-        {/* Flags */}
-        {item.flags && item.flags.length > 0 && (
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <AlertTriangle className="w-4 h-4 text-orange-500" />
-            {item.flags.map(flag => (
-              <span key={flag} className="px-2 py-0.5 bg-orange-50 text-orange-700 text-xs rounded-full">
-                {flag}
+        {/* Platforms */}
+        <div className="mt-3 flex items-center gap-3 flex-wrap">
+          <div className="flex gap-1">
+            {item.platforms?.map(p => (
+              <span key={p} className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center text-sm" title={p}>
+                {platformIcons[p] || '📱'}
               </span>
             ))}
+          </div>
+          {item.hashtags && item.hashtags.length > 0 && (
+            <div className="flex gap-1 flex-wrap">
+              {item.hashtags.slice(0, 3).map(h => (
+                <span key={h} className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">#{h}</span>
+              ))}
+              {item.hashtags.length > 3 && (
+                <span className="text-xs text-gray-400">+{item.hashtags.length - 3} more</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {item.error && (
+          <div className="mt-3 p-2.5 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            {item.error}
           </div>
         )}
 
         {/* Actions */}
-        <div className="mt-4 flex gap-2 flex-wrap">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onAction(item.id, 'approve')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 shadow-sm"
-          >
-            <Check className="w-4 h-4" /> Approve
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onAction(item.id, 'reject')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 shadow-sm"
-          >
-            <X className="w-4 h-4" /> Reject
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onAction(item.id, 'flag')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-100 text-orange-700 rounded-xl text-sm font-medium hover:bg-orange-200"
-          >
-            <AlertTriangle className="w-4 h-4" /> Flag
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onAction(item.id, 'review')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200"
-          >
-            <Eye className="w-4 h-4" /> Full Review
-          </motion.button>
-        </div>
+        {['pending', 'scheduled'].includes(item.status) && (
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => onApprove(item.id)}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 transition-all shadow-sm"
+            >
+              <Check className="w-4 h-4" /> Approve & Send
+            </button>
+            <button
+              onClick={() => {
+                if (confirm('Remove this item from the queue?')) onDelete(item.id)
+              }}
+              className="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-1.5"
+            >
+              <Trash2 className="w-4 h-4" /> Remove
+            </button>
+          </div>
+        )}
       </div>
-    </motion.div>
+    </div>
   )
 }
 
+// =============================================================================
+// MAIN COMPONENT
+// =============================================================================
+
 export default function ContentReviewPage() {
-  const [queue, setQueue] = useState<QueueItem[]>(MOCK_QUEUE)
-  const [filter, setFilter] = useState<ContentStatus | 'all'>('pending')
-  const [typeFilter, setTypeFilter] = useState<ContentType | 'all'>('all')
+  const [queue, setQueue] = useState<QueueItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState<string>('pending')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/admin/content-queue')
+      if (res.ok) {
+        const data = await res.json()
+        setQueue(data.items || [])
+      }
+    } catch (error) {
+      console.error('Error fetching review queue:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const handleApprove = async (id: string) => {
+    // For now, this triggers the processing of the item
+    // In a full implementation, this would call a dedicated API endpoint
+    try {
+      // Optimistic UI update
+      setQueue(prev => prev.map(item => 
+        item.id === id ? { ...item, status: 'processing' } : item
+      ))
+    } catch (e) {
+      console.error('Approve failed:', e)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/content-queue?id=${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setQueue(prev => prev.filter(item => item.id !== id))
+      }
+    } catch (e) {
+      console.error('Delete failed:', e)
+    }
+  }
 
   const filteredQueue = queue.filter(item => {
-    if (filter !== 'all' && item.status !== filter) return false
+    if (statusFilter !== 'all' && item.status !== statusFilter) return false
     if (typeFilter !== 'all' && item.type !== typeFilter) return false
     return true
   })
 
-  const handleAction = (id: string, action: 'approve' | 'reject' | 'flag' | 'review') => {
-    if (action === 'review') {
-      // Open full review modal
-      return
-    }
-
-    const statusMap: Record<string, ContentStatus> = {
-      approve: 'approved',
-      reject: 'rejected',
-      flag: 'flagged'
-    }
-
-    setQueue(queue.map(item =>
-      item.id === id ? { ...item, status: statusMap[action] } : item
-    ))
-  }
-
   const stats = {
     pending: queue.filter(i => i.status === 'pending').length,
-    flagged: queue.filter(i => i.status === 'flagged').length,
-    approved: queue.filter(i => i.status === 'approved').length,
-    rejected: queue.filter(i => i.status === 'rejected').length
+    scheduled: queue.filter(i => i.status === 'scheduled').length,
+    posted: queue.filter(i => i.status === 'posted').length,
+    failed: queue.filter(i => i.status === 'failed').length,
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">Loading Review Queue...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Content Review Queue</h1>
-            <p className="text-gray-500">Moderate user-generated and AI content</p>
+    <div className="space-y-6 max-w-5xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-gray-400 font-medium mb-2">
+            <Link href="/admin" className="hover:text-blue-600">Admin</Link>
+            <ChevronRight className="w-3 h-3" />
+            <Link href="/admin/growth" className="hover:text-blue-600">Growth</Link>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-gray-600">Content Review</span>
           </div>
-          <div className="flex items-center gap-2">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl font-medium hover:bg-primary-600"
-            >
-              <RotateCcw className="w-4 h-4" /> Refresh
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Pending', value: stats.pending, color: 'text-amber-600 bg-amber-50' },
-            { label: 'Flagged', value: stats.flagged, color: 'text-orange-600 bg-orange-50' },
-            { label: 'Approved', value: stats.approved, color: 'text-green-600 bg-green-50' },
-            { label: 'Rejected', value: stats.rejected, color: 'text-red-600 bg-red-50' }
-          ].map(stat => (
-            <div key={stat.label} className={`rounded-xl p-4 ${stat.color}`}>
-              <p className="text-3xl font-bold">{stat.value}</p>
-              <p className="text-sm opacity-80">{stat.label}</p>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg">
+              <Eye className="h-6 w-6 text-white" />
             </div>
-          ))}
+            Content Review Queue
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">Review and moderate content before publishing</p>
         </div>
+        <button
+          onClick={fetchData}
+          className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all flex items-center gap-2 text-sm font-semibold"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </button>
+      </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <Filter className="w-5 h-5 text-gray-400" />
-
-            {/* Status Filter */}
-            <select
-              value={filter}
-              onChange={e => setFilter(e.target.value as any)}
-              className="px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium"
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Pending', value: stats.pending, color: 'text-amber-700 bg-amber-50 border-amber-100', icon: Clock },
+          { label: 'Scheduled', value: stats.scheduled, color: 'text-blue-700 bg-blue-50 border-blue-100', icon: Calendar },
+          { label: 'Posted', value: stats.posted, color: 'text-green-700 bg-green-50 border-green-100', icon: CheckCircle2 },
+          { label: 'Failed', value: stats.failed, color: 'text-red-700 bg-red-50 border-red-100', icon: XCircle },
+        ].map(stat => {
+          const Icon = stat.icon
+          return (
+            <button
+              key={stat.label}
+              onClick={() => setStatusFilter(stat.label.toLowerCase())}
+              className={`rounded-xl p-4 border text-left transition-all hover:shadow-sm ${stat.color} ${
+                statusFilter === stat.label.toLowerCase() ? 'ring-2 ring-offset-1 ring-gray-400' : ''
+              }`}
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="flagged">Flagged</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+              <div className="flex items-center gap-2 mb-1">
+                <Icon className="w-4 h-4" />
+                <span className="text-xs font-semibold uppercase">{stat.label}</span>
+              </div>
+              <p className="text-2xl font-black">{stat.value}</p>
+            </button>
+          )
+        })}
+      </div>
 
-            {/* Type Filter */}
-            <select
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value as any)}
-              className="px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium"
-            >
-              <option value="all">All Types</option>
-              <option value="review">Reviews</option>
-              <option value="blog">Blog Posts</option>
-              <option value="deal">Deals</option>
-              <option value="destination">Destinations</option>
-            </select>
+      {/* Filters */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Filter className="w-4 h-4 text-gray-400" />
 
-            <span className="text-sm text-gray-500 ml-auto">
-              Showing {filteredQueue.length} items
-            </span>
-          </div>
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-200"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="posted">Posted</option>
+            <option value="failed">Failed</option>
+          </select>
+
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-200"
+          >
+            <option value="all">All Types</option>
+            <option value="blog">Blog Posts</option>
+            <option value="deal">Deals</option>
+            <option value="guide">Guides</option>
+            <option value="social">Social</option>
+            <option value="twitter">Twitter</option>
+          </select>
+
+          <span className="text-xs text-gray-400 ml-auto font-medium">
+            {filteredQueue.length} item{filteredQueue.length !== 1 ? 's' : ''}
+          </span>
         </div>
+      </div>
 
-        {/* Queue List */}
-        <div className="space-y-4">
-          <AnimatePresence>
-            {filteredQueue.length > 0 ? (
-              filteredQueue.map(item => (
-                <ContentCard
-                  key={item.id}
-                  item={item}
-                  onAction={handleAction}
-                />
-              ))
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-white rounded-2xl p-12 text-center"
+      {/* Queue List */}
+      <div className="space-y-4">
+        {filteredQueue.length > 0 ? (
+          filteredQueue.map(item => (
+            <ContentCard
+              key={item.id}
+              item={item}
+              onApprove={handleApprove}
+              onDelete={handleDelete}
+              expanded={expandedId === item.id}
+              onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+            />
+          ))
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-200 py-16 text-center">
+            <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-green-500" />
+            </div>
+            <h3 className="text-base font-bold text-gray-900 mb-1">
+              {statusFilter === 'pending' ? 'All caught up!' : 'No content matching filters'}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {statusFilter === 'pending' 
+                ? 'No content pending review right now'
+                : 'Try adjusting your filters'}
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Link
+                href="/admin/growth/content"
+                className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-all flex items-center gap-2"
               >
-                <Check className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">All caught up!</h3>
-                <p className="text-gray-500">No content matching your filters</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                <Sparkles className="w-4 h-4" /> Generate Content
+              </Link>
+              <Link
+                href="/admin/social"
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-all flex items-center gap-2"
+              >
+                <Share2 className="w-4 h-4" /> Social Media
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -40,6 +40,11 @@ import {
   MailPlus,
   Home,
   Building2,
+  Share2,
+  FileText,
+  MessageSquare,
+  PenTool,
+  Eye,
 } from 'lucide-react'
 
 interface AdminSidebarProps {
@@ -65,6 +70,7 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     main: true,
     growth: true,
+    'content&social': true,
     business: false,
     system: false,
     cms: false,
@@ -112,6 +118,17 @@ export default function AdminSidebar({ role }: AdminSidebarProps) {
         { label: 'Retention', href: '/admin/retention', icon: HeartPulse, roles: ['super_admin', 'admin'] },
         { label: 'Email Marketing', href: '/admin/email-marketing', icon: MailPlus, roles: ['super_admin', 'admin'] },
         { label: 'Campaigns', href: '/admin/campaigns', icon: Target, roles: ['super_admin', 'admin'] },
+      ]
+    },
+    {
+      title: 'Content & Social',
+      defaultOpen: true,
+      items: [
+        { label: 'Social Media', href: '/admin/social', icon: Share2, roles: ['super_admin', 'admin'] },
+        { label: 'Content Factory', href: '/admin/growth/content', icon: PenTool, roles: ['super_admin', 'admin'] },
+        { label: 'Content Queue', href: '/admin/growth/content/manage', icon: FileText, roles: ['super_admin', 'admin'] },
+        { label: 'Content Analytics', href: '/admin/growth/content-analytics', icon: Eye, roles: ['super_admin', 'admin'] },
+        { label: 'Content Review', href: '/admin/growth/content-review', icon: MessageSquare, roles: ['super_admin', 'admin'] },
       ]
     },
     {

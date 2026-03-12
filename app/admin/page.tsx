@@ -490,6 +490,20 @@ export default function AdminDashboard() {
               />
 
               <QuickAction
+                icon={<Package className="w-4 h-4" />}
+                label="Social Media"
+                href="/admin/social"
+                color="pink"
+              />
+
+              <QuickAction
+                icon={<Brain className="w-4 h-4" />}
+                label="Content Factory"
+                href="/admin/growth/content"
+                color="purple"
+              />
+
+              <QuickAction
                 icon={<Calendar className="w-4 h-4" />}
                 label="Manage Bookings"
                 href="/admin/bookings"
