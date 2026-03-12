@@ -207,7 +207,7 @@ export default function ContentFactoryAdmin() {
                   </div>
                 </div>
               </div>
-              {item.platform.length > 0 && (
+              {item.platform && item.platform.length > 0 && (
                 <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
                   <span className="text-xs text-gray-500">Platforms:</span>
                   {item.platform.map(p => (
