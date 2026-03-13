@@ -743,10 +743,27 @@ export function QuoteWorkspaceProvider({ children, initialQuoteId }: { children:
         return isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
       };
 
+      let inferredDestination = state.destination;
+      if (!inferredDestination) {
+        const firstFlight = flights[0]?.details as any;
+        const firstHotel = hotels[0]?.details as any;
+        if (firstFlight) {
+          const segments = firstFlight.segments || firstFlight.itineraries?.[0]?.segments;
+          if (segments?.length > 0) {
+            inferredDestination = segments[segments.length - 1]?.arrival?.iataCode || segments[segments.length - 1]?.destination?.iataCode;
+          }
+          inferredDestination = inferredDestination || firstFlight.destinationCode || firstFlight.destination;
+        }
+        if (!inferredDestination && firstHotel) {
+          inferredDestination = firstHotel.location || firstHotel.address;
+        }
+        inferredDestination = inferredDestination || 'TBD';
+      }
+
       const payload = {
         clientId: state.client?.id || null,
         tripName: state.tripName || 'Untitled Trip',
-        destination: state.destination || '',
+        destination: inferredDestination,
         startDate: formatDateToISO(state.startDate),
         endDate: formatDateToISO(state.endDate),
         adults: state.travelers.adults,

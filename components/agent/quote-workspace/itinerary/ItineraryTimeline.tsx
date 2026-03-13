@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
@@ -236,6 +236,9 @@ export default function ItineraryTimeline() {
   const grouped = useMemo(() => groupByDate(items), [items]);
   const dates = useMemo(() => Array.from(grouped.keys()).sort(), [grouped]);
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+
   // Auto-detect tone based on trip characteristics
   const tone: ToneProfile = useMemo(() => {
     const hotels = items.filter(i => i.type === "hotel");
@@ -281,7 +284,7 @@ export default function ItineraryTimeline() {
 
   // Quote expiry from state (server-persisted)
   const expiryDate = state.expiryDate || "";
-  const expiryDaysLeft = expiryDate
+  const expiryDaysLeft = expiryDate && isMounted
     ? Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86400000)
     : null;
 
@@ -296,7 +299,7 @@ export default function ItineraryTimeline() {
     (state.destination ? `Your ${state.destination} ${tone === "family" ? "Family Adventure" : tone === "romantic" ? "Romantic Escape" : tone === "luxury" ? "Luxury Retreat" : tone === "adventure" ? "Adventure" : "Trip"}` : null);
 
   // Personalized greeting
-  const greeting = getTimeBasedGreeting();
+  const greeting = isMounted ? getTimeBasedGreeting() : "Welcome";
   const clientName = state.clientName || "Traveler"; // Use clientName if available
   const closingMessage = getClosingMessageSeeded(tone, tripDuration);
 
