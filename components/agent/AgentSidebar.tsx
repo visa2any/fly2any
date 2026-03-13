@@ -40,7 +40,6 @@ const primaryNav = [
 
 const secondaryNav = [
   { name: "Products",     href: "/agent/products",  icon: Package },
-  { name: "Suppliers",    href: "/agent/suppliers", icon: Building2 },
   { name: "Activity Log", href: "/agent/activity",  icon: Activity },
   { name: "Settings",     href: "/agent/settings",  icon: Settings },
 ];
