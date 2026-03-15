@@ -14,7 +14,7 @@ const QUICK_START_PRODUCTS: {
   bg: string;
   textColor: string;
 }[] = [
-  { type: "flight", icon: Plane, label: "Add Flight", desc: "Search 500+ airlines", gradient: "from-blue-500 to-indigo-600", bg: "bg-blue-50 hover:bg-blue-100", textColor: "text-blue-700" },
+  { type: "flight", icon: Plane, label: "Add Flight", desc: "Search 900+ airlines", gradient: "from-blue-500 to-indigo-600", bg: "bg-blue-50 hover:bg-blue-100", textColor: "text-blue-700" },
   { type: "hotel", icon: Building2, label: "Add Hotel", desc: "1M+ properties", gradient: "from-purple-500 to-pink-600", bg: "bg-purple-50 hover:bg-purple-100", textColor: "text-purple-700" },
   { type: "activity", icon: Compass, label: "Add Activity", desc: "Tours & experiences", gradient: "from-emerald-500 to-teal-600", bg: "bg-emerald-50 hover:bg-emerald-100", textColor: "text-emerald-700" },
   { type: "transfer", icon: Bus, label: "Add Transfer", desc: "Airport & city rides", gradient: "from-amber-500 to-orange-600", bg: "bg-amber-50 hover:bg-amber-100", textColor: "text-amber-700" },

@@ -5,7 +5,7 @@ export function TrustBadges() {
     { icon: '🔒', text: 'SSL Secure', subtext: '256-bit encryption' },
     { icon: '✓', text: 'Verified', subtext: 'BBB Accredited' },
     { icon: '💳', text: 'Safe Payment', subtext: 'PCI Compliant' },
-    { icon: '⭐', text: '4.8/5 Rating', subtext: 'From 50K+ reviews' },
+    { icon: '⭐', text: '4.8/5 Rating', subtext: 'From 1,200+ reviews' },
   ];
 
   return (

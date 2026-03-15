@@ -325,6 +325,7 @@ export function Footer({
             </h4>
             <ul className="space-y-1.5 md:space-y-2">
               <li><a href="/about" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('about')}</a></li>
+              <li><a href="/team" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">Our Team</a></li>
               <li><a href="/careers" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('careers')}</a></li>
               <li><a href="/press" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('press')}</a></li>
               <li><a href="/blog" className="text-xs md:text-sm text-gray-400 hover:text-white transition-colors">{t('blog')}</a></li>

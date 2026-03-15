@@ -501,7 +501,7 @@ export default function FaqPage() {
         <div className="mt-10">
           <RelatedCTA
             title="Ready to Book Your Flight?"
-            description="Compare prices across 500+ airlines and find the best deals."
+            description="Compare prices across 900+ airlines and find the best deals."
             href="/journey/flights"
             buttonText="Search Flights"
           />

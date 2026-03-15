@@ -4,7 +4,7 @@
  * Airline Logo Component with Multi-Tier Fallback
  *
  * Tries multiple CDN sources for airline logos with graceful fallbacks:
- * 1. Kiwi.com CDN (fast, covers 500+ airlines)
+ * 1. Kiwi.com CDN (fast, covers 900+ airlines)
  * 2. AirHex CDN (comprehensive, covers 1000+ airlines)
  * 3. Styled initials fallback (always works)
  *

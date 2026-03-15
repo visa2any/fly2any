@@ -68,7 +68,7 @@ export function getOrganizationSchema(): OrganizationSchema {
       width: 512,
       height: 512,
     },
-    description: 'Fly2Any is an online travel platform that compares flights, hotels, and travel services from 500+ providers. Founded in 2024 in the United States.',
+    description: 'Fly2Any is an online travel platform that compares flights, hotels, and travel services from 900+ providers. Founded in 2024 in the United States.',
     foundingDate: '2024',
     areaServed: 'Worldwide',
     sameAs: [
@@ -99,7 +99,7 @@ export function getWebSiteSchema() {
     '@id': EntityIds.website,
     name: SITE_NAME,
     url: SITE_URL,
-    description: 'Compare flights from 500+ airlines. Find cheap flights, hotels, and travel deals.',
+    description: 'Compare flights from 900+ airlines. Find cheap flights, hotels, and travel deals.',
     publisher: { '@id': EntityIds.organization },
     inLanguage: 'en-US',
     potentialAction: {
@@ -435,6 +435,313 @@ export function getArticlePageSchemaGraph(
 }
 
 // ============================================================================
+// ENTITY: TRAVEL AGENCY
+// ============================================================================
+
+export function getTravelAgencySchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'TravelAgency',
+    '@id': `${SITE_URL}/#travelagency`,
+    name: SITE_NAME,
+    description: 'Fly2Any is an online-only travel platform specializing in flight bookings, hotel reservations, car rentals, and tour packages. 100% digital — no physical offices.',
+    url: SITE_URL,
+    areaServed: 'Worldwide',
+    email: 'support@fly2any.com',
+    priceRange: '$$',
+    parentOrganization: { '@id': EntityIds.organization },
+    sameAs: [
+      'https://twitter.com/fly2any',
+      'https://www.facebook.com/fly2any',
+      'https://www.instagram.com/fly2any',
+      'https://www.linkedin.com/company/fly2any',
+    ],
+  };
+}
+
+// ============================================================================
+// ENTITY: SOFTWARE APPLICATION
+// ============================================================================
+
+export function getSoftwareApplicationSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    '@id': `${SITE_URL}/#app`,
+    name: SITE_NAME,
+    applicationCategory: 'TravelApplication',
+    operatingSystem: 'Android, iOS, Web',
+    description: 'Fly2Any travel booking app for flights, hotels, cars, and tours.',
+    url: SITE_URL,
+    publisher: { '@id': EntityIds.organization },
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+  };
+}
+
+// ============================================================================
+// ENTITY: FLIGHT (individual flight)
+// ============================================================================
+
+export function getFlightSchema(flight: {
+  airline: string;
+  flightNumber: string;
+  departure: {
+    airport: string;
+    time: string;
+  };
+  arrival: {
+    airport: string;
+    time: string;
+  };
+  price: number;
+  currency: string;
+  url: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Flight',
+    flightNumber: flight.flightNumber,
+    airline: {
+      '@type': 'Airline',
+      name: flight.airline,
+    },
+    departureAirport: {
+      '@type': 'Airport',
+      name: flight.departure.airport,
+    },
+    departureTime: flight.departure.time,
+    arrivalAirport: {
+      '@type': 'Airport',
+      name: flight.arrival.airport,
+    },
+    arrivalTime: flight.arrival.time,
+    offers: {
+      '@type': 'Offer',
+      price: flight.price,
+      priceCurrency: flight.currency,
+      availability: 'https://schema.org/InStock',
+      url: flight.url,
+    },
+  };
+}
+
+// ============================================================================
+// ENTITY: FLIGHT SERVICE (airport/city pages)
+// Previously LocalBusiness — corrected to Service for semantic accuracy.
+// Fly2Any is an online platform, not a local business.
+// ============================================================================
+
+export function getFlightServiceSchema(city: string, airportCode: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${SITE_URL}/flights/from/${airportCode}#service`,
+    name: `Flights from ${city} (${airportCode})`,
+    description: `Book cheap flights from ${city} (${airportCode}) to destinations worldwide.`,
+    url: `${SITE_URL}/flights/from/${airportCode}`,
+    serviceType: 'Flight Booking',
+    areaServed: {
+      '@type': 'Place',
+      name: city,
+    },
+    provider: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      '@id': EntityIds.organization,
+    },
+  };
+}
+
+/** @deprecated Use getFlightServiceSchema instead */
+export const getLocalBusinessSchema = getFlightServiceSchema;
+
+// ============================================================================
+// ENTITY: REVIEW / AGGREGATE RATING
+// ============================================================================
+
+export function getReviewSchema(rating: {
+  ratingValue: number;
+  bestRating?: number;
+  worstRating?: number;
+  ratingCount: number;
+  reviewCount: number;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AggregateRating',
+    ratingValue: rating.ratingValue,
+    bestRating: rating.bestRating || 5,
+    worstRating: rating.worstRating || 1,
+    ratingCount: rating.ratingCount,
+    reviewCount: rating.reviewCount,
+  };
+}
+
+// ============================================================================
+// ENTITY: EVENT (tours/activities)
+// ============================================================================
+
+export function getEventSchema(event: {
+  name: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  location: {
+    name: string;
+    address: string;
+  };
+  offers?: {
+    price: number;
+    priceCurrency: string;
+    url: string;
+    availability: string;
+  }[];
+  image?: string;
+  url: string;
+}) {
+  const schema: any = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: event.name,
+    description: event.description,
+    startDate: event.startDate,
+    location: {
+      '@type': 'Place',
+      name: event.location.name,
+      address: event.location.address,
+    },
+    url: event.url,
+    organizer: { '@id': EntityIds.organization },
+  };
+
+  if (event.endDate) {
+    schema.endDate = event.endDate;
+  }
+
+  if (event.image) {
+    schema.image = event.image;
+  }
+
+  if (event.offers && event.offers.length > 0) {
+    schema.offers = event.offers.map((offer: any) => ({
+      '@type': 'Offer',
+      price: offer.price,
+      priceCurrency: offer.priceCurrency,
+      url: offer.url,
+      availability: offer.availability || 'https://schema.org/InStock',
+    }));
+  }
+
+  return schema;
+}
+
+// ============================================================================
+// ENTITY: PRODUCT (flight/hotel offers)
+// ============================================================================
+
+export function getProductSchema(product: {
+  name: string;
+  description: string;
+  image: string;
+  sku: string;
+  brand: {
+    name: string;
+    url?: string;
+  };
+  offers: {
+    price: number;
+    priceCurrency: string;
+    availability: string;
+    url: string;
+    priceValidUntil?: string;
+  };
+  aggregateRating?: {
+    ratingValue: number;
+    ratingCount: number;
+  };
+}) {
+  const schema: any = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description,
+    image: product.image,
+    sku: product.sku,
+    brand: {
+      '@type': 'Brand',
+      name: product.brand.name,
+      ...(product.brand.url && { url: product.brand.url }),
+    },
+    offers: {
+      '@type': 'Offer',
+      price: product.offers.price,
+      priceCurrency: product.offers.priceCurrency,
+      availability: product.offers.availability,
+      url: product.offers.url,
+      ...(product.offers.priceValidUntil && { priceValidUntil: product.offers.priceValidUntil }),
+    },
+  };
+
+  if (product.aggregateRating) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: product.aggregateRating.ratingValue,
+      ratingCount: product.aggregateRating.ratingCount,
+    };
+  }
+
+  return schema;
+}
+
+// ============================================================================
+// ENTITY: HOW-TO (travel guides)
+// ============================================================================
+
+export function getHowToSchema(howTo: {
+  name: string;
+  description: string;
+  steps: Array<{
+    name: string;
+    text: string;
+    image?: string;
+    url?: string;
+  }>;
+  totalTime?: string;
+  image?: string;
+  url: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: howTo.name,
+    description: howTo.description,
+    step: howTo.steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+      ...(step.image && { image: step.image }),
+      ...(step.url && { url: step.url }),
+    })),
+    ...(howTo.totalTime && { totalTime: howTo.totalTime }),
+    ...(howTo.image && { image: howTo.image }),
+    url: howTo.url,
+  };
+}
+
+// ============================================================================
+// BREADCRUMB SCHEMA (simple alias for backward compat)
+// ============================================================================
+
+export function getBreadcrumbSchema(items: Array<{ name: string; url: string }>) {
+  return getBreadcrumbListSchema(items);
+}
+
+// ============================================================================
 // VALIDATION HELPERS
 // ============================================================================
 
@@ -472,6 +779,15 @@ export const EntitySchema = {
   article: getArticleSchema,
   breadcrumb: getBreadcrumbListSchema,
   faq: getFAQSchema,
+  travelAgency: getTravelAgencySchema,
+  softwareApplication: getSoftwareApplicationSchema,
+  flight: getFlightSchema,
+  flightService: getFlightServiceSchema,
+  localBusiness: getLocalBusinessSchema,
+  review: getReviewSchema,
+  event: getEventSchema,
+  product: getProductSchema,
+  howTo: getHowToSchema,
 
   // Composite
   homePage: getHomePageSchemaGraph,

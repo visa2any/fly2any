@@ -268,7 +268,7 @@ function JourneyStatsSection() {
 
 function WhatsIncludedSection() {
   const items = [
-    { icon: Plane, text: '500+ Airlines', ok: true },
+    { icon: Plane, text: '900+ Airlines', ok: true },
     { icon: Building2, text: '2M+ Hotels', ok: true },
     { icon: Sparkles, text: 'Experiences', ok: true },
     { icon: Shield, text: 'Insurance', ok: true },

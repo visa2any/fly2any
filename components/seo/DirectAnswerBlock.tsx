@@ -221,7 +221,7 @@ export const FLY2ANY_DIRECT_ANSWERS = {
   homepage: [
     {
       question: 'What is Fly2Any?',
-      answer: 'Fly2Any is a flight search engine that compares prices from 500+ airlines to find the cheapest flights. Users can search for flights, set price alerts, and book directly with airlines.',
+      answer: 'Fly2Any is a flight search engine that compares prices from 900+ airlines to find the cheapest flights. Users can search for flights, set price alerts, and book directly with airlines.',
       confidence: 'high' as const,
       lastUpdated: 'December 2025'
     },

@@ -432,7 +432,7 @@ export default function DestinationPage() {
             <div className="text-center p-6 bg-white/5 rounded-2xl backdrop-blur-sm">
               <Shield className="w-10 h-10 text-primary-400 mx-auto mb-3" />
               <h3 className="font-bold mb-2">Best Price Guarantee</h3>
-              <p className="text-gray-400 text-sm">We compare 500+ airlines to find you the cheapest flights.</p>
+              <p className="text-gray-400 text-sm">We compare 900+ airlines to find you the cheapest flights.</p>
             </div>
             <div className="text-center p-6 bg-white/5 rounded-2xl backdrop-blur-sm">
               <CreditCard className="w-10 h-10 text-green-400 mx-auto mb-3" />
@@ -522,7 +522,7 @@ export default function DestinationPage() {
       <section className="py-16 bg-primary-600 text-white text-center">
         <div className="max-w-4xl mx-auto px-4">
           <h2 className="text-3xl font-bold mb-4">Ready to Book Your {dest.name} Adventure?</h2>
-          <p className="text-xl text-white/90 mb-8">Compare prices from 500+ airlines and find your perfect flight today.</p>
+          <p className="text-xl text-white/90 mb-8">Compare prices from 900+ airlines and find your perfect flight today.</p>
           <Link
             href={`/flights?destination=${dest.code}`}
             className="inline-flex items-center gap-2 px-10 py-4 bg-white text-primary-600 font-bold rounded-xl hover:bg-gray-100 transition-colors text-lg"

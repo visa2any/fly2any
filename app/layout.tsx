@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "Fly2Any - Find Cheap Flights & Best Travel Deals",
-    description: "AI-powered flight search. Compare 500+ airlines, track price alerts, and book with confidence.",
+    description: "AI-powered flight search. Compare 900+ airlines, track price alerts, and book with confidence.",
     creator: '@fly2any',
     site: '@fly2any',
   },

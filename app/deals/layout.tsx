@@ -28,7 +28,7 @@ const breadcrumbs = [
 const dealsFAQs = [
   {
     question: 'How do I find the best flight deals?',
-    answer: 'Fly2Any aggregates deals from 500+ airlines in real-time. Set price alerts, use flexible dates, and book 2-3 months in advance for domestic flights. Our AI identifies price drops and notifies you instantly.',
+    answer: 'Fly2Any aggregates deals from 900+ airlines in real-time. Set price alerts, use flexible dates, and book 2-3 months in advance for domestic flights. Our AI identifies price drops and notifies you instantly.',
   },
   {
     question: 'Are the flight deals on Fly2Any legitimate?',

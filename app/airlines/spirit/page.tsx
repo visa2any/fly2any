@@ -125,7 +125,7 @@ export default function SpiritPage() {
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8 text-center">Why Book Spirit with Fly2Any?</h2>
           <div className="grid md:grid-cols-4 gap-6">
-            <div className="text-center p-6 bg-white/5 rounded-2xl"><Shield className="w-10 h-10 text-yellow-400 mx-auto mb-3" /><h3 className="font-bold mb-2">Best Price</h3><p className="text-gray-400 text-sm">Compare from 500+ sources.</p></div>
+            <div className="text-center p-6 bg-white/5 rounded-2xl"><Shield className="w-10 h-10 text-yellow-400 mx-auto mb-3" /><h3 className="font-bold mb-2">Best Price</h3><p className="text-gray-400 text-sm">Compare from 900+ sources.</p></div>
             <div className="text-center p-6 bg-white/5 rounded-2xl"><CreditCard className="w-10 h-10 text-green-400 mx-auto mb-3" /><h3 className="font-bold mb-2">All Fees Shown</h3><p className="text-gray-400 text-sm">See total cost upfront.</p></div>
             <div className="text-center p-6 bg-white/5 rounded-2xl"><Users className="w-10 h-10 text-yellow-400 mx-auto mb-3" /><h3 className="font-bold mb-2">34K+ Reviews</h3><p className="text-gray-400 text-sm">Trusted worldwide.</p></div>
             <div className="text-center p-6 bg-white/5 rounded-2xl"><Headphones className="w-10 h-10 text-yellow-400 mx-auto mb-3" /><h3 className="font-bold mb-2">24/7 Support</h3><p className="text-gray-400 text-sm">Always here to help.</p></div>

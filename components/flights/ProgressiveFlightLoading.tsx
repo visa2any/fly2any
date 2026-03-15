@@ -26,7 +26,7 @@ const searchTips = [
   {
     icon: <TrendingDown className="w-4 h-4 text-green-600" />,
     title: "Best Price Guarantee",
-    description: "We search 500+ airlines to find you the lowest fares"
+    description: "We search 900+ airlines to find you the lowest fares"
   },
   {
     icon: <Clock className="w-4 h-4 text-blue-600" />,
@@ -68,7 +68,7 @@ export default function ProgressiveFlightLoading({
     },
     {
       id: 2,
-      label: "Comparing 500+ airlines",
+      label: "Comparing 900+ airlines",
       icon: <Plane className="w-4 h-4" />,
       status: currentStage >= 1 ? (currentStage > 1 ? 'complete' : 'active') : 'pending'
     },

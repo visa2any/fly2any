@@ -3,11 +3,26 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Terms and Conditions | Fly2Any',
   description: 'Terms and Conditions for Fly2Any - Legal terms governing the use of our services',
+  alternates: { canonical: 'https://www.fly2any.com/terms' },
+};
+
+const webPageSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': 'https://www.fly2any.com/terms#webpage',
+  url: 'https://www.fly2any.com/terms',
+  name: 'Terms and Conditions | Fly2Any',
+  description: 'Terms and Conditions for Fly2Any - Legal terms governing the use of our services.',
+  datePublished: '2025-10-23',
+  dateModified: '2026-03-14',
+  isPartOf: { '@id': 'https://www.fly2any.com/#website' },
+  publisher: { '@id': 'https://www.fly2any.com/#organization' },
 };
 
 export default function TermsAndConditionsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12" suppressHydrationWarning>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white shadow-sm rounded-lg p-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Terms and Conditions</h1>

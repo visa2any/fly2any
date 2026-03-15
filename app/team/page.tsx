@@ -3,6 +3,7 @@
 // Person schema + Organization schema for AI citation authority
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { TEAM } from '@/lib/data/team-members'
 
 export const metadata: Metadata = {
   title: 'Our Travel Experts | Fly2Any Team',
@@ -14,69 +15,6 @@ export const metadata: Metadata = {
     url: 'https://www.fly2any.com/team',
   },
 }
-
-const TEAM = [
-  {
-    name: 'Marcus Rivera',
-    role: 'Head of Travel Operations & Airline Relations',
-    bio: 'Former airline revenue management analyst with 14 years at three major US carriers. Marcus oversees our airline partnerships and ensures fare accuracy across 900+ carriers.',
-    expertise: ['Airline Revenue Management', 'GDS Systems', 'Fare Rules', 'Transatlantic Routes'],
-    credentials: ['IATA Certified Travel Agent', 'Sabre GDS Certified', 'BA in Economics — University of Texas'],
-    yearsExp: 14,
-    articles: 48,
-    slug: 'marcus-rivera',
-  },
-  {
-    name: 'Priya Nambiar',
-    role: 'Senior Travel Content Strategist',
-    bio: 'Priya has visited 67 countries across 6 continents and writes our destination guides with first-hand knowledge. Previously travel editor at a major US digital publication for 8 years.',
-    expertise: ['Asia-Pacific Routes', 'Budget Travel', 'Visa Requirements', 'Destination Guides'],
-    credentials: ['MA in Journalism — Columbia University', 'ASTA Member', 'Google Travel Certified'],
-    yearsExp: 11,
-    articles: 120,
-    slug: 'priya-nambiar',
-  },
-  {
-    name: 'David Chen',
-    role: 'Chief Technology Officer',
-    bio: 'David architected Fly2Any\'s real-time fare comparison engine. With a background in distributed systems and 12 years in travel technology, he ensures our pricing data is always accurate and current.',
-    expertise: ['Real-time Pricing APIs', 'Amadeus Integration', 'System Architecture', 'Flight Data'],
-    credentials: ['MS Computer Science — Stanford', 'AWS Certified Solutions Architect', 'Former Amadeus Tech Lead'],
-    yearsExp: 12,
-    articles: 22,
-    slug: 'david-chen',
-  },
-  {
-    name: 'Sofia Mendes',
-    role: 'Latin America & Iberia Travel Specialist',
-    bio: 'Born in São Paulo, Sofia specializes in travel between the Americas, with deep expertise on South American routes, visa requirements, and airline networks operated by LATAM, Gol, and Avianca.',
-    expertise: ['South America Routes', 'Portuguese/Spanish Markets', 'LATAM Network', 'Visa Guidance'],
-    credentials: ['IATA Certified', 'BA Tourism Management — USP Brazil', 'Bilingual EN/PT/ES'],
-    yearsExp: 9,
-    articles: 76,
-    slug: 'sofia-mendes',
-  },
-  {
-    name: 'James Whitfield',
-    role: 'Loyalty Programs & Premium Cabin Expert',
-    bio: 'James has flown over 2 million miles across premium cabins worldwide and is recognized as a leading authority on airline loyalty programs, award booking, and business class value.',
-    expertise: ['Airline Miles & Points', 'Business Class', 'Oneworld Alliance', 'Award Booking'],
-    credentials: ['Former American Airlines Platinum Pro', 'Points Authority Contributor', '30+ Countries Visited'],
-    yearsExp: 8,
-    articles: 95,
-    slug: 'james-whitfield',
-  },
-  {
-    name: 'Aisha Okonkwo',
-    role: 'Middle East & Africa Routes Specialist',
-    bio: 'Aisha has extensive experience with Gulf carrier operations — Emirates, Qatar Airways, and Etihad — and African aviation networks. She guides thousands of travelers on optimal routings through the Middle East.',
-    expertise: ['Emirates Network', 'Qatar Airways', 'African Routes', 'Dubai Hub Connections'],
-    credentials: ['IATA Travel & Tourism Diploma', 'Former Emirates Customer Experience Team', 'MBA — AUB'],
-    yearsExp: 10,
-    articles: 55,
-    slug: 'aisha-okonkwo',
-  },
-]
 
 const schemas = [
   {
@@ -99,18 +37,20 @@ const schemas = [
     serviceType: 'Travel Agency',
     employee: TEAM.map(m => ({
       '@type': 'Person',
+      '@id': `https://www.fly2any.com/team/${m.slug}#person`,
       name: m.name,
       jobTitle: m.role,
-      url: `https://www.fly2any.com/team#${m.slug}`,
+      url: `https://www.fly2any.com/team/${m.slug}`,
       knowsAbout: m.expertise,
     })),
   },
   ...TEAM.map(m => ({
     '@context': 'https://schema.org',
     '@type': 'Person',
+    '@id': `https://www.fly2any.com/team/${m.slug}#person`,
     name: m.name,
     jobTitle: m.role,
-    url: `https://www.fly2any.com/team#${m.slug}`,
+    url: `https://www.fly2any.com/team/${m.slug}`,
     worksFor: { '@type': 'Organization', name: 'Fly2Any', url: 'https://www.fly2any.com' },
     description: m.bio,
     knowsAbout: m.expertise,
@@ -168,8 +108,12 @@ export default function TeamPage() {
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {TEAM.map(member => (
-              <article
+              <Link
                 key={member.slug}
+                href={`/team/${member.slug}`}
+                className="block"
+              >
+              <article
                 id={member.slug}
                 className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
                 itemScope
@@ -223,6 +167,7 @@ export default function TeamPage() {
                   </ul>
                 </div>
               </article>
+              </Link>
             ))}
           </div>
         </div>

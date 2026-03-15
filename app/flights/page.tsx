@@ -6,13 +6,13 @@ export async function generateMetadata() {
 
   return {
     title: t('metaTitle') || 'Find Cheap Flights & Airline Tickets | Fly2Any',
-    description: t('metaDescription') || 'Compare flight prices from 500+ airlines. Find the best deals on airline tickets, track price drops, and book your perfect flight with Fly2Any.',
+    description: t('metaDescription') || 'Compare flight prices from 900+ airlines. Find the best deals on airline tickets, track price drops, and book your perfect flight with Fly2Any.',
     alternates: {
       canonical: '/flights',
     },
     openGraph: {
       title: 'Find Cheap Flights & Airline Tickets | Fly2Any',
-      description: 'Compare flight prices from 500+ airlines. Find the best deals on airline tickets, track price drops, and book your perfect flight with Fly2Any.',
+      description: 'Compare flight prices from 900+ airlines. Find the best deals on airline tickets, track price drops, and book your perfect flight with Fly2Any.',
       url: '/flights',
     },
   };

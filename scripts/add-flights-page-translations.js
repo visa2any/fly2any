@@ -7,7 +7,7 @@ const flightsPageTranslations = {
     FlightsPage: {
       pageTitle: 'Find Your Perfect Flight',
       sectionTitle: 'Search, Compare & Book Flights with Confidence',
-      subtitle: 'AI-powered search across 500+ airlines for the best deals',
+      subtitle: 'AI-powered search across 900+ airlines for the best deals',
       cabinClassTitle: '✈️ Flight Classes & Cabin Types',
       cabinClassSubtitle: 'Choose the perfect cabin for your journey',
       alliancesTitle: '🌐 Airlines by Alliance',

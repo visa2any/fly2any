@@ -185,7 +185,7 @@ export default function FlightResults({
             <div>
               <div className="font-semibold text-blue-900 mb-1">Why Fly2Any?</div>
               <ul className="text-blue-800 text-xs space-y-0.5">
-                <li>• Real-time pricing from 500+ airlines</li>
+                <li>• Real-time pricing from 900+ airlines</li>
                 <li>• TruePrice™ shows all costs upfront - no surprises</li>
                 <li>• FlightIQ™ scores help you find the best value</li>
                 <li>• 24/7 customer support in English, Portuguese & Spanish</li>

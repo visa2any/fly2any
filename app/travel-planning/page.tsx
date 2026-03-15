@@ -51,7 +51,7 @@ const planningData = {
     { value: '24/7', label: 'Support', icon: Headphones },
   ],
   quickLinks: [
-    { href: '/journey/flights', icon: Plane, title: 'Search Flights', desc: 'Compare 500+ airlines', color: 'from-sky-500 to-blue-600' },
+    { href: '/journey/flights', icon: Plane, title: 'Search Flights', desc: 'Compare 900+ airlines', color: 'from-sky-500 to-blue-600' },
     { href: '/hotels', icon: Hotel, title: 'Find Hotels', desc: 'Best rates guaranteed', color: 'from-violet-500 to-purple-600' },
     { href: '/cars', icon: Car, title: 'Rent Cars', desc: 'Airport pickup', color: 'from-emerald-500 to-teal-600' },
     { href: '/travel-insurance', icon: Shield, title: 'Get Insurance', desc: 'Travel protected', color: 'from-amber-500 to-orange-600' },

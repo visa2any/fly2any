@@ -61,7 +61,7 @@ export default function CareersPage() {
           {[
             { value: '50+', label: 'Team Members' },
             { value: '15+', label: 'Countries' },
-            { value: '10M+', label: 'Users Served' },
+            { value: '100K+', label: 'Users Served' },
             { value: '4.9★', label: 'Glassdoor' },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="text-center">

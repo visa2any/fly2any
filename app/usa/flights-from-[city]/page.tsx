@@ -77,8 +77,8 @@ export async function generateMetadata({ params }: { params: CityParams }): Prom
   const year = new Date().getFullYear();
 
   return genMeta({
-    title: `Cheap Flights from ${city.name}, ${city.state} ${year} - Compare 500+ Airlines`,
-    description: `Find the best flight deals departing from ${city.name} (${city.airports.join('/')}) in ${year}. Compare prices from 500+ airlines, get price alerts, and save up to 40% on flights from ${city.name}.`,
+    title: `Cheap Flights from ${city.name}, ${city.state} ${year} - Compare 900+ Airlines`,
+    description: `Find the best flight deals departing from ${city.name} (${city.airports.join('/')}) in ${year}. Compare prices from 900+ airlines, get price alerts, and save up to 40% on flights from ${city.name}.`,
     keywords: [
       `flights from ${city.name}`,
       `${city.name} airport flights`,
@@ -129,7 +129,7 @@ export default async function FlightsFromCityPage({ params }: { params: CityPara
     },
     {
       question: `How do I find the best flight deals from ${city.name}?`,
-      answer: `Use Fly2Any to compare prices from 500+ airlines. Set price alerts for your preferred routes, be flexible with dates, and consider nearby airports like ${city.airports.slice(1).join(', ') || 'alternative regional airports'} for better deals.`,
+      answer: `Use Fly2Any to compare prices from 900+ airlines. Set price alerts for your preferred routes, be flexible with dates, and consider nearby airports like ${city.airports.slice(1).join(', ') || 'alternative regional airports'} for better deals.`,
     },
   ]);
 
@@ -188,7 +188,7 @@ export default async function FlightsFromCityPage({ params }: { params: CityPara
 
             {/* AI-Optimized Summary - Visible factual overview */}
             <p className="text-lg md:text-xl text-primary-100 mb-6 max-w-3xl">
-              Compare prices from 500+ airlines departing {city.airports.join(', ')}.
+              Compare prices from 900+ airlines departing {city.airports.join(', ')}.
               Save up to 40% on flights from {city.name} with real-time price tracking.
             </p>
 
@@ -206,7 +206,7 @@ export default async function FlightsFromCityPage({ params }: { params: CityPara
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                 <Star className="w-6 h-6 mb-2 text-secondary-400" />
-                <div className="text-2xl font-bold">500+</div>
+                <div className="text-2xl font-bold">900+</div>
                 <div className="text-sm text-primary-200">Airlines</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
@@ -332,7 +332,7 @@ export default async function FlightsFromCityPage({ params }: { params: CityPara
                   How do I find the best flight deals from {city.name}?
                 </h3>
                 <p className="text-neutral-600">
-                  Use Fly2Any to compare prices from 500+ airlines. Set price alerts for your preferred routes,
+                  Use Fly2Any to compare prices from 900+ airlines. Set price alerts for your preferred routes,
                   be flexible with dates, and consider nearby airports for better deals.
                 </p>
               </div>
@@ -347,7 +347,7 @@ export default async function FlightsFromCityPage({ params }: { params: CityPara
               Ready to Book Your Flight?
             </h2>
             <p className="text-lg text-primary-100 mb-8 max-w-2xl mx-auto">
-              Search now and compare prices from 500+ airlines departing {city.name}
+              Search now and compare prices from 900+ airlines departing {city.name}
             </p>
             <Link
               href={`/flights/results?origin=${primaryAirport}`}

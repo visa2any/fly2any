@@ -14,8 +14,8 @@ import { StructuredData } from '@/components/seo/StructuredData';
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
 export const metadata: Metadata = genMeta({
-  title: 'Cheap Flights from USA 2025 - Compare 500+ Airlines',
-  description: 'Find the best flight deals departing from US cities. Compare prices from 500+ airlines, get price alerts, and save up to 40% on domestic and international flights from the United States.',
+  title: 'Cheap Flights from USA 2026 - Compare 900+ Airlines',
+  description: 'Find the best flight deals departing from US cities. Compare prices from 900+ airlines, get price alerts, and save up to 40% on domestic and international flights from the United States.',
   keywords: [
     'flights from USA',
     'US flight deals',
@@ -78,7 +78,7 @@ export default function USAFlightsPage() {
         <p>
           Compare cheap flights from USA major cities including New York (JFK/LGA/EWR), Los Angeles (LAX),
           Chicago (ORD), Miami (MIA), and 12+ other hubs. Domestic flights from $100, international from $350.
-          500+ airlines compared. Best booking: 2-3 months advance for domestic, 3-6 months for international.
+          900+ airlines compared. Best booking: 2-3 months advance for domestic, 3-6 months for international.
         </p>
       </div>
 
@@ -98,7 +98,7 @@ export default function USAFlightsPage() {
               Cheap Flights from USA
             </h1>
             <p className="text-lg md:text-xl text-primary-100 mb-8 max-w-3xl">
-              Compare prices from 500+ airlines across all major US airports.
+              Compare prices from 900+ airlines across all major US airports.
               Save up to 40% on domestic and international flights.
             </p>
 
@@ -121,7 +121,7 @@ export default function USAFlightsPage() {
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                 <Star className="w-6 h-6 mb-2 text-secondary-400" />
-                <div className="text-2xl font-bold">500+</div>
+                <div className="text-2xl font-bold">900+</div>
                 <div className="text-sm text-primary-200">Airlines</div>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function USAFlightsPage() {
               Ready to Explore?
             </h2>
             <p className="text-lg text-primary-100 mb-8">
-              Search flights from any US city and compare prices from 500+ airlines
+              Search flights from any US city and compare prices from 900+ airlines
             </p>
             <Link
               href="/"

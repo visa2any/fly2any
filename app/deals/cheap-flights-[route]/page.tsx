@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: RouteParams }): Pro
   const year = new Date().getFullYear();
   return genMeta({
     title: `Cheap Flights ${route.originName} to ${route.destName} from $${route.lowestPrice} - ${year} Deals`,
-    description: `Find cheap flights from ${route.originName} to ${route.destName} starting at $${route.lowestPrice}. Save up to ${route.savings}% on ${route.origin}-${route.destination} flights. Compare 500+ airlines.`,
+    description: `Find cheap flights from ${route.originName} to ${route.destName} starting at $${route.lowestPrice}. Save up to ${route.savings}% on ${route.origin}-${route.destination} flights. Compare 900+ airlines.`,
     keywords: [`cheap flights ${route.originName} to ${route.destName}`, `${route.origin} to ${route.destination} deals`, `low cost ${route.originName} ${route.destName} flights`],
     canonical: `${SITE_URL}/deals/cheap-flights-${params.route}`,
   });
@@ -126,7 +126,7 @@ export default async function CheapFlightsRoutePage({ params }: { params: RouteP
               </div>
               <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
                 <Plane className="w-5 h-5 mb-1 text-secondary-400" />
-                <div className="text-xl font-bold">500+</div>
+                <div className="text-xl font-bold">900+</div>
                 <div className="text-xs text-primary-200">Airlines</div>
               </div>
             </div>
@@ -172,7 +172,7 @@ export default async function CheapFlightsRoutePage({ params }: { params: RouteP
           <div className="bg-white rounded-xl shadow-soft p-6">
             <h2 className="text-2xl font-bold text-neutral-800 mb-4">Finding Cheap Flights from {route.originName} to {route.destName}</h2>
             <div className="prose max-w-none text-neutral-700 space-y-4">
-              <p>Looking for the best deals on flights from {route.originName} ({route.origin}) to {route.destName} ({route.destination})? Fly2Any compares prices from 500+ airlines to help you find cheap flights starting at just ${route.lowestPrice}.</p>
+              <p>Looking for the best deals on flights from {route.originName} ({route.origin}) to {route.destName} ({route.destination})? Fly2Any compares prices from 900+ airlines to help you find cheap flights starting at just ${route.lowestPrice}.</p>
               <h3 className="text-lg font-semibold text-neutral-800 mt-6 mb-2">Tips for Cheaper Flights</h3>
               <ul className="list-disc pl-6 space-y-1">
                 <li>Book 3-4 weeks ahead for best domestic prices</li>

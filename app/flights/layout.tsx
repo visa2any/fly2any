@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 const flightFAQs = [
   {
     question: 'What is the best website to book cheap flights?',
-    answer: 'Fly2Any compares prices from 900+ airlines and 500+ sources in real-time. Our AI-powered search finds the best deals with price alerts and flexible date options. We offer a best price guarantee and free cancellation on most bookings.',
+    answer: 'Fly2Any compares prices from 900+ airlines and 900+ sources in real-time. Our AI-powered search finds the best deals with price alerts and flexible date options. We offer a best price guarantee and free cancellation on most bookings.',
   },
   {
     question: 'How do I find the cheapest flight?',

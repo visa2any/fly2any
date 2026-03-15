@@ -44,7 +44,7 @@ const footerContent = {
     newsletter: 'Subscribe to Our Newsletter',
     emailPlaceholder: 'Enter your email',
     subscribe: 'Subscribe',
-    copyright: '© 2025 Fly2Any. All rights reserved.',
+    copyright: '© 2026 Fly2Any. All rights reserved.',
     payments: 'Secure Payments',
   },
   pt: {
@@ -65,7 +65,7 @@ const footerContent = {
     newsletter: 'Assine Nossa Newsletter',
     emailPlaceholder: 'Digite seu email',
     subscribe: 'Assinar',
-    copyright: '© 2025 Fly2Any. Todos os direitos reservados.',
+    copyright: '© 2026 Fly2Any. Todos os direitos reservados.',
     payments: 'Pagamentos Seguros',
   },
   es: {
@@ -86,7 +86,7 @@ const footerContent = {
     newsletter: 'Suscríbete a Nuestro Boletín',
     emailPlaceholder: 'Ingresa tu email',
     subscribe: 'Suscribirse',
-    copyright: '© 2025 Fly2Any. Todos los derechos reservados.',
+    copyright: '© 2026 Fly2Any. Todos los derechos reservados.',
     payments: 'Pagos Seguros',
   },
 };

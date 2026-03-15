@@ -171,7 +171,7 @@ export function InlineSearchWidget({
                             Ready to Book Your Flight?
                         </h3>
                         <p className="text-blue-100 text-lg">
-                            Compare prices from 500+ airlines for the best deals
+                            Compare prices from 900+ airlines for the best deals
                         </p>
                     </div>
 

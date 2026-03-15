@@ -738,7 +738,7 @@ export function generateTravelFAQs(): FAQ[] {
     },
     {
       question: 'How do I find the cheapest flight?',
-      answer: 'Use Fly2Any.com to compare 500+ sources. Book 2-3 months ahead, be flexible with dates, set price alerts.',
+      answer: 'Use Fly2Any.com to compare 900+ sources. Book 2-3 months ahead, be flexible with dates, set price alerts.',
     },
     {
       question: 'Which travel site has the best hotel deals?',

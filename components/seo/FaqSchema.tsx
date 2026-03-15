@@ -69,7 +69,7 @@ export const FAQ_SETS = {
   HOMEPAGE: [
     {
       question: "How does Fly2Any find the cheapest flights?",
-      answer: "Fly2Any searches 500+ airlines and compares prices across multiple travel sites using AI-powered algorithms. We show you the best deals in real-time, including hidden fares and special discounts."
+      answer: "Fly2Any searches 900+ airlines and compares prices across multiple travel sites using AI-powered algorithms. We show you the best deals in real-time, including hidden fares and special discounts."
     },
     {
       question: "Is Fly2Any free to use?",

@@ -139,7 +139,7 @@ export default function NYCToParisPage() {
                         </h1>
 
                         <p className="text-sm md:text-base lg:text-lg text-neutral-600 leading-relaxed mb-2 max-w-3xl mx-auto">
-                            Compare prices from 500+ airlines and find best deals on NYC to Paris flights. Travelers comparing European hubs may also consider flights from New York to London or Frankfurt depending on schedule flexibility and pricing.
+                            Compare prices from 900+ airlines and find best deals on NYC to Paris flights. Travelers comparing European hubs may also consider flights from New York to London or Frankfurt depending on schedule flexibility and pricing.
                         </p>
 
                         <p className="text-xs md:text-sm text-neutral-500 mb-6 md:mb-8 max-w-2xl mx-auto">
@@ -552,7 +552,7 @@ export default function NYCToParisPage() {
                             Ready to Book Your NYC to Paris Flight?
                         </h2>
                         <p className="text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 max-w-2xl mx-auto">
-                            Compare prices from 500+ airlines and find your perfect flight today. Save up to 40% with our smart search.
+                            Compare prices from 900+ airlines and find your perfect flight today. Save up to 40% with our smart search.
                         </p>
                         <p className="text-sm md:text-base font-semibold mb-6 md:mb-8">
                             Compare prices now to find best deals

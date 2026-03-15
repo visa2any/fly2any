@@ -11,7 +11,7 @@ const destinationMeta: Record<string, {
 }> = {
   hawaii: {
     title: 'Cheap Flights to Hawaii 2025 | Compare & Save Up to 60% - Fly2Any',
-    description: 'Find cheap flights to Hawaii from major US cities. Compare 500+ airlines for Honolulu, Maui, and Kona flights. Best deals with free cancellation. Book now!',
+    description: 'Find cheap flights to Hawaii from major US cities. Compare 900+ airlines for Honolulu, Maui, and Kona flights. Best deals with free cancellation. Book now!',
     keywords: 'cheap flights to hawaii, hawaii flights, honolulu flights, maui flights, hawaii airfare deals, cheap hawaii tickets, flights to hawaii 2025, best time to fly to hawaii, hawaii vacation packages',
     h1: 'Cheap Flights to Hawaii',
     faqSchema: [
@@ -22,7 +22,7 @@ const destinationMeta: Record<string, {
   },
   florida: {
     title: 'Cheap Flights to Florida 2025 | Miami, Orlando from $99 - Fly2Any',
-    description: 'Book cheap flights to Florida from $99. Compare Miami, Orlando, Tampa flights from 500+ airlines. Free cancellation on select fares. Search now!',
+    description: 'Book cheap flights to Florida from $99. Compare Miami, Orlando, Tampa flights from 900+ airlines. Free cancellation on select fares. Search now!',
     keywords: 'cheap flights to florida, florida flights, miami flights, orlando flights, tampa flights, florida airfare, cheap florida tickets, disney world flights, south beach flights',
     h1: 'Cheap Flights to Florida',
     faqSchema: [
@@ -33,7 +33,7 @@ const destinationMeta: Record<string, {
   },
   'las-vegas': {
     title: 'Cheap Flights to Las Vegas 2025 | Vegas Deals from $79 - Fly2Any',
-    description: 'Score cheap flights to Las Vegas from $79. Compare 500+ airlines for the best Vegas deals. Weekend getaways & vacation packages. Book now!',
+    description: 'Score cheap flights to Las Vegas from $79. Compare 900+ airlines for the best Vegas deals. Weekend getaways & vacation packages. Book now!',
     keywords: 'cheap flights to las vegas, vegas flights, las vegas airfare, cheap vegas tickets, LAS flights, vegas weekend deals, las vegas vacation, sin city flights',
     h1: 'Cheap Flights to Las Vegas',
     faqSchema: [
@@ -44,7 +44,7 @@ const destinationMeta: Record<string, {
   },
   mexico: {
     title: 'Cheap Flights to Mexico 2025 | Cancun, Mexico City - Fly2Any',
-    description: 'Find cheap flights to Mexico from $149. Best deals on Cancun, Mexico City, Puerto Vallarta. Compare 500+ airlines. Book with free cancellation!',
+    description: 'Find cheap flights to Mexico from $149. Best deals on Cancun, Mexico City, Puerto Vallarta. Compare 900+ airlines. Book with free cancellation!',
     keywords: 'cheap flights to mexico, cancun flights, mexico city flights, cheap mexico airfare, mexico vacation deals, all inclusive mexico, playa del carmen flights, cabo flights',
     h1: 'Cheap Flights to Mexico',
     faqSchema: [
@@ -77,7 +77,7 @@ const destinationMeta: Record<string, {
   },
   brazil: {
     title: 'Cheap Flights to Brazil 2025 | Rio, Sao Paulo from $449 - Fly2Any',
-    description: 'Book cheap flights to Brazil from $449. Best deals on Rio de Janeiro, Sao Paulo flights. No visa required! Compare 500+ airlines now.',
+    description: 'Book cheap flights to Brazil from $449. Best deals on Rio de Janeiro, Sao Paulo flights. No visa required! Compare 900+ airlines now.',
     keywords: 'cheap flights to brazil, brazil flights, rio flights, sao paulo flights, brazil airfare, rio de janeiro flights, south america flights, carnival brazil',
     h1: 'Cheap Flights to Brazil',
     faqSchema: [
@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!meta) {
     return {
       title: 'Cheap Flights - Compare & Book | Fly2Any',
-      description: 'Find cheap flights to destinations worldwide. Compare 500+ airlines and book with confidence.',
+      description: 'Find cheap flights to destinations worldwide. Compare 900+ airlines and book with confidence.',
     };
   }
 

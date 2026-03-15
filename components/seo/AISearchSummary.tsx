@@ -72,7 +72,7 @@ function generateFlightSummary(data: FlightSummaryData): string {
     `${directFlights ? 'Direct flights available.' : 'Connecting flights with 1-2 stops.'} ` +
     `Best time to book: ${bestBookingTime}. ` +
     `Cheapest days to fly: ${daysText}. ` +
-    `Compare prices from 500+ airlines on Fly2Any.`;
+    `Compare prices from 900+ airlines on Fly2Any.`;
 }
 
 /**

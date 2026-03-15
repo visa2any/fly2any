@@ -37,7 +37,7 @@ export const consultantLoadingMessages: Record<string, ConsultantLoadingMessages
       ],
       searching: [
         "Searching through thousands of flight options...",
-        "Scanning 500+ airlines for the best routes...",
+        "Scanning 900+ airlines for the best routes...",
         "Finding the perfect flight combinations...",
         "Checking real-time availability...",
       ],
@@ -438,7 +438,7 @@ export function getTypicalStages(consultantId: string) {
   if (consultantId === 'sarah-flight') {
     return [
       { id: 'analyzing', label: 'Analyzing travel preferences' },
-      { id: 'searching', label: 'Searching 500+ airlines' },
+      { id: 'searching', label: 'Searching 900+ airlines' },
       { id: 'processing', label: 'Calculating optimal routes' },
       { id: 'comparing', label: 'Comparing prices' },
       { id: 'finalizing', label: 'Ranking best options' },

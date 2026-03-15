@@ -169,7 +169,7 @@ export default function HotelsInCityPage() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-2">Need Flights to {cityInfo.name}?</h2>
-          <p className="text-blue-100 mb-6">Compare flights from 500+ airlines and save up to 40%</p>
+          <p className="text-blue-100 mb-6">Compare flights from 900+ airlines and save up to 40%</p>
           <Link
             href={`/flights/to/${citySlug}`}
             className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors"

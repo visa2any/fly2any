@@ -854,7 +854,7 @@ export class EmailService {
                 <tr>
                   <td width="40" style="font-size:24px;vertical-align:top;">🌍</td>
                   <td>
-                    <p style="margin:0;font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">500+ Airlines</p>
+                    <p style="margin:0;font-weight:600;color:#111827;font-family:Arial,Helvetica,sans-serif;">900+ Airlines</p>
                     <p style="margin:4px 0 0 0;font-size:14px;color:#6b7280;font-family:Arial,Helvetica,sans-serif;">Compare flights from every major carrier worldwide</p>
                   </td>
                 </tr>

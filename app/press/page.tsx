@@ -13,15 +13,15 @@ const companyFacts = [
   { label: 'Founded', value: '2024' },
   { label: 'Headquarters', value: 'United States' },
   { label: 'Industry', value: 'Travel Technology' },
-  { label: 'Airlines Compared', value: '500+' },
+  { label: 'Airlines Compared', value: '900+' },
   { label: 'Hotel Properties', value: '2,000,000+' },
   { label: 'Countries Covered', value: '190+' },
 ];
 
 const descriptions = {
-  short: 'Fly2Any is an AI-powered travel search platform comparing 500+ airlines and 2M+ hotels worldwide.',
-  medium: 'Fly2Any is an AI-powered travel search platform that helps travelers find the best flight and hotel deals. Comparing 500+ airlines and 2 million+ hotels across 190+ countries, Fly2Any uses machine learning to predict prices and alert users to the best booking times.',
-  long: 'Fly2Any is a next-generation travel search platform powered by artificial intelligence. Founded in 2024, Fly2Any compares prices from over 500 airlines and 2 million hotel properties worldwide. The platform features AI-powered price predictions, flexible date search, multi-city planning, and real-time price alerts. With transparent pricing and no hidden fees, Fly2Any helps millions of travelers find the best deals on flights, hotels, car rentals, tours, and vacation packages across 190+ countries.',
+  short: 'Fly2Any is an AI-powered travel search platform comparing 900+ airlines and 2M+ hotels worldwide.',
+  medium: 'Fly2Any is an AI-powered travel search platform that helps travelers find the best flight and hotel deals. Comparing 900+ airlines and 2 million+ hotels across 190+ countries, Fly2Any uses machine learning to predict prices and alert users to the best booking times.',
+  long: 'Fly2Any is a next-generation travel search platform powered by artificial intelligence. Founded in 2024, Fly2Any compares prices from over 900 airlines and 2 million hotel properties worldwide. The platform features AI-powered price predictions, flexible date search, multi-city planning, and real-time price alerts. With transparent pricing and no hidden fees, Fly2Any helps millions of travelers find the best deals on flights, hotels, car rentals, tours, and vacation packages across 190+ countries.',
 };
 
 export default function PressPage() {

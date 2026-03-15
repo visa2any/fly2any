@@ -491,7 +491,7 @@ export default function SoloTravelPage() {
             <Award className="w-16 h-16 text-violet-300 mx-auto mb-6" />
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready for Your Solo Adventure?</h2>
             <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto">
-              Compare flights from 500+ airlines and start your solo journey today.
+              Compare flights from 900+ airlines and start your solo journey today.
             </p>
             <Link
               href="/journey/flights"

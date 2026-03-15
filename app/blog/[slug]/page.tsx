@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import ClientPage from './ClientPage';
 import { sampleBlogPosts } from '@/lib/data/blog-posts';
+import { getTeamMemberByName } from '@/lib/data/team-members';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
@@ -45,11 +46,22 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
     image: post.featuredImage?.url ? [post.featuredImage.url] : [],
     datePublished: post.publishedAt.toISOString(),
     dateModified: post.updatedAt ? post.updatedAt.toISOString() : post.publishedAt.toISOString(),
-    author: [{
-      '@type': 'Person',
-      name: post.author.name,
-      url: post.author.social?.twitter ? `https://twitter.com/${post.author.social.twitter.replace('@', '')}` : undefined,
-    }],
+    author: (() => {
+      const teamMember = getTeamMemberByName(post.author.name);
+      if (teamMember) {
+        return [{
+          '@type': 'Person',
+          '@id': `${SITE_URL}/team/${teamMember.slug}#person`,
+          name: post.author.name,
+          url: `${SITE_URL}/team/${teamMember.slug}`,
+        }];
+      }
+      return [{
+        '@type': 'Person',
+        name: post.author.name,
+        url: post.author.social?.twitter ? `https://twitter.com/${post.author.social.twitter.replace('@', '')}` : undefined,
+      }];
+    })(),
     publisher: {
       '@type': 'Organization',
       name: 'Fly2Any',

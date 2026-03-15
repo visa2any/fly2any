@@ -249,7 +249,7 @@ export function AirlineAnswerBlock({ data }: { data: AirlineAnswerData }) {
         {data.name} ({data.iataCode}) is {data.alliance ? `a member of the ${data.alliance} alliance` : 'an airline'}
         {data.hubAirports.length > 0 && ` with hub airports at ${data.hubAirports.slice(0, 3).join(', ')}`}.
         {data.baggagePolicy && ` ${data.baggagePolicy}`}
-        Compare {data.name} flights with 500+ other airlines on Fly2Any to find the best prices.
+        Compare {data.name} flights with 900+ other airlines on Fly2Any to find the best prices.
       </p>
     </section>
   );

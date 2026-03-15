@@ -187,7 +187,7 @@ function generateAISummary(type: GEOEnhancerProps['type'], data: GEOEnhancerProp
     case 'hotel':
       return `${data.name} - ${data.starRating || 4}-star hotel from ${price}/night. ${data.rating ? `Guest rating: ${data.rating}/5.` : ''} ${data.location ? `Located in ${data.location}.` : ''} Compare hotel prices on Fly2Any.`;
     case 'flight':
-      return `Flights from ${data.origin} to ${data.destination} from ${price}. ${data.airline ? `Operated by ${data.airline}.` : ''} Compare 500+ airlines on Fly2Any.`;
+      return `Flights from ${data.origin} to ${data.destination} from ${price}. ${data.airline ? `Operated by ${data.airline}.` : ''} Compare 900+ airlines on Fly2Any.`;
     default:
       return `${data.name} from ${price}. Book on Fly2Any.`;
   }

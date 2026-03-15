@@ -333,7 +333,7 @@ export class AISEOEngine {
     const optimizations: Record<string, { title: string; desc: string }> = {
       '/flights/miami-to-sao-paulo': {
         title: 'Miami to São Paulo Flights from $389 | Compare & Save | Fly2Any',
-        desc: 'Find cheap Miami (MIA) to São Paulo (GRU) flights. Compare 500+ airlines, track prices & book with confidence. Best deals guaranteed.',
+        desc: 'Find cheap Miami (MIA) to São Paulo (GRU) flights. Compare 900+ airlines, track prices & book with confidence. Best deals guaranteed.',
       },
       '/deals': {
         title: 'Flight Deals & Cheap Airfare 2025 | Up to 60% Off | Fly2Any',

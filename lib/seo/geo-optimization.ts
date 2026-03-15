@@ -340,7 +340,7 @@ export const TRAVEL_STATISTICS = {
     avgSavings: '23%',
     usersServed: '500,000+',
     routesCovered: '10,000+',
-    airlinePartners: '500+',
+    airlinePartners: '900+',
   },
   hotels: {
     propertiesAvailable: '2,000,000+',

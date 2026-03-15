@@ -110,7 +110,7 @@ function generateAISummary(props: FlightResultsSEOProps): string {
     `Lowest price: ${currency} ${lowPrice}. Average price: ${currency} ${avgPrice}. ` +
     `Airlines: ${airlines.join(', ')}. ` +
     `${directFlights.length} direct flight${directFlights.length !== 1 ? 's' : ''} available. ` +
-    `Prices compared from 500+ airlines on Fly2Any.`;
+    `Prices compared from 900+ airlines on Fly2Any.`;
 }
 
 export function FlightResultsSEO(props: FlightResultsSEOProps) {

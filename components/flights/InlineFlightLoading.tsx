@@ -27,7 +27,7 @@ const searchTips = [
   {
     icon: <TrendingDown className="w-4 h-4 text-success-600" />,
     title: "Best Price Guarantee",
-    description: "Searching 500+ airlines for lowest fares"
+    description: "Searching 900+ airlines for lowest fares"
   },
   {
     icon: <Clock className="w-4 h-4 text-primary-500" />,

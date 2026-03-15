@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
             }}
           >
             <span style={{ fontSize: '18px', color: '#94a3b8' }}>
-              500+ Airlines
+              900+ Airlines
             </span>
             <span style={{ fontSize: '18px', color: '#475569' }}>•</span>
             <span style={{ fontSize: '18px', color: '#94a3b8' }}>

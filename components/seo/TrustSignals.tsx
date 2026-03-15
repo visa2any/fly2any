@@ -118,7 +118,7 @@ interface TrustBlockProps {
 }
 
 const TRUST_POINTS = [
-  { icon: Database, text: 'Real-time prices from 500+ airlines', detail: 'No cached or fake pricing' },
+  { icon: Database, text: 'Real-time prices from 900+ airlines', detail: 'No cached or fake pricing' },
   { icon: Shield, text: 'No hidden fees or markups', detail: 'Final price shown upfront' },
   { icon: CheckCircle, text: 'Book directly with airlines', detail: 'We redirect to official sites' },
   { icon: TrendingUp, text: 'Price tracking since 2024', detail: 'Historical data for predictions' },
@@ -130,7 +130,7 @@ export function TrustBlock({ variant = 'compact' }: TrustBlockProps) {
       <div className="border-t border-gray-100 pt-4 mt-4">
         <p className="text-xs text-gray-500 flex items-center gap-1.5">
           <Shield className="w-3.5 h-3.5 text-green-600" />
-          <span>Fly2Any compares real-time prices from 500+ airlines. No hidden fees.</span>
+          <span>Fly2Any compares real-time prices from 900+ airlines. No hidden fees.</span>
         </p>
       </div>
     );

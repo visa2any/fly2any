@@ -86,7 +86,7 @@ export function FlightRouteHero({ origin, destination, originName, destinationNa
             </h1>
 
             <p className="text-lg text-blue-100/80 max-w-xl leading-relaxed animate-fade-in-up delay-200">
-              Compare prices from 500+ airlines, find exclusive deals, and book your trip to {destinationName} with confidence.
+              Compare prices from 900+ airlines, find exclusive deals, and book your trip to {destinationName} with confidence.
               {pricing.isEstimated && <span className="block mt-2 text-sm opacity-60 italic">*Prices shown are estimated based on historical data.</span>}
             </p>
 
@@ -178,7 +178,7 @@ export function FlightRouteHero({ origin, destination, originName, destinationNa
                <div className="absolute bottom-10 left-[-20px] bg-white/10 backdrop-blur-md text-white rounded-xl p-3 shadow-xl border border-white/20 animate-float-delayed">
                  <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
-                    <span className="text-xs font-bold">500+ Airlines</span>
+                    <span className="text-xs font-bold">900+ Airlines</span>
                  </div>
               </div>
             </div>

@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { Globe, Users, Shield, Award, Plane, Hotel, Sparkles, Heart, Zap, Target, ChevronRight, Star, TrendingUp, Clock } from 'lucide-react';
 
 const stats = [
-  { icon: Plane, value: '500+', label: 'Airlines Compared', color: 'bg-blue-100 text-blue-600' },
+  { icon: Plane, value: '900+', label: 'Airlines Compared', color: 'bg-blue-100 text-blue-600' },
   { icon: Hotel, value: '2M+', label: 'Hotel Properties', color: 'bg-purple-100 text-purple-600' },
   { icon: Globe, value: '190+', label: 'Countries Covered', color: 'bg-rose-100 text-rose-600' },
-  { icon: Users, value: '10M+', label: 'Happy Travelers', color: 'bg-amber-100 text-amber-600' },
+  { icon: Users, value: '100K+', label: 'Happy Travelers', color: 'bg-amber-100 text-amber-600' },
 ];
 
 const values = [
@@ -98,7 +98,7 @@ export default function AboutPage() {
               </p>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
                 So we built something different. Using AI and machine learning, we compare prices across
-                500+ airlines and 2 million hotels in real-time, ensuring you always get the best deal
+                900+ airlines and 2 million hotels in real-time, ensuring you always get the best deal
                 with complete transparency.
               </p>
               <p className="text-lg text-gray-600 leading-relaxed">

@@ -195,7 +195,7 @@ export default function ActivitiesInCityPage() {
           </div>
           <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-6 text-white">
             <h3 className="text-xl font-bold mb-2">Flights to {cityInfo.name}</h3>
-            <p className="text-blue-100 mb-4">Compare 500+ airlines for best prices</p>
+            <p className="text-blue-100 mb-4">Compare 900+ airlines for best prices</p>
             <Link href={`/flights/to/${citySlug}`} className="inline-flex items-center gap-2 bg-white text-blue-600 px-4 py-2 rounded-xl font-semibold">
               Search Flights <ArrowRight className="w-4 h-4" />
             </Link>

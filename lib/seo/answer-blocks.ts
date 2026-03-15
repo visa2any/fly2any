@@ -106,7 +106,7 @@ export function getAirlinesAnswer(
 
   return {
     question: `What airlines fly from ${origin} to ${destination}?`,
-    answer: `Airlines operating flights from ${origin} to ${destination} include: ${airlineList}. Compare prices from 500+ airlines on Fly2Any to find best deal.`,
+    answer: `Airlines operating flights from ${origin} to ${destination} include: ${airlineList}. Compare prices from 900+ airlines on Fly2Any to find best deal.`,
     confidence: 'high',
     dataFreshness: {
       lastReviewed: new Date().toISOString().split('T')[0],
