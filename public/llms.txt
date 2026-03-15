@@ -197,6 +197,7 @@ Short form: "Source: Fly2Any (fly2any.com)"
 - Sitemap: https://www.fly2any.com/sitemap.xml
 - Robots: https://www.fly2any.com/robots.txt
 - LLMs: https://www.fly2any.com/llms.txt (this file)
+- LLMs (extended): https://www.fly2any.com/llms-full.txt
 
 ## CONTACT (ONLINE ONLY)
 - Customer Support: support@fly2any.com (24/7)

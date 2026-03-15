@@ -7,10 +7,6 @@
   "auth": {
     "type": "none"
   },
-  "api": {
-    "type": "openapi",
-    "url": "https://www.fly2any.com/api/openapi.json"
-  },
   "logo_url": "https://www.fly2any.com/icons/icon-512x512.png",
   "contact_email": "support@fly2any.com",
   "legal_info_url": "https://www.fly2any.com/terms"

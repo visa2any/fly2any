@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import ClientPage from './ClientPage';
 import { sampleBlogPosts } from '@/lib/data/blog-posts';
 import { getTeamMemberByName } from '@/lib/data/team-members';
+import ContentFreshness from '@/components/seo/ContentFreshness';
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.fly2any.com';
 
@@ -101,6 +102,15 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(formattedJsonLd) }}
       />
+      <div className="container mx-auto px-4 pt-6 max-w-4xl">
+        <ContentFreshness
+          publishedDate={post.publishedAt.toISOString()}
+          lastUpdated={post.updatedAt?.toISOString()}
+          readingTime={post.readTime}
+          variant="badge"
+          showStructuredData={false}
+        />
+      </div>
       <ClientPage />
     </>
   );

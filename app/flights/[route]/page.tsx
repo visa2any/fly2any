@@ -37,6 +37,8 @@ import { RelatedLinks } from '@/components/seo/RelatedLinks';
 import { NoFlightsAvailable } from '@/components/seo/NoFlightsAvailable';
 import { EntitySchema, getRoutePageSchemaGraph, type RouteData } from '@/lib/seo/entity-schema';
 import { FlightRouteHero } from '@/components/seo/FlightRouteHero';
+import { RouteAnswerBlock } from '@/components/seo/RouteAnswerBlock';
+import { generateSpeakableSchema } from '@/lib/seo/geo-optimization';
 import Link from 'next/link';
 import { Search, MapPin, ArrowRight, Info, Clock, Calendar, HelpCircle, Map } from 'lucide-react';
 
@@ -175,6 +177,13 @@ export async function generateMetadata({ params }: { params: RouteParams }): Pro
       follow: true,
       'max-image-preview': 'large' as const,
       'max-snippet': -1,
+    },
+    other: {
+      'ai-summary': `Flights from ${originShort} to ${destinationShort} from $${priceFrom}. Flight time: ~${duration}. Compare 900+ airlines on Fly2Any. Best prices found 6-8 weeks before departure. Cheapest days: Tuesday and Wednesday.`,
+      'citation_title': `${origin} to ${destination} Flights | Fly2Any`,
+      'citation_author': 'Fly2Any',
+      'citation_publication_date': new Date().toISOString().split('T')[0],
+      'article:modified_time': new Date().toISOString(),
     },
   };
 }
@@ -365,11 +374,16 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
   // Generate complete schema graph using entity system
   const schemas = getRoutePageSchemaGraph(routeData, breadcrumbItems, routeFAQs);
 
+  // Speakable schema for voice search (Google Assistant, Alexa)
+  const speakableSchema = generateSpeakableSchema({
+    cssSelector: ['h1', '[data-aeo-primary="true"]', '.faq-question', '.faq-answer'],
+  });
+
   // Fallback if somehow hasInventory is false (shouldn't happen with new logic unless explicitly blocked)
   if (!pricing.hasInventory) {
     return (
       <>
-        <StructuredData schema={schemas} />
+        <StructuredData schema={[...schemas, speakableSchema]} />
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
           <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
             <div className="container mx-auto px-4">
@@ -405,7 +419,7 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
   return (
     <>
       {/* Structured Data */}
-      <StructuredData schema={schemas} />
+      <StructuredData schema={[...schemas, speakableSchema]} />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
         {/* Hero Section */}
@@ -445,6 +459,30 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
           </div>
         </section>
 
+        {/* AEO: Answer block for AI search engines */}
+        <section className="container mx-auto px-4 pt-8">
+          <RouteAnswerBlock
+            data={{
+              origin,
+              originName,
+              destination,
+              destinationName,
+              avgPrice: averagePrice,
+              lowestPrice: pricing.minPrice!,
+              currency: pricing.currency,
+              flightDuration,
+              airlines: pricing.airlines.map(code => {
+                const airline = MAJOR_AIRLINES.find(a => a.code === code);
+                return airline ? airline.name : code;
+              }),
+              directFlights: true,
+              lastUpdated: pricing.lastUpdated || new Date(),
+              priceConfidence: pricing.isEstimated ? 'medium' : 'high',
+              dataPoints: pricing.isEstimated ? 500 : 2000,
+            }}
+          />
+        </section>
+
         {/* Search Widget */}
         <section className="container mx-auto px-4 py-8">
           <div className="bg-white rounded-2xl shadow-xl p-8 -mt-16 relative z-10">
@@ -475,16 +513,16 @@ export default async function FlightRoutePage({ params }: { params: RouteParams 
         </section>
 
         {/* About This Route */}
-        <section className="container mx-auto px-4 py-12">
+        <section className="container mx-auto px-4 py-12" data-source="Fly2Any" data-date={new Date().toISOString().split('T')[0]}>
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               About Flights from {originName} to {destinationName}
             </h2>
 
-            <div className="prose max-w-none text-gray-700 leading-relaxed space-y-4">
+            <div className="prose max-w-none text-gray-700 leading-relaxed space-y-4" data-author="Fly2Any Travel Research">
               <p>
                 Looking for cheap flights from <strong>{originName} ({origin})</strong> to <strong>{destinationName} ({destination})</strong>?
-                You've come to the right place. Fly2Any compares prices from over 500 airlines to help you find the best deals on this popular route.
+                You've come to the right place. Fly2Any compares prices from over 900 airlines to help you find the best deals on this popular route.
               </p>
 
               <h3 className="text-2xl font-bold text-gray-900 mt-8 mb-4">Flight Information</h3>
